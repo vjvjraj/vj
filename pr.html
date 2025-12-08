@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TravelGPT | Ultra UI</title>
+    <title>TravelGPT | Ultimate Edition</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (Open Source) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Phosphor Icons -->
+    <!-- Phosphor Icons (Open Source) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Leaflet CSS -->
+    <!-- Leaflet CSS (Open Source Maps) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
     <!-- Leaflet JS -->
@@ -29,21 +29,15 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Ambient Noise Texture */
         .noise-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.03;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; opacity: 0.03;
             background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        /* Scrollbar Hiding */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Premium Glassmorphism */
         .glass {
             background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(20px);
@@ -58,38 +52,35 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.3s ease;
         }
-        
         .glass-card:active { transform: scale(0.98); }
-
-        /* Input Glow */
-        .input-glow:focus-within {
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
-            border-color: rgba(16, 185, 129, 0.5);
-        }
 
         /* Animations */
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes scan { 0% { top: 0%; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
+        @keyframes scan { 0% { top: 0%; opacity: 0; } 100% { top: 100%; opacity: 0; } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-5px); } }
         
         .animate-slide-up { animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        .scan-line { animation: scan 3s linear infinite; }
+        .scan-line { animation: scan 2s linear infinite; }
         .float-anim { animation: float 3s ease-in-out infinite; }
-        
-        /* Ticket Perforation Effect */
-        .ticket-perforation {
-            background-image: radial-gradient(circle at 0 0, transparent 6px, #1e293b 7px);
-            background-size: 100% 100%;
-            background-position: top left;
-        }
 
         #map { height: 100%; width: 100%; z-index: 0; border-radius: 2rem; }
         video { object-fit: cover; }
-        
-        /* Dropdown styling */
         select option { background-color: #0f172a; color: white; }
+        
+        /* Profile Menu */
+        #profile-menu { transform-origin: top right; transition: transform 0.2s ease-out, opacity 0.2s ease-out; }
+        #profile-menu.hidden { transform: scale(0.95); opacity: 0; pointer-events: none; }
+        
+        /* Custom Select Styling */
+        .custom-select-wrapper { position: relative; }
+        .custom-select-wrapper select {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            padding-right: 2rem;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="h-screen w-full flex justify-center items-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
@@ -112,7 +103,7 @@
                     <i class="ph-bold ph-bell text-xl text-slate-300 group-hover:text-white transition"></i>
                     <span id="notif-badge" class="hidden absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-slate-950 animate-pulse"></span>
                 </button>
-                <div class="w-9 h-9 rounded-full p-[2px] bg-gradient-to-br from-emerald-500 to-transparent">
+                <div onclick="toggleProfile()" class="w-9 h-9 rounded-full p-[2px] bg-gradient-to-br from-emerald-500 to-transparent cursor-pointer">
                     <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix" alt="User" class="rounded-full bg-slate-900 w-full h-full object-cover" />
                 </div>
 
@@ -120,15 +111,30 @@
                 <div id="notif-dropdown" class="absolute top-16 right-0 w-80 glass rounded-2xl shadow-2xl hidden z-50 animate-slide-up origin-top-right border border-white/5">
                     <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
                         <h3 class="font-semibold text-xs uppercase tracking-wider text-slate-400">Notifications</h3>
-                        <button onclick="clearNotifications()" class="text-[10px] text-emerald-400 hover:text-emerald-300 font-medium">Mark all read</button>
+                        <button onclick="clearNotifications()" class="text-[10px] text-emerald-400 hover:text-emerald-300 font-medium">Clear</button>
                     </div>
-                    <div id="notif-list" class="max-h-72 overflow-y-auto no-scrollbar">
-                        <!-- Dynamic notifications -->
-                        <div class="text-center p-8 text-xs text-slate-500 flex flex-col items-center gap-2">
-                            <i class="ph-duotone ph-bell-slash text-2xl opacity-50"></i>
-                            <span>All caught up!</span>
+                    <div id="notif-list" class="max-h-64 overflow-y-auto no-scrollbar p-2">
+                        <div class="text-center p-6 text-xs text-slate-500">No new alerts</div>
+                    </div>
+                </div>
+
+                <!-- PROFILE / SETTINGS MENU -->
+                <div id="profile-menu" class="hidden absolute top-16 right-0 w-64 glass rounded-2xl shadow-2xl z-50 border border-white/5 p-2">
+                    <div class="p-3 border-b border-white/5 mb-2">
+                        <p class="text-white font-bold">John Doe</p>
+                        <p class="text-xs text-slate-400">Explorer Level 5</p>
+                    </div>
+                    <button onclick="downloadOfflinePack()" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-left transition-colors">
+                        <i class="ph-duotone ph-download-simple text-emerald-400 text-lg"></i>
+                        <div class="flex-1">
+                            <p class="text-sm text-slate-200">Offline Pack</p>
+                            <p class="text-[10px] text-slate-500">Maps & Translation</p>
                         </div>
-                    </div>
+                    </button>
+                    <button class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-left transition-colors">
+                        <i class="ph-duotone ph-gear text-slate-400 text-lg"></i>
+                        <span class="text-sm text-slate-200">Settings</span>
+                    </button>
                 </div>
             </div>
         </header>
@@ -137,68 +143,126 @@
         <main id="main-container" class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-28 relative">
             
             <!-- VIEW: HOME -->
-            <section id="view-home" class="view-section min-h-full px-6 pt-28 pb-6 space-y-8">
+            <section id="view-home" class="view-section min-h-full px-6 pt-28 pb-6 space-y-6">
                 
-                <!-- Hero Weather Card (Updated with City Selector) -->
-                <div class="relative w-full h-48 rounded-[2rem] overflow-hidden shadow-2xl group">
-                    <!-- Gradient Mesh Background -->
+                <!-- LOCATION SELECTOR -->
+                <div class="flex justify-between items-end">
+                    <div class="custom-select-wrapper w-full max-w-[80%]">
+                        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Current Destination</label>
+                        <div class="relative flex items-center">
+                            <i class="ph-fill ph-map-pin text-emerald-400 text-xl absolute left-0"></i>
+                            <select id="city-selector" onchange="updateCity()" class="bg-transparent text-2xl font-bold text-white pl-7 pr-8 focus:outline-none truncate w-full">
+                                <optgroup label="Metros">
+                                    <option value="new-delhi">New Delhi</option>
+                                    <option value="mumbai">Mumbai</option>
+                                    <option value="bengaluru">Bengaluru</option>
+                                    <option value="chennai">Chennai</option>
+                                    <option value="kolkata">Kolkata</option>
+                                    <option value="hyderabad">Hyderabad</option>
+                                </optgroup>
+                                <optgroup label="North India">
+                                    <option value="agra">Agra</option>
+                                    <option value="amritsar">Amritsar</option>
+                                    <option value="jaipur">Jaipur</option>
+                                    <option value="jodhpur">Jodhpur</option>
+                                    <option value="leh">Leh (Ladakh)</option>
+                                    <option value="lucknow">Lucknow</option>
+                                    <option value="manali">Manali</option>
+                                    <option value="rishikesh">Rishikesh</option>
+                                    <option value="shimla">Shimla</option>
+                                    <option value="srinagar">Srinagar</option>
+                                    <option value="udaipur">Udaipur</option>
+                                    <option value="varanasi">Varanasi</option>
+                                </optgroup>
+                                <optgroup label="West India">
+                                    <option value="ahmedabad">Ahmedabad</option>
+                                    <option value="goa">Goa</option>
+                                    <option value="nagpur">Nagpur</option>
+                                    <option value="nashik">Nashik</option>
+                                    <option value="pune">Pune</option>
+                                    <option value="surat">Surat</option>
+                                </optgroup>
+                                <optgroup label="South India">
+                                    <option value="coimbatore">Coimbatore</option>
+                                    <option value="coorg">Coorg</option>
+                                    <option value="kochi">Kochi (Kerala)</option>
+                                    <option value="madurai">Madurai</option>
+                                    <option value="munnar">Munnar</option>
+                                    <option value="mysuru">Mysuru</option>
+                                    <option value="ooty">Ooty</option>
+                                    <option value="puducherry">Puducherry</option>
+                                    <option value="thiruvananthapuram">Thiruvananthapuram</option>
+                                    <option value="visakhapatnam">Visakhapatnam</option>
+                                </optgroup>
+                                <optgroup label="East & NE India">
+                                    <option value="bhubaneswar">Bhubaneswar</option>
+                                    <option value="darjeeling">Darjeeling</option>
+                                    <option value="gangtok">Gangtok</option>
+                                    <option value="guwahati">Guwahati</option>
+                                    <option value="puri">Puri</option>
+                                    <option value="shillong">Shillong</option>
+                                </optgroup>
+                                <optgroup label="Central India">
+                                    <option value="bhopal">Bhopal</option>
+                                    <option value="indore">Indore</option>
+                                </optgroup>
+                                <optgroup label="International">
+                                    <option value="paris">Paris</option>
+                                    <option value="tokyo">Tokyo</option>
+                                    <option value="new-york">New York</option>
+                                </optgroup>
+                            </select>
+                            <i class="ph-bold ph-caret-down text-slate-500 absolute right-0 pointer-events-none"></i>
+                        </div>
+                    </div>
+                    <button class="w-10 h-10 rounded-xl bg-slate-800 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                        <i class="ph-bold ph-sliders-horizontal"></i>
+                    </button>
+                </div>
+
+                <!-- Simplified Weather Card -->
+                <div class="relative w-full h-40 rounded-[2rem] overflow-hidden shadow-2xl group">
                     <div class="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-900 to-slate-900 opacity-90"></div>
                     <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-400 rounded-full mix-blend-overlay filter blur-[60px] opacity-20 animate-pulse"></div>
-                    <div class="absolute bottom-0 left-0 w-64 h-64 bg-cyan-400 rounded-full mix-blend-overlay filter blur-[60px] opacity-20"></div>
                     
-                    <div class="absolute inset-0 p-6 flex flex-col justify-between z-10">
-                        <div class="flex justify-between items-start">
-                            <div class="relative z-20">
-                                <div class="flex items-center gap-1.5 text-emerald-100/80 text-xs font-medium uppercase tracking-wider mb-1">
-                                    <i class="ph-fill ph-navigation-arrow"></i> Select Location
-                                </div>
-                                <div class="relative flex items-center">
-                                    <select id="city-selector" onchange="updateCity()" class="bg-transparent text-3xl font-bold text-white tracking-tight focus:outline-none cursor-pointer appearance-none pr-8">
-                                        <option value="new-delhi">New Delhi</option>
-                                        <option value="mumbai">Mumbai</option>
-                                        <option value="paris">Paris</option>
-                                        <option value="tokyo">Tokyo</option>
-                                        <option value="new-york">New York</option>
-                                    </select>
-                                    <i class="ph-bold ph-caret-down text-white absolute right-0 pointer-events-none text-xl"></i>
+                    <div class="absolute inset-0 p-6 flex flex-col justify-center z-10">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <i id="weather-icon" class="ph-duotone ph-sun-dim text-6xl text-yellow-300 float-anim"></i>
+                                <div>
+                                    <span id="city-temp" class="text-4xl font-bold text-white">32°</span>
+                                    <p id="city-cond" class="text-sm text-emerald-100/80 font-medium">Sunny & Clear</p>
                                 </div>
                             </div>
-                            <div id="city-aqi" class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs font-semibold text-white shadow-lg">
-                                AQI: 145
-                            </div>
-                        </div>
-                        <div class="flex items-end gap-4">
-                            <i id="weather-icon" class="ph-duotone ph-sun-dim text-5xl text-yellow-300 float-anim"></i>
-                            <div>
-                                <span id="city-temp" class="text-4xl font-bold text-white">32°</span>
-                                <p id="city-cond" class="text-sm text-emerald-100/70 font-medium">Sunny & Clear</p>
+                            <div class="flex flex-col items-end">
+                                <span class="text-[10px] text-emerald-200/60 uppercase tracking-wider font-bold">Air Quality</span>
+                                <div id="city-aqi" class="text-xl font-bold text-white mt-1">145</div>
+                                <div class="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white mt-1">Moderate</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Trip Planner Input -->
+                <!-- Trip Planner -->
                 <div class="space-y-4">
-                    <h3 class="text-lg font-semibold text-slate-200">Where to next?</h3>
-                    <div class="input-glow glass-card p-1.5 rounded-2xl flex items-center gap-2 transition-all duration-300 group focus-within:bg-slate-800/50">
-                        <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 group-focus-within:text-emerald-400 transition-colors">
+                    <div class="glass-card p-1.5 rounded-2xl flex items-center gap-2 focus-within:bg-slate-800/50 transition-colors border border-white/5">
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400">
                             <i class="ph-bold ph-magnifying-glass text-lg"></i>
                         </div>
-                        <input type="text" id="ai-input" placeholder="Search places..." class="bg-transparent border-none text-sm w-full px-2 py-3 focus:outline-none text-white placeholder-slate-500 font-medium">
+                        <input type="text" id="ai-input" placeholder="Find places..." class="bg-transparent border-none text-sm w-full px-2 py-3 focus:outline-none text-white placeholder-slate-500 font-medium">
                         <button onclick="generateTrip()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 p-3 rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)] active:scale-95">
                             <i class="ph-bold ph-magic-wand text-lg"></i>
                         </button>
                     </div>
                     
-                    <!-- Chips -->
                     <div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-                        <button onclick="setInput('Heritage')" class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-slate-800/50 border border-white/5 text-xs font-medium text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/30 transition-all flex items-center gap-2">
+                        <button onclick="setInput('Heritage'); generateTrip()" class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-slate-800/50 border border-white/5 text-xs font-medium text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all flex items-center gap-2">
                             <i class="ph-duotone ph-columns"></i> Heritage
                         </button>
-                        <button onclick="setInput('Food')" class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-slate-800/50 border border-white/5 text-xs font-medium text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/30 transition-all flex items-center gap-2">
+                        <button onclick="setInput('Food'); generateTrip()" class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-slate-800/50 border border-white/5 text-xs font-medium text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all flex items-center gap-2">
                             <i class="ph-duotone ph-bowl-food"></i> Food
                         </button>
-                        <button onclick="setInput('Shopping')" class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-slate-800/50 border border-white/5 text-xs font-medium text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/30 transition-all flex items-center gap-2">
+                        <button onclick="setInput('Shopping'); generateTrip()" class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-slate-800/50 border border-white/5 text-xs font-medium text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all flex items-center gap-2">
                             <i class="ph-duotone ph-shopping-bag"></i> Shopping
                         </button>
                     </div>
@@ -218,7 +282,7 @@
                 </div>
             </section>
 
-            <!-- VIEW: MAP -->
+            <!-- VIEW: MAP (With SOS) -->
             <section id="view-map" class="view-section hidden w-full h-full relative">
                 <div id="map" class="bg-slate-800 h-full w-full grayscale-[50%] contrast-[1.1]"></div>
                 
@@ -227,6 +291,14 @@
                         <i class="ph-bold ph-crosshair text-xl text-emerald-400"></i>
                     </button>
                 </div>
+
+                <!-- SOS BUTTON -->
+                <div class="absolute bottom-28 left-4 z-[400]">
+                    <button onclick="triggerSOS()" class="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center text-white shadow-[0_0_30px_rgba(220,38,38,0.6)] animate-pulse active:scale-95 border-4 border-red-800">
+                        <i class="ph-bold ph-warning text-2xl"></i>
+                    </button>
+                </div>
+
                 <!-- Context Card -->
                 <div id="map-card" class="absolute bottom-28 left-6 right-6 glass p-5 rounded-3xl animate-slide-up hidden z-[400] bg-slate-900/90 border border-white/10 shadow-2xl">
                     <div class="flex justify-between items-start mb-3">
@@ -239,29 +311,25 @@
                         <button onclick="document.getElementById('map-card').classList.add('hidden')" class="text-slate-500 hover:text-white"><i class="ph-bold ph-x"></i></button>
                     </div>
                     <p id="map-card-desc" class="text-sm text-slate-400 mb-4 leading-relaxed">Description goes here.</p>
-                    <button onclick="switchTab('ar')" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-3 rounded-xl text-sm font-bold shadow-lg shadow-emerald-900/50 transition-all flex items-center justify-center gap-2">
+                    <button onclick="switchTab('ar')" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-xl text-sm font-bold shadow-lg transition-all flex items-center justify-center gap-2">
                         <i class="ph-bold ph-goggles"></i> View in AR
                     </button>
                 </div>
             </section>
 
-            <!-- VIEW: AR -->
+            <!-- VIEW: AR (With Food Lens) -->
             <section id="view-ar" class="view-section hidden w-full h-full relative bg-black">
                 <video id="ar-video" autoplay playsinline muted class="absolute inset-0 w-full h-full opacity-60"></video>
-                
-                <!-- Grid Overlay Effect -->
                 <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
                 
                 <div id="camera-error" class="hidden absolute inset-0 flex items-center justify-center bg-slate-950 z-50 text-center p-8">
                     <div class="max-w-xs">
-                        <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4">
-                            <i class="ph-fill ph-camera-slash text-3xl text-slate-500"></i>
-                        </div>
-                        <h3 class="text-white font-bold mb-2">Camera Unavailable</h3>
-                        <p class="text-sm text-slate-400">Please ensure you are using HTTPS or localhost to enable AR features.</p>
+                        <i class="ph-fill ph-camera-slash text-4xl text-slate-500 mb-4"></i>
+                        <p class="text-sm text-slate-400">Allow camera access (HTTPS required).</p>
                     </div>
                 </div>
 
+                <!-- Historical Overlay -->
                 <div id="ar-overlay-img" class="absolute inset-0 w-full h-full bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-700 pointer-events-none backdrop-blur-sm">
                      <div class="text-center">
                          <h2 class="text-5xl font-bold text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.8)] mb-2 tracking-tighter">1931</h2>
@@ -269,27 +337,33 @@
                      </div>
                  </div>
 
+                 <!-- Food Lens Overlay -->
+                 <div id="food-lens-overlay" class="absolute inset-0 hidden pointer-events-none">
+                     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-dashed border-emerald-400 rounded-2xl">
+                         <div class="absolute top-0 left-0 w-full h-1 bg-emerald-400 shadow-[0_0_10px_#34d399] scan-line"></div>
+                     </div>
+                     <div class="absolute bottom-32 left-0 right-0 text-center">
+                         <div class="bg-black/60 backdrop-blur inline-block px-4 py-2 rounded-full border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+                             <i class="ph-bold ph-scan"></i> SCANNING FOR ALLERGENS
+                         </div>
+                     </div>
+                 </div>
+
                 <!-- HUD -->
                 <div class="absolute inset-0 z-10 p-6 flex flex-col justify-between pointer-events-none">
                     <div class="flex justify-between items-start">
                          <div class="bg-slate-900/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-[10px] font-mono text-emerald-400 flex items-center gap-2 shadow-lg">
-                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]"></span> LIVE
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE
                         </div>
-                        <div class="scan-line h-0.5 w-full bg-emerald-500/50 absolute top-0 left-0 shadow-[0_0_10px_#10b981]"></div>
                     </div>
                     
-                    <div class="glass p-4 rounded-2xl flex items-center gap-4 pointer-events-auto shadow-2xl bg-slate-900/80 border-t border-white/10">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
-                            <i class="ph-duotone ph-clock-counter-clockwise text-2xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="font-bold text-sm text-white">Time Travel</h4>
-                            <p class="text-[10px] text-slate-400 font-medium">Visualise historical layers</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input id="ar-toggle-input" type="checkbox" value="" class="sr-only peer" onchange="toggleAROverlay()">
-                            <div class="w-12 h-7 bg-slate-700 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md transition-colors"></div>
-                        </label>
+                    <div class="glass p-3 rounded-2xl flex items-center gap-3 pointer-events-auto shadow-2xl bg-slate-900/80 border-t border-white/10">
+                        <button onclick="toggleARMode('history')" id="btn-ar-history" class="flex-1 bg-emerald-600/20 text-emerald-400 py-3 rounded-xl text-xs font-bold border border-emerald-500/30">
+                            Time Travel
+                        </button>
+                        <button onclick="toggleARMode('food')" id="btn-ar-food" class="flex-1 bg-transparent text-slate-400 py-3 rounded-xl text-xs font-bold border border-transparent hover:bg-white/5">
+                            Food Lens
+                        </button>
                     </div>
                 </div>
             </section>
@@ -334,39 +408,47 @@
                 </div>
             </section>
 
-            <!-- VIEW: WALLET -->
+            <!-- VIEW: WALLET (With Expense) -->
             <section id="view-wallet" class="view-section hidden min-h-full px-6 pt-28 pb-6 space-y-6">
+                <!-- Budget Card -->
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-20"><i class="ph-duotone ph-wallet text-6xl text-white"></i></div>
+                    <p class="text-xs text-emerald-100 uppercase tracking-wider mb-1">Trip Budget</p>
+                    <h3 class="text-2xl font-bold text-white mb-4">₹<span id="budget-remaining">15,000</span></h3>
+                    <div class="w-full bg-black/20 h-1.5 rounded-full overflow-hidden">
+                        <div id="budget-bar" class="h-full bg-white/90 w-[75%]"></div>
+                    </div>
+                    <p class="text-[10px] text-emerald-100 mt-2 flex justify-between">
+                        <span>Spent: ₹<span id="budget-spent">5,000</span></span>
+                        <span>Total: ₹20,000</span>
+                    </p>
+                </div>
+
                 <div class="flex justify-between items-end mb-2">
-                    <h2 class="text-2xl font-bold text-white">My Trips</h2>
+                    <h2 class="text-xl font-bold text-white">My Trips</h2>
                     <span id="wallet-count" class="text-[10px] font-bold bg-slate-800 text-slate-400 px-2.5 py-1 rounded-lg border border-white/5">0 PASSES</span>
                 </div>
                 
-                <div id="wallet-container" class="space-y-5">
-                    <!-- Dynamic Tickets -->
-                </div>
+                <div id="wallet-container" class="space-y-5"></div>
             </section>
         </main>
 
-        <!-- === FLOATING BOTTOM NAV === -->
-        <nav class="absolute bottom-6 left-6 right-6 h-16 glass rounded-2xl z-50 flex justify-between items-center px-6 shadow-2xl shadow-black/50 border border-white/10">
-            <button onclick="switchTab('home')" id="btn-home" class="nav-btn active group flex flex-col items-center gap-1 w-12">
-                <i class="ph-fill ph-house text-2xl text-emerald-400 transition-all group-active:scale-90"></i>
-                <span class="w-1 h-1 rounded-full bg-emerald-400 mt-1"></span>
+        <!-- === NAV DOCK === -->
+        <nav class="absolute bottom-6 left-6 right-6 h-16 glass rounded-2xl z-50 flex justify-between items-center px-4 shadow-2xl border border-white/10">
+            <button onclick="switchTab('home')" id="btn-home" class="nav-btn active group flex flex-col items-center gap-1 w-10">
+                <i class="ph-fill ph-house text-2xl text-emerald-400"></i>
             </button>
-            <button onclick="switchTab('map')" id="btn-map" class="nav-btn group flex flex-col items-center gap-1 w-12 opacity-60 hover:opacity-100 transition-opacity">
-                <i class="ph-bold ph-map-trifold text-2xl text-slate-300 transition-all"></i>
-                <span class="w-1 h-1 rounded-full bg-transparent mt-1"></span>
+            <button onclick="switchTab('map')" id="btn-map" class="nav-btn group flex flex-col items-center gap-1 w-10 opacity-50 hover:opacity-100">
+                <i class="ph-bold ph-map-trifold text-2xl text-slate-300"></i>
             </button>
-            <button onclick="switchTab('ar')" class="relative -top-8 w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-[0_8px_20px_rgba(16,185,129,0.4)] border-[4px] border-slate-950 hover:scale-105 active:scale-95 transition-all group">
-                <i class="ph-bold ph-aperture text-2xl text-white animate-spin-slow"></i>
+            <button onclick="switchTab('ar')" class="nav-btn group flex flex-col items-center gap-1 w-10 opacity-50 hover:opacity-100">
+                <i class="ph-bold ph-camera text-2xl text-slate-300"></i>
             </button>
-             <button onclick="switchTab('translate')" id="btn-translate" class="nav-btn group flex flex-col items-center gap-1 w-12 opacity-60 hover:opacity-100 transition-opacity">
-                <i class="ph-bold ph-microphone text-2xl text-slate-300 transition-all"></i>
-                <span class="w-1 h-1 rounded-full bg-transparent mt-1"></span>
+            <button onclick="switchTab('translate')" id="btn-translate" class="nav-btn group flex flex-col items-center gap-1 w-10 opacity-50 hover:opacity-100">
+                <i class="ph-bold ph-microphone text-2xl text-slate-300"></i>
             </button>
-            <button onclick="switchTab('wallet')" id="btn-wallet" class="nav-btn group flex flex-col items-center gap-1 w-12 opacity-60 hover:opacity-100 transition-opacity">
-                <i class="ph-bold ph-ticket text-2xl text-slate-300 transition-all"></i>
-                <span class="w-1 h-1 rounded-full bg-transparent mt-1"></span>
+            <button onclick="switchTab('wallet')" id="btn-wallet" class="nav-btn group flex flex-col items-center gap-1 w-10 opacity-50 hover:opacity-100">
+                <i class="ph-bold ph-wallet text-2xl text-slate-300"></i>
             </button>
         </nav>
 
@@ -376,101 +458,51 @@
     <script>
         // === GLOBAL DATA ===
         const cityData = {
-            'new-delhi': {
-                name: 'New Delhi',
-                lat: 28.6139, lng: 77.2090,
-                aqi: 145, temp: '32°', cond: 'Sunny & Clear',
-                places: {
-                    'Heritage': [
-                        { title: 'Red Fort', desc: 'Mughal Fortress', time: '10:00 AM', lat: 28.6562, lng: 77.2410 },
-                        { title: 'India Gate', desc: 'War Memorial', time: '05:00 PM', lat: 28.6129, lng: 77.2295 }
-                    ],
-                    'Food': [
-                        { title: 'Paranthe Wali Gali', desc: 'Famous Breakfast', time: '09:00 AM', lat: 28.6559, lng: 77.2309 },
-                        { title: 'Karim\'s', desc: 'Mughlai Cuisine', time: '01:00 PM', lat: 28.6506, lng: 77.2335 }
-                    ],
-                    'Shopping': [
-                        { title: 'Sarojini Nagar', desc: 'Flea Market', time: '11:00 AM', lat: 28.5757, lng: 77.1990 },
-                        { title: 'Dilli Haat', desc: 'Handicrafts', time: '04:00 PM', lat: 28.5732, lng: 77.2079 }
-                    ]
-                }
-            },
-            'mumbai': {
-                name: 'Mumbai',
-                lat: 19.0760, lng: 72.8777,
-                aqi: 85, temp: '28°', cond: 'Humid & Cloudy',
-                places: {
-                    'Heritage': [
-                        { title: 'Gateway of India', desc: 'Iconic Arch', time: '09:00 AM', lat: 18.9220, lng: 72.8347 },
-                        { title: 'Elephanta Caves', desc: 'Ancient Caves', time: '02:00 PM', lat: 18.9633, lng: 72.9315 }
-                    ],
-                    'Food': [
-                        { title: 'Ashok Vada Pav', desc: 'Street Food King', time: '11:00 AM', lat: 19.0178, lng: 72.8478 },
-                        { title: 'Britannia & Co.', desc: 'Parsi Cafe', time: '01:00 PM', lat: 18.9345, lng: 72.8402 }
-                    ],
-                    'Shopping': [
-                        { title: 'Colaba Causeway', desc: 'Street Shopping', time: '04:00 PM', lat: 18.9154, lng: 72.8267 },
-                        { title: 'Linking Road', desc: 'Fashion Street', time: '06:00 PM', lat: 19.0636, lng: 72.8360 }
-                    ]
-                }
-            },
-            'paris': {
-                name: 'Paris',
-                lat: 48.8566, lng: 2.3522,
-                aqi: 45, temp: '18°', cond: 'Partly Cloudy',
-                places: {
-                    'Heritage': [
-                        { title: 'Eiffel Tower', desc: 'Iron Lady', time: '10:00 AM', lat: 48.8584, lng: 2.2945 },
-                        { title: 'Louvre Museum', desc: 'Art History', time: '02:00 PM', lat: 48.8606, lng: 2.3376 }
-                    ],
-                    'Food': [
-                        { title: 'Du Pain et des Idées', desc: 'Best Croissants', time: '09:00 AM', lat: 48.8716, lng: 2.3629 },
-                        { title: 'Le Café Marly', desc: 'View of Louvre', time: '01:00 PM', lat: 48.8603, lng: 2.3360 }
-                    ],
-                    'Shopping': [
-                        { title: 'Champs-Élysées', desc: 'Luxury Avenue', time: '04:00 PM', lat: 48.8698, lng: 2.3075 },
-                        { title: 'Le Marais', desc: 'Boutiques', time: '06:00 PM', lat: 48.8575, lng: 2.3577 }
-                    ]
-                }
-            },
-            'tokyo': {
-                name: 'Tokyo',
-                lat: 35.6762, lng: 139.6503,
-                aqi: 30, temp: '22°', cond: 'Clear Sky',
-                places: {
-                    'Heritage': [
-                        { title: 'Senso-ji', desc: 'Buddhist Temple', time: '09:00 AM', lat: 35.7148, lng: 139.7967 },
-                        { title: 'Meiji Shrine', desc: 'Shinto Shrine', time: '02:00 PM', lat: 35.6764, lng: 139.6993 }
-                    ],
-                    'Food': [
-                        { title: 'Tsukiji Market', desc: 'Sushi Breakfast', time: '08:00 AM', lat: 35.6655, lng: 139.7707 },
-                        { title: 'Ichiran Shibuya', desc: 'Famous Ramen', time: '01:00 PM', lat: 35.6604, lng: 139.7005 }
-                    ],
-                    'Shopping': [
-                        { title: 'Shibuya Crossing', desc: 'Iconic Spot', time: '04:00 PM', lat: 35.6595, lng: 139.7004 },
-                        { title: 'Akihabara', desc: 'Electronics', time: '06:00 PM', lat: 35.6984, lng: 139.7747 }
-                    ]
-                }
-            },
-            'new-york': {
-                name: 'New York',
-                lat: 40.7128, lng: -74.0060,
-                aqi: 55, temp: '20°', cond: 'Windy',
-                places: {
-                    'Heritage': [
-                        { title: 'Statue of Liberty', desc: 'Iconic Monument', time: '09:00 AM', lat: 40.6892, lng: -74.0445 },
-                        { title: 'Empire State', desc: 'City View', time: '06:00 PM', lat: 40.7488, lng: -73.9857 }
-                    ],
-                    'Food': [
-                        { title: 'Katz\'s Deli', desc: 'Pastrami Sandwich', time: '12:00 PM', lat: 40.7222, lng: -73.9874 },
-                        { title: 'Joe\'s Pizza', desc: 'Classic Slice', time: '02:00 PM', lat: 40.7305, lng: -74.0021 }
-                    ],
-                    'Shopping': [
-                        { title: 'Fifth Avenue', desc: 'Luxury Shopping', time: '04:00 PM', lat: 40.7619, lng: -73.9763 },
-                        { title: 'SoHo', desc: 'Trendy Boutiques', time: '06:00 PM', lat: 40.7233, lng: -74.0030 }
-                    ]
-                }
-            }
+            'new-delhi': { name: 'New Delhi', lat: 28.6139, lng: 77.2090, aqi: 145, temp: '32°', cond: 'Sunny', places: { 'Heritage': [{ title: 'Red Fort', desc: 'Mughal Fortress', time: '10:00 AM', lat: 28.6562, lng: 77.2410, cost: 500 }, { title: 'India Gate', desc: 'War Memorial', time: '05:00 PM', lat: 28.6129, lng: 77.2295, cost: 0 }, { title: 'Qutub Minar', desc: 'Tallest Minaret', time: '11:00 AM', lat: 28.5244, lng: 77.1855, cost: 600 }, { title: 'Humayun Tomb', desc: 'Garden Tomb', time: '02:00 PM', lat: 28.5933, lng: 77.2507, cost: 500 }], 'Food': [{ title: 'Paranthe Wali Gali', desc: 'Breakfast', time: '09:00 AM', lat: 28.6559, lng: 77.2309, cost: 200 }, { title: 'Karim\'s', desc: 'Mughlai Cuisine', time: '01:00 PM', lat: 28.6506, lng: 77.2335, cost: 800 }, { title: 'Pandara Road', desc: 'Butter Chicken', time: '08:00 PM', lat: 28.6096, lng: 77.2338, cost: 1200 }], 'Shopping': [{ title: 'Sarojini Nagar', desc: 'Flea Market', time: '11:00 AM', lat: 28.5757, lng: 77.1990, cost: 0 }, { title: 'Dilli Haat', desc: 'Handicrafts', time: '04:00 PM', lat: 28.5732, lng: 77.2079, cost: 100 }, { title: 'Khan Market', desc: 'High Street', time: '06:00 PM', lat: 28.6003, lng: 77.2269, cost: 0 }] } },
+            'mumbai': { name: 'Mumbai', lat: 19.0760, lng: 72.8777, aqi: 85, temp: '28°', cond: 'Humid', places: { 'Heritage': [{ title: 'Gateway of India', desc: 'Iconic Arch', time: '09:00 AM', lat: 18.9220, lng: 72.8347, cost: 0 }, { title: 'Elephanta Caves', desc: 'Ancient Caves', time: '02:00 PM', lat: 18.9633, lng: 72.9315, cost: 250 }, { title: 'CSMT Station', desc: 'Gothic Architecture', time: '05:00 PM', lat: 18.9400, lng: 72.8353, cost: 0 }], 'Food': [{ title: 'Ashok Vada Pav', desc: 'Street Food', time: '11:00 AM', lat: 19.0178, lng: 72.8478, cost: 50 }, { title: 'Britannia & Co.', desc: 'Parsi Cafe', time: '01:00 PM', lat: 18.9345, lng: 72.8402, cost: 600 }, { title: 'Bademiya', desc: 'Kebabs', time: '09:00 PM', lat: 18.9217, lng: 72.8331, cost: 500 }], 'Shopping': [{ title: 'Colaba Causeway', desc: 'Street Shopping', time: '04:00 PM', lat: 18.9154, lng: 72.8267, cost: 0 }, { title: 'Linking Road', desc: 'Fashion Street', time: '06:00 PM', lat: 19.0636, lng: 72.8360, cost: 0 }] } },
+            'bengaluru': { name: 'Bengaluru', lat: 12.9716, lng: 77.5946, aqi: 60, temp: '26°', cond: 'Pleasant', places: { 'Heritage': [{ title: 'Bangalore Palace', desc: 'Royal Palace', time: '10:00 AM', lat: 12.9988, lng: 77.5921, cost: 450 }, { title: 'Tipu Sultan Palace', desc: 'Summer Palace', time: '02:00 PM', lat: 12.9594, lng: 77.5737, cost: 20 }], 'Food': [{ title: 'Vidyarthi Bhavan', desc: 'Dosa', time: '08:00 AM', lat: 12.9450, lng: 77.5727, cost: 150 }, { title: 'CTR', desc: 'Benne Dosa', time: '05:00 PM', lat: 12.9972, lng: 77.5695, cost: 100 }], 'Shopping': [{ title: 'Commercial Street', desc: 'Shopping Hub', time: '11:00 AM', lat: 12.9822, lng: 77.6083, cost: 0 }] } },
+            'chennai': { name: 'Chennai', lat: 13.0827, lng: 80.2707, aqi: 70, temp: '30°', cond: 'Warm', places: { 'Heritage': [{ title: 'Kapaleeshwarar', desc: 'Temple', time: '07:00 AM', lat: 13.0334, lng: 80.2697, cost: 0 }, { title: 'San Thome Basilica', desc: 'Church', time: '04:00 PM', lat: 13.0337, lng: 80.2783, cost: 0 }], 'Food': [{ title: 'Murugan Idli', desc: 'Breakfast', time: '08:00 AM', lat: 13.0402, lng: 80.2335, cost: 200 }] } },
+            'kolkata': { name: 'Kolkata', lat: 22.5726, lng: 88.3639, aqi: 120, temp: '29°', cond: 'Humid', places: { 'Heritage': [{ title: 'Victoria Memorial', desc: 'Museum', time: '10:00 AM', lat: 22.5448, lng: 88.3426, cost: 30 }], 'Food': [{ title: 'Arsalan', desc: 'Biryani', time: '01:00 PM', lat: 22.5441, lng: 88.3970, cost: 400 }] } },
+            'hyderabad': { name: 'Hyderabad', lat: 17.3850, lng: 78.4867, aqi: 90, temp: '31°', cond: 'Sunny', places: { 'Heritage': [{ title: 'Charminar', desc: 'Iconic Mosque', time: '09:00 AM', lat: 17.3616, lng: 78.4747, cost: 25 }, { title: 'Golconda Fort', desc: 'Fort', time: '04:00 PM', lat: 17.3833, lng: 78.4011, cost: 25 }], 'Food': [{ title: 'Paradise', desc: 'Biryani', time: '01:00 PM', lat: 17.4411, lng: 78.4870, cost: 500 }] } },
+            'agra': { name: 'Agra', lat: 27.1767, lng: 78.0081, aqi: 140, temp: '33°', cond: 'Hot', places: { 'Heritage': [{ title: 'Taj Mahal', desc: 'Wonder of World', time: '06:00 AM', lat: 27.1751, lng: 78.0421, cost: 1100 }, { title: 'Agra Fort', desc: 'Mughal Fort', time: '02:00 PM', lat: 27.1795, lng: 78.0211, cost: 600 }], 'Food': [{ title: 'Panchi Petha', desc: 'Sweets', time: '10:00 AM', lat: 27.1760, lng: 78.0080, cost: 200 }] } },
+            'amritsar': { name: 'Amritsar', lat: 31.6339, lng: 74.8723, aqi: 110, temp: '28°', cond: 'Clear', places: { 'Heritage': [{ title: 'Golden Temple', desc: 'Spiritual Center', time: '04:00 AM', lat: 31.6200, lng: 74.8765, cost: 0 }, { title: 'Jallianwala Bagh', desc: 'Memorial', time: '10:00 AM', lat: 31.6206, lng: 74.8801, cost: 0 }], 'Food': [{ title: 'Kesar Da Dhaba', desc: 'Punjabi Food', time: '01:00 PM', lat: 31.6187, lng: 74.8760, cost: 400 }] } },
+            'jaipur': { name: 'Jaipur', lat: 26.9124, lng: 75.7873, aqi: 110, temp: '34°', cond: 'Hot', places: { 'Heritage': [{ title: 'Hawa Mahal', desc: 'Palace of Winds', time: '09:00 AM', lat: 26.9239, lng: 75.8267, cost: 200 }, { title: 'Amber Fort', desc: 'Hill Fort', time: '03:00 PM', lat: 26.9855, lng: 75.8513, cost: 500 }, { title: 'Jantar Mantar', desc: 'Observatory', time: '11:00 AM', lat: 26.9248, lng: 75.8246, cost: 200 }] } },
+            'jodhpur': { name: 'Jodhpur', lat: 26.2389, lng: 73.0243, aqi: 95, temp: '35°', cond: 'Sunny', places: { 'Heritage': [{ title: 'Mehrangarh Fort', desc: 'Blue City View', time: '09:00 AM', lat: 26.2975, lng: 73.0183, cost: 600 }, { title: 'Umaid Bhawan', desc: 'Royal Palace', time: '02:00 PM', lat: 26.2807, lng: 73.0470, cost: 100 }] } },
+            'leh': { name: 'Leh', lat: 34.1526, lng: 77.5770, aqi: 20, temp: '15°', cond: 'Cold', places: { 'Heritage': [{ title: 'Shanti Stupa', desc: 'Buddhist Stupa', time: '05:00 PM', lat: 34.1726, lng: 77.5683, cost: 0 }, { title: 'Leh Palace', desc: 'Old Palace', time: '10:00 AM', lat: 34.1661, lng: 77.5866, cost: 300 }] } },
+            'lucknow': { name: 'Lucknow', lat: 26.8467, lng: 80.9462, aqi: 150, temp: '32°', cond: 'Haze', places: { 'Heritage': [{ title: 'Bara Imambara', desc: 'Maze', time: '10:00 AM', lat: 26.8691, lng: 80.9130, cost: 300 }], 'Food': [{ title: 'Tunday Kababi', desc: 'Kebabs', time: '01:00 PM', lat: 26.8450, lng: 80.9230, cost: 300 }] } },
+            'manali': { name: 'Manali', lat: 32.2396, lng: 77.1887, aqi: 25, temp: '12°', cond: 'Chilly', places: { 'Heritage': [{ title: 'Hadimba Temple', desc: 'Wooden Temple', time: '08:00 AM', lat: 32.2483, lng: 77.1809, cost: 50 }], 'Shopping': [{ title: 'Mall Road', desc: 'Local Market', time: '06:00 PM', lat: 32.2396, lng: 77.1887, cost: 0 }] } },
+            'rishikesh': { name: 'Rishikesh', lat: 30.0869, lng: 78.2676, aqi: 45, temp: '25°', cond: 'Pleasant', places: { 'Heritage': [{ title: 'Laxman Jhula', desc: 'Bridge', time: '07:00 AM', lat: 30.1260, lng: 78.3303, cost: 0 }, { title: 'Beatles Ashram', desc: 'Yoga', time: '10:00 AM', lat: 30.1116, lng: 78.3129, cost: 150 }] } },
+            'shimla': { name: 'Shimla', lat: 31.1048, lng: 77.1734, aqi: 40, temp: '18°', cond: 'Cool', places: { 'Heritage': [{ title: 'The Ridge', desc: 'City Center', time: '05:00 PM', lat: 31.1041, lng: 77.1710, cost: 0 }, { title: 'Jakhu Temple', desc: 'Hanuman Temple', time: '09:00 AM', lat: 31.1012, lng: 77.1764, cost: 0 }] } },
+            'srinagar': { name: 'Srinagar', lat: 34.0837, lng: 74.7973, aqi: 35, temp: '20°', cond: 'Pleasant', places: { 'Heritage': [{ title: 'Dal Lake', desc: 'Shikara Ride', time: '05:00 PM', lat: 34.1130, lng: 74.8460, cost: 500 }, { title: 'Shalimar Bagh', desc: 'Mughal Garden', time: '10:00 AM', lat: 34.1497, lng: 74.8732, cost: 50 }] } },
+            'udaipur': { name: 'Udaipur', lat: 24.5854, lng: 73.7125, aqi: 80, temp: '30°', cond: 'Sunny', places: { 'Heritage': [{ title: 'City Palace', desc: 'Royal Residence', time: '09:00 AM', lat: 24.5764, lng: 73.6835, cost: 400 }, { title: 'Lake Pichola', desc: 'Boat Ride', time: '05:00 PM', lat: 24.5683, lng: 73.6806, cost: 300 }] } },
+            'varanasi': { name: 'Varanasi', lat: 25.3176, lng: 82.9739, aqi: 130, temp: '30°', cond: 'Sunny', places: { 'Heritage': [{ title: 'Kashi Vishwanath', desc: 'Temple', time: '06:00 AM', lat: 25.3109, lng: 83.0107, cost: 0 }, { title: 'Ganga Aarti', desc: 'Evening Ritual', time: '06:00 PM', lat: 25.3076, lng: 83.0104, cost: 0 }] } },
+            'ahmedabad': { name: 'Ahmedabad', lat: 23.0225, lng: 72.5714, aqi: 100, temp: '33°', cond: 'Sunny', places: { 'Heritage': [{ title: 'Sabarmati Ashram', desc: 'Gandhi Home', time: '09:00 AM', lat: 23.0607, lng: 72.5807, cost: 0 }], 'Food': [{ title: 'Manek Chowk', desc: 'Night Market', time: '09:00 PM', lat: 23.0232, lng: 72.5907, cost: 200 }] } },
+            'goa': { name: 'Goa', lat: 15.4909, lng: 73.8278, aqi: 40, temp: '29°', cond: 'Tropical', places: { 'Heritage': [{ title: 'Basilica of Bom Jesus', desc: 'Church', time: '10:00 AM', lat: 15.5009, lng: 73.9116, cost: 0 }, { title: 'Fort Aguada', desc: 'Fort', time: '05:00 PM', lat: 15.4922, lng: 73.7737, cost: 0 }] } },
+            'pune': { name: 'Pune', lat: 18.5204, lng: 73.8567, aqi: 75, temp: '27°', cond: 'Pleasant', places: { 'Heritage': [{ title: 'Shaniwar Wada', desc: 'Fort', time: '10:00 AM', lat: 18.5195, lng: 73.8553, cost: 25 }], 'Food': [{ title: 'Goodluck Cafe', desc: 'Bun Maska', time: '08:00 AM', lat: 18.5173, lng: 73.8415, cost: 100 }] } },
+            'coorg': { name: 'Coorg', lat: 12.3375, lng: 75.8069, aqi: 30, temp: '22°', cond: 'Mist', places: { 'Heritage': [{ title: 'Abbey Falls', desc: 'Waterfall', time: '10:00 AM', lat: 12.4517, lng: 75.7196, cost: 15 }, { title: 'Raja\'s Seat', desc: 'View Point', time: '05:00 PM', lat: 12.4172, lng: 75.7409, cost: 10 }] } },
+            'kochi': { name: 'Kochi', lat: 9.9312, lng: 76.2673, aqi: 45, temp: '30°', cond: 'Humid', places: { 'Heritage': [{ title: 'Fort Kochi', desc: 'Chinese Nets', time: '05:00 PM', lat: 9.9655, lng: 76.2421, cost: 0 }] } },
+            'mysuru': { name: 'Mysuru', lat: 12.2958, lng: 76.6394, aqi: 55, temp: '27°', cond: 'Pleasant', places: { 'Heritage': [{ title: 'Mysore Palace', desc: 'Palace', time: '10:00 AM', lat: 12.3051, lng: 76.6552, cost: 100 }, { title: 'Chamundi Hill', desc: 'Temple', time: '07:00 AM', lat: 12.2753, lng: 76.6702, cost: 0 }] } },
+            'ooty': { name: 'Ooty', lat: 11.4102, lng: 76.6950, aqi: 30, temp: '16°', cond: 'Cool', places: { 'Heritage': [{ title: 'Botanical Garden', desc: 'Garden', time: '10:00 AM', lat: 11.4194, lng: 76.7113, cost: 50 }, { title: 'Ooty Lake', desc: 'Boating', time: '04:00 PM', lat: 11.4079, lng: 76.6917, cost: 300 }] } },
+            'darjeeling': { name: 'Darjeeling', lat: 27.0360, lng: 88.2627, aqi: 30, temp: '14°', cond: 'Cold', places: { 'Heritage': [{ title: 'Tiger Hill', desc: 'Sunrise', time: '04:30 AM', lat: 26.9950, lng: 88.2866, cost: 0 }, { title: 'Toy Train', desc: 'Joy Ride', time: '10:00 AM', lat: 27.0390, lng: 88.2636, cost: 1000 }] } },
+            'gangtok': { name: 'Gangtok', lat: 27.3389, lng: 88.6065, aqi: 25, temp: '15°', cond: 'Cloudy', places: { 'Heritage': [{ title: 'MG Marg', desc: 'City Center', time: '05:00 PM', lat: 27.3297, lng: 88.6121, cost: 0 }, { title: 'Rumtek Monastery', desc: 'Monastery', time: '10:00 AM', lat: 27.3060, lng: 88.5997, cost: 10 }] } },
+            'paris': { name: 'Paris', lat: 48.8566, lng: 2.3522, aqi: 45, temp: '18°', cond: 'Cloudy' },
+            'tokyo': { name: 'Tokyo', lat: 35.6762, lng: 139.6503, aqi: 30, temp: '22°', cond: 'Clear' },
+            'new-york': { name: 'New York', lat: 40.7128, lng: -74.0060, aqi: 55, temp: '20°', cond: 'Windy' },
+            'surat': { name: 'Surat', lat: 21.1702, lng: 72.8311, aqi: 95, temp: '32°', cond: 'Humid', places: { 'Heritage': [{ title: 'Dumas Beach', desc: 'Black Sand Beach', time: '05:00 PM', lat: 21.0718, lng: 72.7169, cost: 0 }] } },
+            'nagpur': { name: 'Nagpur', lat: 21.1458, lng: 79.0882, aqi: 85, temp: '34°', cond: 'Hot', places: { 'Heritage': [{ title: 'Deekshabhoomi', desc: 'Buddhist Monument', time: '10:00 AM', lat: 21.1278, lng: 79.0664, cost: 0 }] } },
+            'nashik': { name: 'Nashik', lat: 19.9975, lng: 73.7898, aqi: 70, temp: '28°', cond: 'Pleasant', places: { 'Heritage': [{ title: 'Sula Vineyards', desc: 'Winery Tour', time: '11:00 AM', lat: 19.9904, lng: 73.6873, cost: 400 }] } },
+            'coimbatore': { name: 'Coimbatore', lat: 11.0168, lng: 76.9558, aqi: 50, temp: '28°', cond: 'Cloudy', places: { 'Heritage': [{ title: 'Adiyogi Shiva', desc: '112ft Statue', time: '06:00 PM', lat: 10.9723, lng: 76.7749, cost: 0 }] } },
+            'madurai': { name: 'Madurai', lat: 9.9252, lng: 78.1198, aqi: 65, temp: '33°', cond: 'Hot', places: { 'Heritage': [{ title: 'Meenakshi Temple', desc: 'Historic Temple', time: '07:00 AM', lat: 9.9195, lng: 78.1193, cost: 0 }] } },
+            'munnar': { name: 'Munnar', lat: 10.0889, lng: 77.0595, aqi: 25, temp: '18°', cond: 'Mist', places: { 'Heritage': [{ title: 'Tea Gardens', desc: 'Scenic View', time: '09:00 AM', lat: 10.0892, lng: 77.0620, cost: 0 }] } },
+            'puducherry': { name: 'Puducherry', lat: 11.9416, lng: 79.8083, aqi: 50, temp: '30°', cond: 'Sunny', places: { 'Heritage': [{ title: 'Promenade Beach', desc: 'Sea View', time: '06:00 AM', lat: 11.9363, lng: 79.8347, cost: 0 }] } },
+            'thiruvananthapuram': { name: 'Thiruvananthapuram', lat: 8.5241, lng: 76.9366, aqi: 40, temp: '29°', cond: 'Humid', places: { 'Heritage': [{ title: 'Padmanabhaswamy', desc: 'Richest Temple', time: '05:00 AM', lat: 8.4830, lng: 76.9436, cost: 0 }] } },
+            'visakhapatnam': { name: 'Visakhapatnam', lat: 17.6868, lng: 83.2185, aqi: 60, temp: '31°', cond: 'Humid', places: { 'Heritage': [{ title: 'Submarine Museum', desc: 'INS Kursura', time: '04:00 PM', lat: 17.7174, lng: 83.3303, cost: 50 }] } },
+            'bhubaneswar': { name: 'Bhubaneswar', lat: 20.2961, lng: 85.8245, aqi: 75, temp: '30°', cond: 'Sunny', places: { 'Heritage': [{ title: 'Lingaraj Temple', desc: 'Ancient Temple', time: '07:00 AM', lat: 20.2403, lng: 85.8331, cost: 0 }] } },
+            'guwahati': { name: 'Guwahati', lat: 26.1158, lng: 91.7086, aqi: 80, temp: '28°', cond: 'Humid', places: { 'Heritage': [{ title: 'Kamakhya Temple', desc: 'Hilltop Temple', time: '08:00 AM', lat: 26.1664, lng: 91.7052, cost: 0 }] } },
+            'puri': { name: 'Puri', lat: 19.8135, lng: 85.8312, aqi: 50, temp: '29°', cond: 'Sunny', places: { 'Heritage': [{ title: 'Jagannath Temple', desc: 'Pilgrimage', time: '06:00 AM', lat: 19.8049, lng: 85.8179, cost: 0 }] } },
+            'shillong': { name: 'Shillong', lat: 25.5788, lng: 91.8933, aqi: 30, temp: '18°', cond: 'Pleasant', places: { 'Heritage': [{ title: 'Umiam Lake', desc: 'Scenic Lake', time: '10:00 AM', lat: 25.6667, lng: 91.9333, cost: 50 }] } },
+            'bhopal': { name: 'Bhopal', lat: 23.2599, lng: 77.4126, aqi: 85, temp: '30°', cond: 'Clear', places: { 'Heritage': [{ title: 'Sanchi Stupa', desc: 'Buddhist Site', time: '10:00 AM', lat: 23.4812, lng: 77.7397, cost: 40 }] } },
+            'indore': { name: 'Indore', lat: 22.7196, lng: 75.8577, aqi: 90, temp: '31°', cond: 'Sunny', places: { 'Food': [{ title: 'Sarafa Bazaar', desc: 'Night Food', time: '09:00 PM', lat: 22.7177, lng: 75.8504, cost: 100 }] } },
         };
 
         const DB = {
@@ -486,25 +518,25 @@
                 let wallet = DB.get('wallet') || [];
                 wallet.push(ticket);
                 DB.save('wallet', wallet);
-                DB.addNotification(`Added to wallet: ${ticket.title}`);
+                
+                let spent = parseInt(localStorage.getItem('budgetSpent') || 0);
+                spent += (ticket.cost || 0);
+                localStorage.setItem('budgetSpent', spent);
+                
+                DB.addNotification(`Booked: ${ticket.title} (₹${ticket.cost || 0})`);
                 renderWallet();
             }
         };
 
         let map, mapMarkers = [];
+        let currentCity = 'new-delhi';
         let arStream = null;
-        let recognition = null;
-        let isListening = false;
-        let currentCity = 'new-delhi'; // Default
 
         window.onload = () => {
             renderNotifications();
             renderWallet();
-            const savedTrip = DB.get('currentTrip');
-            if(savedTrip) renderTimeline(savedTrip);
-            
-            // Restore city selection if needed
-            // (Skipped for simplicity, resets to Delhi on reload)
+            if(!localStorage.getItem('budgetTotal')) localStorage.setItem('budgetTotal', 20000);
+            updateBudgetUI();
         };
 
         function switchTab(tabId) {
@@ -515,50 +547,30 @@
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
 
             if(tabId === 'map') {
-                setTimeout(() => {
-                    if(!map) initMap();
-                    else map.invalidateSize();
-                }, 100);
+                setTimeout(() => { if(!map) initMap(); else map.invalidateSize(); }, 100);
             }
 
-            // Update Nav State
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.add('opacity-60');
+                btn.classList.add('opacity-50');
                 btn.querySelector('i').classList.replace('ph-fill', 'ph-bold');
-                btn.querySelector('i').classList.replace('text-emerald-400', 'text-slate-300');
-                btn.querySelector('span').classList.replace('bg-emerald-400', 'bg-transparent');
+                btn.querySelector('i').classList.remove('text-emerald-400');
             });
             const active = document.getElementById(`btn-${tabId}`);
             if(active) {
-                active.classList.remove('opacity-60');
+                active.classList.remove('opacity-50');
                 active.querySelector('i').classList.replace('ph-bold', 'ph-fill');
-                active.querySelector('i').classList.replace('text-slate-300', 'text-emerald-400');
-                active.querySelector('span').classList.replace('bg-transparent', 'bg-emerald-400');
+                active.querySelector('i').classList.add('text-emerald-400');
             }
         }
 
-        // === CITY SELECTOR LOGIC ===
         function updateCity() {
-            const selector = document.getElementById('city-selector');
-            const cityKey = selector.value;
-            const data = cityData[cityKey];
-            
-            currentCity = cityKey;
-            
-            // Update UI
-            document.getElementById('city-aqi').innerText = `AQI: ${data.aqi}`;
-            document.getElementById('city-temp').innerText = data.temp;
-            document.getElementById('city-cond').innerText = data.cond;
-            
-            // Reset Itinerary
-            clearItinerary();
-            
-            // Update Map if visible
-            if (map) {
-                map.flyTo([data.lat, data.lng], 13);
-            }
-            
-            DB.addNotification(`Location changed to ${data.name}`);
+            const val = document.getElementById('city-selector').value;
+            currentCity = val;
+            const data = cityData[val];
+            document.getElementById('city-aqi').innerText = data.aqi || 50;
+            document.getElementById('city-temp').innerText = data.temp || '--';
+            if(map) map.setView([data.lat, data.lng], 13);
+            DB.addNotification(`Teleported to ${data.name}`);
         }
 
         function setInput(val) { document.getElementById('ai-input').value = val; }
@@ -566,105 +578,103 @@
         function generateTrip() {
             const input = document.getElementById('ai-input').value.toLowerCase();
             const btn = document.querySelector('#view-home button[onclick="generateTrip()"]');
-            
             btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>';
-
             setTimeout(() => {
-                btn.innerHTML = '<i class="ph-bold ph-magic-wand"></i>';
+                btn.innerHTML = '<i class="ph-bold ph-magic-wand text-lg"></i>';
                 
-                // Dynamic City Logic
                 const city = cityData[currentCity];
-                let items = [];
+                let allPlaces = [];
                 
-                if (input.includes('food')) {
-                    items = city.places['Food'] || [];
-                } else if (input.includes('shopping')) {
-                    items = city.places['Shopping'] || [];
-                } else {
-                    // Default to Heritage if input is generic or matches 'heritage'
-                    items = city.places['Heritage'] || [];
+                if (city.places) {
+                    if (input.includes('heritage') || input.includes('history')) {
+                        allPlaces = city.places['Heritage'] || [];
+                    } else if (input.includes('food') || input.includes('restaurant')) {
+                        allPlaces = city.places['Food'] || [];
+                    } else if (input.includes('shopping') || input.includes('market')) {
+                        allPlaces = city.places['Shopping'] || [];
+                    } else {
+                        // "Best of" Mix: Pick 1 from each category if available
+                        if(city.places['Heritage']) allPlaces.push(...city.places['Heritage'].slice(0, 1));
+                        if(city.places['Food']) allPlaces.push(...city.places['Food'].slice(0, 1));
+                        if(city.places['Shopping']) allPlaces.push(...city.places['Shopping'].slice(0, 1));
+                        
+                        // If empty mix, just show whatever exists
+                        if (allPlaces.length === 0) {
+                             Object.values(city.places).forEach(arr => allPlaces.push(...arr));
+                        }
+                    }
                 }
                 
-                // Fallback if no specific data
-                if (items.length === 0) {
-                    items = city.places['Heritage']; // Default fallback
+                // Fallback if truly empty
+                if (allPlaces.length === 0) {
+                    allPlaces = [{ title: 'City Center', desc: 'Explore the city center', time: '10:00 AM', lat: city.lat, lng: city.lng, cost: 0 }];
                 }
 
-                DB.save('currentTrip', items);
-                renderTimeline(items);
-                updateMapMarkers(items);
-                DB.addNotification(`Generated ${city.name} itinerary`);
+                renderTimeline(allPlaces);
+                if(map) updateMapMarkers(allPlaces);
+                DB.addNotification(`Generated ${allPlaces.length} spots for ${city.name}`);
             }, 800);
         }
 
         function renderTimeline(items) {
-            const container = document.getElementById('timeline-container');
             document.getElementById('ai-result').classList.remove('hidden');
-            container.innerHTML = items.map((item, i) => `
+            document.getElementById('timeline-container').innerHTML = items.map((item, i) => `
                 <div class="relative group animate-slide-up" style="animation-delay: ${i * 100}ms">
                     <div class="absolute -left-[29px] top-1 w-4 h-4 rounded-full border-4 border-slate-900 bg-emerald-500 shadow-[0_0_10px_#10b981]"></div>
-                    <div class="glass-card p-4 rounded-2xl flex justify-between items-center hover:bg-slate-800 transition-colors border border-white/5">
+                    <div class="glass-card p-4 rounded-2xl flex justify-between items-center hover:bg-white/5 border border-white/5">
                         <div>
-                            <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">${item.time}</span>
-                            <h4 class="font-bold text-base text-white mt-0.5">${item.title}</h4>
-                            <p class="text-xs text-slate-400 mt-1">${item.desc}</p>
+                            <span class="text-[10px] font-bold text-emerald-400 uppercase">${item.time}</span>
+                            <h4 class="font-bold text-sm text-white">${item.title}</h4>
+                            <p class="text-xs text-slate-400">${item.desc}</p>
                         </div>
-                        <button onclick="bookItem('${item.title}', '${item.time}', '${item.desc}')" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold transition-all border border-emerald-500/20 hover:border-emerald-500">
-                            Book
-                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="estimateRide(${item.lat}, ${item.lng})" class="w-8 h-8 rounded-lg bg-slate-800 text-yellow-400 flex items-center justify-center"><i class="ph-fill ph-taxi"></i></button>
+                            <button onclick="bookItem('${item.title}', '${item.time}', ${item.cost || 0})" class="bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500/20">Book ₹${item.cost||0}</button>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        function bookItem(title, time, desc) {
-            DB.addToWallet({ title, time, desc, id: Date.now() });
-            alert(`Booked: ${title}`);
+        function bookItem(title, time, cost) {
+            DB.addToWallet({ title, time, cost, id: Date.now() });
+            updateBudgetUI();
         }
 
-        function clearItinerary() {
-            localStorage.removeItem('currentTrip');
-            document.getElementById('ai-result').classList.add('hidden');
-            document.getElementById('timeline-container').innerHTML = '';
+        function estimateRide(destLat, destLng) {
+            const city = cityData[currentCity];
+            const dist = Math.sqrt(Math.pow(destLat - city.lat, 2) + Math.pow(destLng - city.lng, 2)) * 111; 
+            const price = Math.round(dist * 20) + 50; 
+            alert(`Cab Estimate: ₹${price} (${dist.toFixed(1)} km)\n• Uber Go: 4 mins away\n• Ola Mini: 6 mins away`);
+        }
+
+        function updateBudgetUI() {
+            const total = parseInt(localStorage.getItem('budgetTotal'));
+            const spent = parseInt(localStorage.getItem('budgetSpent') || 0);
+            const remaining = total - spent;
+            
+            document.getElementById('budget-remaining').innerText = remaining.toLocaleString();
+            document.getElementById('budget-spent').innerText = spent.toLocaleString();
+            const pct = Math.min(100, (spent / total) * 100);
+            document.getElementById('budget-bar').style.width = `${pct}%`;
+            document.getElementById('budget-bar').className = `h-full ${pct > 90 ? 'bg-red-500' : 'bg-white/90'}`;
         }
 
         function renderWallet() {
             const wallet = DB.get('wallet') || [];
-            const container = document.getElementById('wallet-container');
             document.getElementById('wallet-count').innerText = `${wallet.length} PASSES`;
+            const container = document.getElementById('wallet-container');
+            if(wallet.length===0) { container.innerHTML = `<div class="text-center py-10 opacity-30 text-xs">Empty</div>`; return; }
             
-            if(wallet.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 opacity-30 flex flex-col items-center"><i class="ph-duotone ph-ticket text-6xl mb-4"></i><p class="text-sm">Your wallet is empty</p></div>`;
-                return;
-            }
             container.innerHTML = wallet.map(item => `
-                <div class="bg-white rounded-3xl relative overflow-hidden shadow-xl animate-slide-up group">
-                    <!-- Top Section -->
-                    <div class="p-5 bg-slate-50 border-b border-dashed border-slate-300 relative z-10">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h4 class="font-bold text-xl text-slate-900">${item.title}</h4>
-                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">${item.desc}</span>
-                            </div>
-                            <div class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold">CONFIRMED</div>
-                        </div>
-                        <div class="flex items-center gap-2 text-slate-600">
-                            <i class="ph-bold ph-clock"></i>
-                            <span class="text-sm font-semibold">${item.time}</span>
-                        </div>
+                <div class="bg-white rounded-2xl p-4 relative overflow-hidden shadow-lg animate-slide-up">
+                    <div class="flex justify-between items-center mb-2 border-b border-dashed border-slate-300 pb-2">
+                        <h4 class="font-bold text-slate-900">${item.title}</h4>
+                        <span class="text-xs font-bold text-emerald-600">CONFIRMED</span>
                     </div>
-                    
-                    <!-- Tear-off Section -->
-                    <div class="p-4 bg-slate-100 relative z-10 flex justify-between items-center">
-                         <!-- Cutouts -->
-                        <div class="absolute -left-3 top-[-12px] w-6 h-6 bg-slate-950 rounded-full z-20"></div>
-                        <div class="absolute -right-3 top-[-12px] w-6 h-6 bg-slate-950 rounded-full z-20"></div>
-                        
-                        <div>
-                             <p class="text-[10px] text-slate-400 font-bold uppercase">Ticket ID</p>
-                             <p class="text-sm font-mono text-slate-700">#${item.id.toString().slice(-6)}</p>
-                        </div>
-                        <i class="ph-fill ph-qr-code text-3xl text-slate-900 opacity-80"></i>
+                    <div class="flex justify-between text-slate-500 text-xs">
+                        <span>${item.time}</span>
+                        <span>Paid: ₹${item.cost}</span>
                     </div>
                 </div>
             `).join('');
@@ -674,179 +684,112 @@
             const notifs = DB.get('notifications') || [];
             const badge = document.getElementById('notif-badge');
             const list = document.getElementById('notif-list');
+            
+            if (!badge || !list) return;
+
             if(notifs.length > 0) badge.classList.remove('hidden');
             else badge.classList.add('hidden');
+            
             if(notifs.length === 0) {
-                list.innerHTML = `<div class="text-center p-8 text-xs text-slate-500">All caught up</div>`;
+                list.innerHTML = `<div class="text-center p-6 text-xs text-slate-500">No new alerts</div>`;
                 return;
             }
+            
             list.innerHTML = notifs.map(n => `
-                <div class="p-4 border-b border-white/5 flex gap-3 hover:bg-white/5 transition-colors">
-                    <div class="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 flex items-center justify-center text-sm border border-white/5">
+                <div class="p-3 border-b border-white/5 flex gap-3 hover:bg-white/5 transition-colors text-left">
+                    <div class="w-6 h-6 rounded-full bg-slate-800 text-emerald-400 flex items-center justify-center text-xs border border-white/5 shrink-0">
                         <i class="ph-fill ph-bell-ringing"></i>
                     </div>
                     <div>
                         <p class="text-xs text-slate-200 font-medium leading-relaxed">${n.msg}</p>
-                        <p class="text-[10px] text-slate-500 mt-1">${n.time}</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">${n.time}</p>
                     </div>
                 </div>
             `).join('');
         }
 
-        function toggleNotifications() {
-            document.getElementById('notif-dropdown').classList.toggle('hidden');
-            document.getElementById('notif-badge').classList.add('hidden');
-        }
+        function toggleARMode(mode) {
+            const histBtn = document.getElementById('btn-ar-history');
+            const foodBtn = document.getElementById('btn-ar-food');
+            const histOverlay = document.getElementById('ar-overlay-img');
+            const foodOverlay = document.getElementById('food-lens-overlay');
 
-        function clearNotifications() {
-            localStorage.removeItem('notifications');
-            renderNotifications();
-        }
-
-        function initMap() {
-            // Default to current city
-            const city = cityData[currentCity];
-            map = L.map('map', { zoomControl: false }).setView([city.lat, city.lng], 13);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '' }).addTo(map);
-            const savedTrip = DB.get('currentTrip');
-            if(savedTrip) updateMapMarkers(savedTrip);
-        }
-
-        function updateMapMarkers(items) {
-            if(!map) return;
-            mapMarkers.forEach(m => map.removeLayer(m));
-            mapMarkers = [];
-            const bounds = [];
-            items.forEach(item => {
-                // Custom DivIcon for premium feel
-                const icon = L.divIcon({
-                    className: 'bg-transparent',
-                    html: `<div class="w-4 h-4 bg-emerald-500 rounded-full border-[3px] border-slate-900 shadow-[0_0_15px_#10b981]"></div>`
-                });
+            if(mode === 'history') {
+                histBtn.className = "flex-1 bg-emerald-600/20 text-emerald-400 py-3 rounded-xl text-xs font-bold border border-emerald-500/30";
+                foodBtn.className = "flex-1 bg-transparent text-slate-400 py-3 rounded-xl text-xs font-bold border border-transparent";
+                histOverlay.style.opacity = 1;
+                foodOverlay.classList.add('hidden');
+            } else {
+                foodBtn.className = "flex-1 bg-emerald-600/20 text-emerald-400 py-3 rounded-xl text-xs font-bold border border-emerald-500/30";
+                histBtn.className = "flex-1 bg-transparent text-slate-400 py-3 rounded-xl text-xs font-bold border border-transparent";
+                histOverlay.style.opacity = 0;
+                foodOverlay.classList.remove('hidden');
                 
-                const mk = L.marker([item.lat, item.lng], {icon: icon}).addTo(map);
-                mk.bindPopup(`<div class="text-slate-900 font-bold">${item.title}</div>`);
-                mk.on('click', () => showMapCard(item));
-                mapMarkers.push(mk);
-                bounds.push([item.lat, item.lng]);
-            });
-            if(bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
-        }
-
-        function showMapCard(item) {
-            const card = document.getElementById('map-card');
-            document.getElementById('map-card-title').innerText = item.title;
-            document.getElementById('map-card-desc').innerText = item.desc;
-            card.classList.remove('hidden');
-        }
-
-        function locateUserReal() {
-            if(!navigator.geolocation) return alert('No Geo support');
-            navigator.geolocation.getCurrentPosition(pos => {
-                const { latitude, longitude } = pos.coords;
-                L.marker([latitude, longitude]).addTo(map).bindPopup('You').openPopup();
-                map.flyTo([latitude, longitude], 15);
-            });
+                setTimeout(() => {
+                    DB.addNotification('Food Lens: No allergens detected');
+                }, 3000);
+            }
         }
 
         async function startCamera() {
             try {
                 arStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 document.getElementById('ar-video').srcObject = arStream;
-                document.getElementById('camera-error').classList.add('hidden');
-            } catch(e) {
-                document.getElementById('camera-error').classList.remove('hidden');
-            }
+            } catch(e) { document.getElementById('camera-error').classList.remove('hidden'); }
         }
-        function stopCamera() {
-            if(arStream) arStream.getTracks().forEach(t => t.stop());
-        }
-        function toggleAROverlay() {
-            const on = document.getElementById('ar-toggle-input').checked;
-            document.getElementById('ar-overlay-img').style.opacity = on ? 1 : 0;
+        function stopCamera() { if(arStream) arStream.getTracks().forEach(t => t.stop()); }
+
+        function initMap() {
+            const city = cityData[currentCity];
+            map = L.map('map', { zoomControl: false }).setView([city.lat, city.lng], 13);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         }
 
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-        function toggleListening() {
-            const btn = document.getElementById('mic-btn');
-            const ripple = document.getElementById('mic-ripple');
-            const status = document.getElementById('listening-status');
-            const sourceLang = document.getElementById('lang-source').value;
-
-            if (!SpeechRecognition) return alert("Browser does not support Speech API");
-
-            if (isListening) {
-                if (recognition) recognition.stop();
-                isListening = false;
-                btn.classList.replace('bg-emerald-600', 'bg-slate-800');
-                ripple.classList.remove('ripple-effect', 'opacity-100');
-                status.style.opacity = '0';
-            } else {
-                recognition = new SpeechRecognition();
-                recognition.lang = sourceLang;
-                recognition.continuous = false;
-                recognition.interimResults = false;
-
-                recognition.onstart = () => {
-                    isListening = true;
-                    btn.classList.replace('bg-slate-800', 'bg-emerald-600');
-                    ripple.classList.add('ripple-effect');
-                    ripple.style.opacity = '1';
-                    status.innerText = "Listening...";
-                    status.style.opacity = '1';
-                };
-
-                recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
-                    addChatBubble(transcript, 'user');
-                    status.innerText = "Translating...";
-                    setTimeout(() => {
-                        const translation = getMockTranslation(transcript);
-                        addChatBubble(translation, 'bot');
-                        status.style.opacity = '0';
-                        toggleListening(); 
-                    }, 1000);
-                };
-
-                recognition.start();
-            }
+        function updateMapMarkers(items) {
+            if(!map) return;
+            mapMarkers.forEach(m => map.removeLayer(m));
+            items.forEach(item => {
+                const icon = L.divIcon({ className: 'bg-transparent', html: `<div class="w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-lg"></div>` });
+                const m = L.marker([item.lat, item.lng], {icon}).addTo(map).bindPopup(item.title);
+                mapMarkers.push(m);
+            });
         }
 
-        function addChatBubble(text, sender) {
-            const chat = document.getElementById('translate-chat');
-            if(chat.querySelector('.text-center')) chat.innerHTML = '';
-
-            const div = document.createElement('div');
-            div.className = sender === 'user' ? "flex flex-col items-start animate-slide-up" : "flex flex-col items-end animate-slide-up";
+        function triggerSOS() {
+            const city = cityData[currentCity];
+            const safeLat = city.lat + 0.01;
+            const safeLng = city.lng + 0.01;
             
-            const color = sender === 'user' ? "bg-slate-800/80" : "bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg shadow-emerald-900/40";
-            const rounded = sender === 'user' ? "rounded-tl-none" : "rounded-tr-none";
-            const label = sender === 'user' ? "Original" : "Translated";
-
-            div.innerHTML = `
-                <div class="${color} p-4 rounded-2xl ${rounded} text-sm max-w-[85%] backdrop-blur-md border border-white/5">
-                    ${text}
-                </div>
-                <span class="text-[10px] text-slate-500 mt-1 mx-1">${label}</span>
-            `;
-            chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
+            const route = [[city.lat, city.lng], [safeLat, safeLng]];
+            L.polyline(route, {color: 'red', weight: 5, dashArray: '10, 10', opacity: 0.8}).addTo(map);
+            L.marker([safeLat, safeLng], {icon: L.divIcon({html: '<div class="text-2xl">👮‍♂️</div>', className:'bg-transparent'})}).addTo(map);
+            
+            map.fitBounds(route, {padding: [50,50]});
+            DB.addNotification('SOS ACTIVATED: Route to Safety plotted');
+            alert('SOS ALERT SENT!\n\n• Emergency Contacts Notified\n• Panic Route Generated\n• Flashlight Activated');
         }
 
-        function getMockTranslation(text) {
-            const target = document.getElementById('lang-target').value;
-            const lower = text.toLowerCase();
-            const dict = {
-                'hello': { 'hi-IN': 'Namaste', 'es-ES': 'Hola' },
-                'how much': { 'hi-IN': 'Kitne ka hai?', 'es-ES': 'Cuanto cuesta?' },
-                'thank you': { 'hi-IN': 'Dhanyavaad', 'es-ES': 'Gracias' },
-                'bathroom': { 'hi-IN': 'Souchalay', 'es-ES': 'Bano' }
-            };
-            for (let key in dict) {
-                if (lower.includes(key)) return dict[key][target] || `[${target}] ${text}`;
-            }
-            return `[${target}] ${text}`; 
+        function locateUserReal() {
+            navigator.geolocation.getCurrentPosition(pos => {
+                const {latitude, longitude} = pos.coords;
+                L.marker([latitude, longitude]).addTo(map).bindPopup('You').openPopup();
+                map.setView([latitude, longitude], 15);
+            });
+        }
+
+        function toggleProfile() { document.getElementById('profile-menu').classList.toggle('hidden'); }
+        function toggleNotifications() { document.getElementById('notif-dropdown').classList.toggle('hidden'); document.getElementById('notif-badge').classList.add('hidden'); }
+        function clearNotifications() { localStorage.removeItem('notifications'); renderNotifications(); }
+        function clearItinerary() { document.getElementById('ai-result').classList.add('hidden'); document.getElementById('timeline-container').innerHTML=''; }
+        
+        function downloadOfflinePack() {
+            const btn = document.querySelector('#profile-menu button i');
+            btn.className = "ph-bold ph-spinner animate-spin text-emerald-400 text-lg";
+            setTimeout(() => {
+                btn.className = "ph-bold ph-check text-emerald-400 text-lg";
+                DB.addNotification('Offline Pack Downloaded (140 MB)');
+                alert('Maps & Translations saved for offline use.');
+            }, 2000);
         }
 
     </script>
