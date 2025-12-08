@@ -139,7 +139,7 @@
             <!-- VIEW: HOME -->
             <section id="view-home" class="view-section min-h-full px-6 pt-28 pb-6 space-y-8">
                 
-                <!-- Hero Weather Card -->
+                <!-- Hero Weather Card (Updated with City Selector) -->
                 <div class="relative w-full h-48 rounded-[2rem] overflow-hidden shadow-2xl group">
                     <!-- Gradient Mesh Background -->
                     <div class="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-900 to-slate-900 opacity-90"></div>
@@ -148,21 +148,30 @@
                     
                     <div class="absolute inset-0 p-6 flex flex-col justify-between z-10">
                         <div class="flex justify-between items-start">
-                            <div>
+                            <div class="relative z-20">
                                 <div class="flex items-center gap-1.5 text-emerald-100/80 text-xs font-medium uppercase tracking-wider mb-1">
-                                    <i class="ph-fill ph-navigation-arrow"></i> Current Location
+                                    <i class="ph-fill ph-navigation-arrow"></i> Select Location
                                 </div>
-                                <h2 class="text-3xl font-bold text-white tracking-tight">New Delhi</h2>
+                                <div class="relative flex items-center">
+                                    <select id="city-selector" onchange="updateCity()" class="bg-transparent text-3xl font-bold text-white tracking-tight focus:outline-none cursor-pointer appearance-none pr-8">
+                                        <option value="new-delhi">New Delhi</option>
+                                        <option value="mumbai">Mumbai</option>
+                                        <option value="paris">Paris</option>
+                                        <option value="tokyo">Tokyo</option>
+                                        <option value="new-york">New York</option>
+                                    </select>
+                                    <i class="ph-bold ph-caret-down text-white absolute right-0 pointer-events-none text-xl"></i>
+                                </div>
                             </div>
-                            <div class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs font-semibold text-white shadow-lg">
+                            <div id="city-aqi" class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs font-semibold text-white shadow-lg">
                                 AQI: 145
                             </div>
                         </div>
                         <div class="flex items-end gap-4">
-                            <i class="ph-duotone ph-sun-dim text-5xl text-yellow-300 float-anim"></i>
+                            <i id="weather-icon" class="ph-duotone ph-sun-dim text-5xl text-yellow-300 float-anim"></i>
                             <div>
-                                <span class="text-4xl font-bold text-white">32°</span>
-                                <p class="text-sm text-emerald-100/70 font-medium">Sunny & Clear</p>
+                                <span id="city-temp" class="text-4xl font-bold text-white">32°</span>
+                                <p id="city-cond" class="text-sm text-emerald-100/70 font-medium">Sunny & Clear</p>
                             </div>
                         </div>
                     </div>
@@ -175,7 +184,7 @@
                         <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 group-focus-within:text-emerald-400 transition-colors">
                             <i class="ph-bold ph-magnifying-glass text-lg"></i>
                         </div>
-                        <input type="text" id="ai-input" placeholder="Try 'Street food in Delhi'..." class="bg-transparent border-none text-sm w-full px-2 py-3 focus:outline-none text-white placeholder-slate-500 font-medium">
+                        <input type="text" id="ai-input" placeholder="Search places..." class="bg-transparent border-none text-sm w-full px-2 py-3 focus:outline-none text-white placeholder-slate-500 font-medium">
                         <button onclick="generateTrip()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 p-3 rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)] active:scale-95">
                             <i class="ph-bold ph-magic-wand text-lg"></i>
                         </button>
@@ -199,7 +208,7 @@
                 <div id="ai-result" class="hidden space-y-5 pt-2">
                     <div class="flex justify-between items-center px-1">
                         <div class="flex items-center gap-2 text-emerald-400 text-sm font-semibold tracking-wide uppercase">
-                            <i class="ph-fill ph-sparkle"></i> Your Itinerary
+                            <i class="ph-fill ph-sparkle"></i> Top Spots
                         </div>
                         <button onclick="clearItinerary()" class="text-xs text-slate-500 hover:text-white transition-colors">Clear</button>
                     </div>
@@ -365,6 +374,105 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
+        // === GLOBAL DATA ===
+        const cityData = {
+            'new-delhi': {
+                name: 'New Delhi',
+                lat: 28.6139, lng: 77.2090,
+                aqi: 145, temp: '32°', cond: 'Sunny & Clear',
+                places: {
+                    'Heritage': [
+                        { title: 'Red Fort', desc: 'Mughal Fortress', time: '10:00 AM', lat: 28.6562, lng: 77.2410 },
+                        { title: 'India Gate', desc: 'War Memorial', time: '05:00 PM', lat: 28.6129, lng: 77.2295 }
+                    ],
+                    'Food': [
+                        { title: 'Paranthe Wali Gali', desc: 'Famous Breakfast', time: '09:00 AM', lat: 28.6559, lng: 77.2309 },
+                        { title: 'Karim\'s', desc: 'Mughlai Cuisine', time: '01:00 PM', lat: 28.6506, lng: 77.2335 }
+                    ],
+                    'Shopping': [
+                        { title: 'Sarojini Nagar', desc: 'Flea Market', time: '11:00 AM', lat: 28.5757, lng: 77.1990 },
+                        { title: 'Dilli Haat', desc: 'Handicrafts', time: '04:00 PM', lat: 28.5732, lng: 77.2079 }
+                    ]
+                }
+            },
+            'mumbai': {
+                name: 'Mumbai',
+                lat: 19.0760, lng: 72.8777,
+                aqi: 85, temp: '28°', cond: 'Humid & Cloudy',
+                places: {
+                    'Heritage': [
+                        { title: 'Gateway of India', desc: 'Iconic Arch', time: '09:00 AM', lat: 18.9220, lng: 72.8347 },
+                        { title: 'Elephanta Caves', desc: 'Ancient Caves', time: '02:00 PM', lat: 18.9633, lng: 72.9315 }
+                    ],
+                    'Food': [
+                        { title: 'Ashok Vada Pav', desc: 'Street Food King', time: '11:00 AM', lat: 19.0178, lng: 72.8478 },
+                        { title: 'Britannia & Co.', desc: 'Parsi Cafe', time: '01:00 PM', lat: 18.9345, lng: 72.8402 }
+                    ],
+                    'Shopping': [
+                        { title: 'Colaba Causeway', desc: 'Street Shopping', time: '04:00 PM', lat: 18.9154, lng: 72.8267 },
+                        { title: 'Linking Road', desc: 'Fashion Street', time: '06:00 PM', lat: 19.0636, lng: 72.8360 }
+                    ]
+                }
+            },
+            'paris': {
+                name: 'Paris',
+                lat: 48.8566, lng: 2.3522,
+                aqi: 45, temp: '18°', cond: 'Partly Cloudy',
+                places: {
+                    'Heritage': [
+                        { title: 'Eiffel Tower', desc: 'Iron Lady', time: '10:00 AM', lat: 48.8584, lng: 2.2945 },
+                        { title: 'Louvre Museum', desc: 'Art History', time: '02:00 PM', lat: 48.8606, lng: 2.3376 }
+                    ],
+                    'Food': [
+                        { title: 'Du Pain et des Idées', desc: 'Best Croissants', time: '09:00 AM', lat: 48.8716, lng: 2.3629 },
+                        { title: 'Le Café Marly', desc: 'View of Louvre', time: '01:00 PM', lat: 48.8603, lng: 2.3360 }
+                    ],
+                    'Shopping': [
+                        { title: 'Champs-Élysées', desc: 'Luxury Avenue', time: '04:00 PM', lat: 48.8698, lng: 2.3075 },
+                        { title: 'Le Marais', desc: 'Boutiques', time: '06:00 PM', lat: 48.8575, lng: 2.3577 }
+                    ]
+                }
+            },
+            'tokyo': {
+                name: 'Tokyo',
+                lat: 35.6762, lng: 139.6503,
+                aqi: 30, temp: '22°', cond: 'Clear Sky',
+                places: {
+                    'Heritage': [
+                        { title: 'Senso-ji', desc: 'Buddhist Temple', time: '09:00 AM', lat: 35.7148, lng: 139.7967 },
+                        { title: 'Meiji Shrine', desc: 'Shinto Shrine', time: '02:00 PM', lat: 35.6764, lng: 139.6993 }
+                    ],
+                    'Food': [
+                        { title: 'Tsukiji Market', desc: 'Sushi Breakfast', time: '08:00 AM', lat: 35.6655, lng: 139.7707 },
+                        { title: 'Ichiran Shibuya', desc: 'Famous Ramen', time: '01:00 PM', lat: 35.6604, lng: 139.7005 }
+                    ],
+                    'Shopping': [
+                        { title: 'Shibuya Crossing', desc: 'Iconic Spot', time: '04:00 PM', lat: 35.6595, lng: 139.7004 },
+                        { title: 'Akihabara', desc: 'Electronics', time: '06:00 PM', lat: 35.6984, lng: 139.7747 }
+                    ]
+                }
+            },
+            'new-york': {
+                name: 'New York',
+                lat: 40.7128, lng: -74.0060,
+                aqi: 55, temp: '20°', cond: 'Windy',
+                places: {
+                    'Heritage': [
+                        { title: 'Statue of Liberty', desc: 'Iconic Monument', time: '09:00 AM', lat: 40.6892, lng: -74.0445 },
+                        { title: 'Empire State', desc: 'City View', time: '06:00 PM', lat: 40.7488, lng: -73.9857 }
+                    ],
+                    'Food': [
+                        { title: 'Katz\'s Deli', desc: 'Pastrami Sandwich', time: '12:00 PM', lat: 40.7222, lng: -73.9874 },
+                        { title: 'Joe\'s Pizza', desc: 'Classic Slice', time: '02:00 PM', lat: 40.7305, lng: -74.0021 }
+                    ],
+                    'Shopping': [
+                        { title: 'Fifth Avenue', desc: 'Luxury Shopping', time: '04:00 PM', lat: 40.7619, lng: -73.9763 },
+                        { title: 'SoHo', desc: 'Trendy Boutiques', time: '06:00 PM', lat: 40.7233, lng: -74.0030 }
+                    ]
+                }
+            }
+        };
+
         const DB = {
             save: (key, data) => localStorage.setItem(key, JSON.stringify(data)),
             get: (key) => JSON.parse(localStorage.getItem(key)) || null,
@@ -387,12 +495,16 @@
         let arStream = null;
         let recognition = null;
         let isListening = false;
+        let currentCity = 'new-delhi'; // Default
 
         window.onload = () => {
             renderNotifications();
             renderWallet();
             const savedTrip = DB.get('currentTrip');
             if(savedTrip) renderTimeline(savedTrip);
+            
+            // Restore city selection if needed
+            // (Skipped for simplicity, resets to Delhi on reload)
         };
 
         function switchTab(tabId) {
@@ -425,6 +537,30 @@
             }
         }
 
+        // === CITY SELECTOR LOGIC ===
+        function updateCity() {
+            const selector = document.getElementById('city-selector');
+            const cityKey = selector.value;
+            const data = cityData[cityKey];
+            
+            currentCity = cityKey;
+            
+            // Update UI
+            document.getElementById('city-aqi').innerText = `AQI: ${data.aqi}`;
+            document.getElementById('city-temp').innerText = data.temp;
+            document.getElementById('city-cond').innerText = data.cond;
+            
+            // Reset Itinerary
+            clearItinerary();
+            
+            // Update Map if visible
+            if (map) {
+                map.flyTo([data.lat, data.lng], 13);
+            }
+            
+            DB.addNotification(`Location changed to ${data.name}`);
+        }
+
         function setInput(val) { document.getElementById('ai-input').value = val; }
 
         function generateTrip() {
@@ -435,27 +571,29 @@
 
             setTimeout(() => {
                 btn.innerHTML = '<i class="ph-bold ph-magic-wand"></i>';
+                
+                // Dynamic City Logic
+                const city = cityData[currentCity];
                 let items = [];
-                if(input.includes('food')) {
-                    items = [
-                        { id: 101, time: '09:00 AM', title: 'Paranthe Wali Gali', desc: 'Old Delhi famous breakfast', lat: 28.6559, lng: 77.2309 },
-                        { id: 102, time: '01:00 PM', title: 'Karim\'s', desc: 'Mughlai cuisine near Jama Masjid', lat: 28.6506, lng: 77.2335 }
-                    ];
-                } else if(input.includes('shopping')) {
-                    items = [
-                        { id: 201, time: '11:00 AM', title: 'Sarojini Nagar', desc: 'Market for clothes', lat: 28.5757, lng: 77.1990 },
-                        { id: 202, time: '04:00 PM', title: 'Dilli Haat', desc: 'Handicraft village', lat: 28.5732, lng: 77.2079 }
-                    ];
+                
+                if (input.includes('food')) {
+                    items = city.places['Food'] || [];
+                } else if (input.includes('shopping')) {
+                    items = city.places['Shopping'] || [];
                 } else {
-                    items = [
-                        { id: 301, time: '10:00 AM', title: 'Red Fort', desc: 'Historic Fort Tour', lat: 28.6562, lng: 77.2410 },
-                        { id: 302, time: '05:00 PM', title: 'India Gate', desc: 'War Memorial', lat: 28.6129, lng: 77.2295 }
-                    ];
+                    // Default to Heritage if input is generic or matches 'heritage'
+                    items = city.places['Heritage'] || [];
                 }
+                
+                // Fallback if no specific data
+                if (items.length === 0) {
+                    items = city.places['Heritage']; // Default fallback
+                }
+
                 DB.save('currentTrip', items);
                 renderTimeline(items);
                 updateMapMarkers(items);
-                DB.addNotification('Itinerary Ready: ' + input);
+                DB.addNotification(`Generated ${city.name} itinerary`);
             }, 800);
         }
 
@@ -566,7 +704,9 @@
         }
 
         function initMap() {
-            map = L.map('map', { zoomControl: false }).setView([28.6129, 77.2295], 13);
+            // Default to current city
+            const city = cityData[currentCity];
+            map = L.map('map', { zoomControl: false }).setView([city.lat, city.lng], 13);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '' }).addTo(map);
             const savedTrip = DB.get('currentTrip');
             if(savedTrip) updateMapMarkers(savedTrip);
