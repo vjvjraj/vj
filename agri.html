@@ -301,10 +301,13 @@
                 <h1>KrishiSahay</h1>
             </div>
             <div class="nav-icons">
-                <!-- Localized Language Switcher (Replaces Google Translate) -->
+                <!-- Localized Language Switcher -->
                 <select id="langSwitcher" class="form-select" style="background:transparent; border:1px solid rgba(255,255,255,0.5); color:white; width:auto; padding:0.25rem 0.5rem; font-size:0.9rem;">
                     <option value="en" style="color:black;">English</option>
-                    <option value="hi" style="color:black;">हिन्दी</option>
+                    <option value="hi" style="color:black;">हिन्दी (Hindi)</option>
+                    <option value="kn" style="color:black;">ಕನ್ನಡ (Kannada)</option>
+                    <option value="ta" style="color:black;">தமிழ் (Tamil)</option>
+                    <option value="te" style="color:black;">తెలుగు (Telugu)</option>
                 </select>
                 <span data-lucide="bell"></span>
                 <span data-lucide="user" id="authStatus"></span>
@@ -348,14 +351,14 @@
                 <h2 class="page-title" data-i18n="title_dash">My Farm Dashboard</h2>
                 <div class="content-grid">
                     <div class="card">
-                        <h3 class="card-title">My Farm Controls</h3>
+                        <h3 class="card-title" data-i18n="card_controls">My Farm Controls</h3>
                         <div class="card-content form-space">
                             <div class="form-group">
-                                <label>Location</label>
+                                <label data-i18n="lbl_location">Location</label>
                                 <input type="text" id="location" value="Anantapur, Andhra Pradesh" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label>Main Crop</label>
+                                <label data-i18n="lbl_crop">Main Crop</label>
                                 <select id="crop" class="form-select">
                                     <option>Rice</option>
                                     <option>Wheat</option>
@@ -363,39 +366,39 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Observed Issue</label>
+                                <label data-i18n="lbl_issue">Observed Issue</label>
                                 <input type="text" id="issue" placeholder="e.g., Yellow leaves..." class="form-input" value="Leaves have white spots...">
                             </div>
                         </div>
                         <div class="card-footer">
                             <button type="button" id="getAdviceBtn" class="button">
-                                <span id="btnText">Get Smart Advisory</span>
+                                <span id="btnText" data-i18n="btn_advice">Get Smart Advisory</span>
                                 <div class="spinner" id="loadingSpinner"></div>
                             </button>
                         </div>
                     </div>
                     
                     <div class="card">
-                        <h3 class="card-title">Live Farm Data</h3>
+                        <h3 class="card-title" data-i18n="card_live">Live Farm Data</h3>
                         <div class="card-content data-card-list">
                             <div class="data-card weather-card">
                                 <span class="data-card-icon" id="weatherIcon" data-lucide="loader"></span>
                                 <div class="data-card-content">
-                                    <p class="data-title">Live Weather</p>
+                                    <p class="data-title" data-i18n="data_weather">Live Weather</p>
                                     <p id="weatherData" class="data-value">Initializing...</p>
                                 </div>
                             </div>
                             <div class="data-card soil-card">
                                 <span class="data-card-icon" data-lucide="droplet"></span>
                                 <div class="data-card-content">
-                                    <p class="data-title">Soil Moisture</p>
+                                    <p class="data-title" data-i18n="data_soil">Soil Moisture</p>
                                     <p id="soilData" class="data-value">Calculating...</p>
                                 </div>
                             </div>
                             <div class="data-card satellite-card">
                                 <span class="data-card-icon" data-lucide="thermometer-sun"></span>
                                 <div class="data-card-content">
-                                    <p class="data-title">Soil Temp</p>
+                                    <p class="data-title" data-i18n="data_temp">Soil Temp</p>
                                     <p id="soilTempData" class="data-value">Calculating...</p>
                                 </div>
                             </div>
@@ -403,19 +406,19 @@
                     </div>
                     
                     <div class="card">
-                         <h3 class="card-title">Smart Widgets</h3>
+                         <h3 class="card-title" data-i18n="card_widgets">Smart Widgets</h3>
                          <div class="data-card-list">
                             <div class="data-card">
                                 <span class="data-card-icon" data-lucide="trending-up"></span>
                                 <div class="data-card-content">
-                                    <p class="data-title">Market Price</p>
+                                    <p class="data-title" data-i18n="widget_price">Market Price</p>
                                     <p class="data-value" id="marketPriceWidget">Ask Chat...</p>
                                 </div>
                             </div>
                             <div class="data-card">
                                 <span class="data-card-icon" data-lucide="cloud-rain"></span>
                                 <div class="data-card-content">
-                                    <p class="data-title">Advisory</p>
+                                    <p class="data-title" data-i18n="widget_advisory">Advisory</p>
                                     <p class="data-value" id="weatherAlertWidget">Analyzing...</p>
                                 </div>
                             </div>
@@ -427,9 +430,9 @@
             <!-- LOGBOOK -->
             <div id="page-logbook" class="app-page">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2 class="page-title" style="margin: 0;">Digital Farm Log</h2>
+                    <h2 class="page-title" style="margin: 0;" data-i18n="title_log">Digital Farm Log</h2>
                     <button class="button" style="width: auto;" id="addLogEntryBtn">
-                        <span data-lucide="plus" style="width: 16px;"></span> Add Entry
+                        <span data-lucide="plus" style="width: 16px;"></span> <span data-i18n="btn_add">Add Entry</span>
                     </button>
                 </div>
                 <div class="card">
@@ -441,29 +444,29 @@
 
             <!-- AI TOOLS -->
             <div id="page-ai-tools" class="app-page">
-                <h2 class="page-title">AI & Analytics (Gemini Powered)</h2>
+                <h2 class="page-title" data-i18n="title_ai">AI & Analytics (Gemini Powered)</h2>
                 <div class="content-grid">
                     <div class="card">
-                        <h3 class="card-title">Visual Pest Doctor</h3>
+                        <h3 class="card-title" data-i18n="tool_pest">Visual Pest Doctor</h3>
                         <div class="card-content" style="text-align: center;">
                             <span data-lucide="scan-line" style="width: 64px; height: 64px; color: var(--red);"></span>
-                            <p>Identify crop issues using Gemini Vision AI.</p>
+                            <p data-i18n="desc_pest">Identify crop issues using Gemini Vision AI.</p>
                         </div>
                         <div class="card-footer">
                             <button class="button" style="background: var(--red);" id="openPestDetectorBtn">
-                                <span data-lucide="camera"></span> Scan Plant
+                                <span data-lucide="camera"></span> <span data-i18n="btn_scan">Scan Plant</span>
                             </button>
                         </div>
                     </div>
                     <div class="card">
-                        <h3 class="card-title">FarmChat Assistant</h3>
+                        <h3 class="card-title" data-i18n="tool_chat">FarmChat Assistant</h3>
                         <div class="card-content" style="text-align: center;">
                              <span data-lucide="message-circle" style="width: 64px; height: 64px; color: var(--blue);"></span>
-                            <p>Ask questions about your crop and weather to our expert AI.</p>
+                            <p data-i18n="desc_chat">Ask questions about your crop and weather to our expert AI.</p>
                         </div>
                         <div class="card-footer">
                             <button class="button" style="background: var(--blue);" id="openChatBtn">
-                                <span data-lucide="message-circle"></span> Open Chat
+                                <span data-lucide="message-circle"></span> <span data-i18n="btn_chat">Open Chat</span>
                             </button>
                         </div>
                     </div>
@@ -472,11 +475,11 @@
 
             <!-- MARKET -->
             <div id="page-market" class="app-page">
-                <h2 class="page-title">Commerce & Supply Chain</h2>
+                <h2 class="page-title" data-i18n="title_market">Commerce & Supply Chain</h2>
                 <div class="tab-nav">
-                    <div class="tab-item active" data-tab="market-supplies">Supplies</div>
-                    <div class="tab-item" data-tab="market-produce">My Produce</div>
-                    <div class="tab-item" data-tab="market-trace">Agri-Trace</div>
+                    <div class="tab-item active" data-tab="market-supplies" data-i18n="tab_supplies">Supplies</div>
+                    <div class="tab-item" data-tab="market-produce" data-i18n="tab_produce">My Produce</div>
+                    <div class="tab-item" data-tab="market-trace" data-i18n="tab_trace">Agri-Trace</div>
                 </div>
                 
                 <div id="market-supplies" class="tab-content active">
@@ -493,7 +496,7 @@
                              <p>Loading listings...</p>
                          </div>
                          <div class="card-footer">
-                             <button class="button" id="listProduceBtn">List New Produce</button>
+                             <button class="button" id="listProduceBtn" data-i18n="btn_list_produce">List New Produce</button>
                          </div>
                      </div>
                 </div>
@@ -523,6 +526,11 @@
                         <!-- Ledger View -->
                         <div id="trace-ledger-view" style="display:none; width:100%; text-align:left;">
                             <h3 class="card-title" style="text-align:center;">Immutable Ledger</h3>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                                <button class="button secondary" id="showQRBtn" style="width:auto; padding:0.5rem;">
+                                    <span data-lucide="qr-code"></span> View Updated QR
+                                </button>
+                            </div>
                             <div style="background:var(--bg-gray); padding:1rem; border-radius:8px; margin-bottom:1.5rem; border-left: 4px solid var(--primary-green);">
                                 <h4 style="margin:0 0 0.5rem 0; color:var(--primary-green); font-size:1.1rem;">Crop Details</h4>
                                 <div id="ledger-crop-details"></div>
@@ -541,10 +549,10 @@
 
             <!-- COMMUNITY & MAPS -->
             <div id="page-community" class="app-page">
-                <h2 class="page-title">Community & Maps</h2>
+                <h2 class="page-title" data-i18n="title_comm">Community & Maps</h2>
                  <div class="tab-nav">
-                    <div class="tab-item active" data-tab="comm-forum">Forum</div>
-                    <div class="tab-item" data-tab="comm-map">Pest Map</div>
+                    <div class="tab-item active" data-tab="comm-forum" data-i18n="tab_forum">Forum</div>
+                    <div class="tab-item" data-tab="comm-map" data-i18n="tab_map">Pest Map</div>
                 </div>
 
                 <div id="comm-forum" class="tab-content active">
@@ -578,39 +586,32 @@
                 </div>
             </div>
 
-            <!-- SETTINGS (UPDATED) -->
+            <!-- SETTINGS -->
             <div id="page-settings" class="app-page">
-                <h2 class="page-title">Settings</h2>
+                <h2 class="page-title" data-i18n="title_settings">Settings</h2>
                 <div class="content-grid">
                     <div class="card">
-                        <h3 class="card-title">Profile Settings</h3>
+                        <h3 class="card-title" data-i18n="set_profile">Profile Settings</h3>
                         <div class="form-space">
                             <div class="form-group">
-                                <label>Farmer Name</label>
+                                <label data-i18n="lbl_name">Farmer Name</label>
                                 <input type="text" id="setting-name" class="form-input" placeholder="Enter your name">
                             </div>
                             <div class="form-group">
-                                <label>Phone Number</label>
+                                <label data-i18n="lbl_phone">Phone Number</label>
                                 <input type="text" id="setting-phone" class="form-input" placeholder="+91 XXXXX XXXXX">
                             </div>
-                            <button class="button" id="saveProfileBtn">Save Profile</button>
+                            <button class="button" id="saveProfileBtn" data-i18n="btn_save_profile">Save Profile</button>
                         </div>
                     </div>
                     <div class="card">
-                        <h3 class="card-title">App Preferences</h3>
+                        <h3 class="card-title" data-i18n="set_prefs">App Preferences</h3>
                         <div class="form-space">
                             <div class="form-group" style="display:flex; align-items:center; justify-content:space-between;">
-                                <label>Weather Alerts</label>
+                                <label data-i18n="lbl_alerts">Weather Alerts</label>
                                 <input type="checkbox" id="setting-alerts" checked style="width:20px; height:20px;">
                             </div>
-                            <div class="form-group">
-                                <label>Default Language</label>
-                                <select id="setting-lang" class="form-select">
-                                    <option value="en">English</option>
-                                    <option value="hi">Hindi</option>
-                                </select>
-                            </div>
-                            <button class="button secondary" id="savePrefsBtn">Save Preferences</button>
+                            <button class="button secondary" id="savePrefsBtn" data-i18n="btn_save_prefs">Save Preferences</button>
                         </div>
                     </div>
                 </div>
@@ -648,7 +649,7 @@
             </div>
             <div class="modal-content chat-container">
                 <div class="chat-box" id="chatBox">
-                    <div class="chat-message bot">Hello! I am your AI FarmChat Assistant. I can help with weather, prices, and crop advice using Gemini AI.</div>
+                    <div class="chat-message bot">Hello! I am your AI FarmChat Assistant. Ask me anything in your language.</div>
                 </div>
                 <div class="chat-input-area" style="display:flex; gap:0.5rem;">
                     <input type="text" id="chatInput" class="form-input" placeholder="Type..." style="flex: 1;">
@@ -793,14 +794,18 @@
         let farmMarker = null;
         let mapInstance = null;
         let currentWeatherData = null;
+        let currentLanguage = 'en';
         
         // --- GEMINI CONFIG ---
         const apiKey = ""; // Provided by environment
         
         async function callGeminiAPI(payload, isImage = false) {
             try {
+                // Use flash model for speed and efficiency
+                let model = isImage ? 'gemini-1.5-flash' : 'gemini-1.5-flash'; 
+                // Note: Using a standard model name that supports both text and vision for simplicity in this context.
+                // In production, ensure the model supports the modalities used.
                 let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                // For image, use appropriate model if strict, but instructions say 2.5-flash-preview supports both.
                 
                 const response = await fetch(url, {
                     method: 'POST',
@@ -874,20 +879,85 @@
         document.getElementById('addReceiverBtn').addEventListener('click', () => openModal('receiverModal'));
         document.getElementById('saveTransportBtn').addEventListener('click', handleSaveTransport);
         document.getElementById('saveReceiverBtn').addEventListener('click', handleSaveReceiver);
+        document.getElementById('showQRBtn').addEventListener('click', () => {
+            document.getElementById('trace-ledger-view').style.display = 'none';
+            document.getElementById('trace-qr-view').style.display = 'block';
+        });
 
         locInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); handleGetAdvisory(); } });
 
-        // --- Localization (Open Source) ---
+        // --- Localization (Multi-Language) ---
         const translations = {
-            en: { nav_dash: "Dashboard", nav_log: "Digital Log", nav_ai: "AI Tools", nav_market: "Marketplace", nav_comm: "Community", nav_set: "Settings", title_dash: "My Farm Dashboard" },
-            hi: { nav_dash: "डैशबोर्ड", nav_log: "डिजिटल लॉग", nav_ai: "AI टूल्स", nav_market: "बाज़ार", nav_comm: "समुदाय", nav_set: "सेटिंग्स", title_dash: "मेरा खेत डैशबोर्ड" }
+            en: { 
+                nav_dash: "Dashboard", nav_log: "Digital Log", nav_ai: "AI Tools", nav_market: "Marketplace", nav_comm: "Community", nav_set: "Settings", 
+                title_dash: "My Farm Dashboard", card_controls: "My Farm Controls", lbl_location: "Location", lbl_crop: "Main Crop", lbl_issue: "Observed Issue", btn_advice: "Get Smart Advisory",
+                card_live: "Live Farm Data", data_weather: "Live Weather", data_soil: "Soil Moisture", data_temp: "Soil Temp",
+                card_widgets: "Smart Widgets", widget_price: "Market Price", widget_advisory: "Advisory",
+                title_log: "Digital Farm Log", btn_add: "Add Entry",
+                title_ai: "AI & Analytics", tool_pest: "Visual Pest Doctor", desc_pest: "Identify crop issues using Gemini Vision AI.", btn_scan: "Scan Plant", tool_chat: "FarmChat Assistant", desc_chat: "Ask expert questions.", btn_chat: "Open Chat",
+                title_market: "Commerce & Chain", tab_supplies: "Supplies", tab_produce: "My Produce", tab_trace: "Agri-Trace", btn_list_produce: "List New Produce",
+                title_comm: "Community & Maps", tab_forum: "Forum", tab_map: "Pest Map",
+                title_settings: "Settings", set_profile: "Profile Settings", lbl_name: "Farmer Name", lbl_phone: "Phone Number", btn_save_profile: "Save Profile", set_prefs: "App Preferences", lbl_alerts: "Weather Alerts", btn_save_prefs: "Save Preferences"
+            },
+            hi: { 
+                nav_dash: "डैशबोर्ड", nav_log: "डिजिटल लॉग", nav_ai: "AI टूल्स", nav_market: "बाज़ार", nav_comm: "समुदाय", nav_set: "सेटिंग्स", 
+                title_dash: "मेरा खेत डैशबोर्ड", card_controls: "मेरे खेत के नियंत्रण", lbl_location: "स्थान", lbl_crop: "मुख्य फसल", lbl_issue: "समस्या", btn_advice: "स्मार्ट सलाह प्राप्त करें",
+                card_live: "लाइव फार्म डेटा", data_weather: "लाइव मौसम", data_soil: "मिट्टी की नमी", data_temp: "मिट्टी का तापमान",
+                card_widgets: "स्मार्ट विजेट्स", widget_price: "बाज़ार भाव", widget_advisory: "चेतावनी",
+                title_log: "डिजिटल फार्म लॉग", btn_add: "नई प्रविष्टि",
+                title_ai: "AI और विश्लेषण", tool_pest: "कीट डॉक्टर", desc_pest: "फसल की समस्याओं की पहचान करें।", btn_scan: "स्कैन करें", tool_chat: "फार्म चैट", desc_chat: "विशेषज्ञ से प्रश्न पूछें।", btn_chat: "चैट खोलें",
+                title_market: "व्यापार", tab_supplies: "आपूर्ति", tab_produce: "मेरी उपज", tab_trace: "एग्री-ट्रेस", btn_list_produce: "उपज बेचें",
+                title_comm: "समुदाय और नक्शे", tab_forum: "मंच", tab_map: "नक्शा",
+                title_settings: "सेटिंग्स", set_profile: "प्रोफ़ाइल सेटिंग्स", lbl_name: "किसान का नाम", lbl_phone: "फ़ोन नंबर", btn_save_profile: "प्रोफ़ाइल सहेजें", set_prefs: "ऐप प्राथमिकताएं", lbl_alerts: "मौसम अलर्ट", btn_save_prefs: "प्राथमिकताएं सहेजें"
+            },
+            kn: {
+                nav_dash: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್", nav_log: "ಲೋಗ್", nav_ai: "AI ಪರಿಕರ", nav_market: "ಮಾರುಕಟ್ಟೆ", nav_comm: "ಸಮುದಾಯ", nav_set: "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+                title_dash: "ನನ್ನ ಕೃಷಿ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್", card_controls: "ನಿಯಂತ್ರಣಗಳು", lbl_location: "ಸ್ಥಳ", lbl_crop: "ಬೆಳೆ", lbl_issue: "ಸಮಸ್ಯೆ", btn_advice: "ಸಲಹೆ ಪಡೆಯಿರಿ",
+                card_live: "ನೇರ ಮಾಹಿತಿ", data_weather: "ಹವಾಮಾನ", data_soil: "ಮಣ್ಣಿನ ತೇವಾಂಶ", data_temp: "ತಾಪಮಾನ",
+                card_widgets: "ವಿಜೆಟ್‌ಗಳು", widget_price: "ಮಾರುಕಟ್ಟೆ ಬೆಲೆ", widget_advisory: "ಎಚ್ಚರಿಕೆ",
+                title_log: "ಡಿಜಿಟಲ್ ಲಾಗ್", btn_add: "ಸೇರಿಸಿ",
+                title_ai: "AI ವಿಶ್ಲೇಷಣೆ", tool_pest: "ಕೀಟ ವೈದ್ಯ", desc_pest: "ಬೆಳೆ ಸಮಸ್ಯೆಗಳನ್ನು ಗುರುತಿಸಿ.", btn_scan: "ಸ್ಕ್ಯಾನ್ ಮಾಡಿ", tool_chat: "ಸಹಾಯಕ", desc_chat: "ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಿ.", btn_chat: "ಚಾಟ್ ತೆರೆಯಿರಿ",
+                title_market: "ವಾಣಿಜ್ಯ", tab_supplies: "ಸರಬರಾಜು", tab_produce: "ನನ್ನ ಬೆಳೆ", tab_trace: "ಜಾಡು ಹಿಡಿ", btn_list_produce: "ಮಾರಾಟ ಮಾಡಿ",
+                title_comm: "ಸಮುದಾಯ", tab_forum: "ವೇದಿಕೆ", tab_map: "ನಕ್ಷೆ",
+                title_settings: "ಸೆಟ್ಟಿಂಗ್‌ಗಳು", set_profile: "ಪ್ರೊಫೈಲ್", lbl_name: "ಹೆಸರು", lbl_phone: "ದೂರವಾಣಿ", btn_save_profile: "ಉಳಿಸಿ", set_prefs: "ಆದ್ಯತೆಗಳು", lbl_alerts: "ಎಚ್ಚರಿಕೆಗಳು", btn_save_prefs: "ಉಳಿಸಿ"
+            },
+            ta: {
+                nav_dash: "டாஷ்போர்டு", nav_log: "பதிவு", nav_ai: "AI கருவிகள்", nav_market: "சந்தை", nav_comm: "சமூகம்", nav_set: "அமைப்புகள்",
+                title_dash: "எனது பண்ணை", card_controls: "கட்டுப்பாடுகள்", lbl_location: "இடம்", lbl_crop: "பயிர்", lbl_issue: "பிரச்சினை", btn_advice: "ஆலோசனை பெறுக",
+                card_live: "நேரடி தரவு", data_weather: "வானிலை", data_soil: "மண் ஈரம்", data_temp: "வெப்பநிலை",
+                card_widgets: "விட்ஜெட்டுகள்", widget_price: "சந்தை விலை", widget_advisory: "எச்சரிக்கை",
+                title_log: "பண்ணை பதிவு", btn_add: "சேர்",
+                title_ai: "AI பகுப்பாய்வு", tool_pest: "பூச்சி மருத்துவர்", desc_pest: "பிரச்சினைகளைக் கண்டறிக.", btn_scan: "ஸ்கேன்", tool_chat: "உதவியாளர்", desc_chat: "கேள்விகள் கேட்கவும்.", btn_chat: "சாட்",
+                title_market: "வர்த்தகம்", tab_supplies: "பொருட்கள்", tab_produce: "எனது விளைச்சல்", tab_trace: "தடமறிதல்", btn_list_produce: "விற்க",
+                title_comm: "சமூகம்", tab_forum: "மன்றம்", tab_map: "வரைபடம்",
+                title_settings: "அமைப்புகள்", set_profile: "சுயவிவரம்", lbl_name: "பெயர்", lbl_phone: "தொலைபேசி", btn_save_profile: "சேமி", set_prefs: "விருப்பங்கள்", lbl_alerts: "எச்சரிக்கைகள்", btn_save_prefs: "சேமி"
+            },
+            te: {
+                nav_dash: "డాష్‌బోర్డ్", nav_log: "లాగ్", nav_ai: "AI టూల్స్", nav_market: "మార్కెట్", nav_comm: "కమ్యూనిటీ", nav_set: "సెట్టింగ్‌లు",
+                title_dash: "నా వ్యవసాయం", card_controls: "నియంత్రణలు", lbl_location: "స్థానం", lbl_crop: "పంట", lbl_issue: "సమస్య", btn_advice: "సలహా పొందండి",
+                card_live: "లైవ్ డేటా", data_weather: "వాతావరణం", data_soil: "తేమ", data_temp: "ఉష్ణోగ్రత",
+                card_widgets: "విడ్జెట్‌లు", widget_price: "ధర", widget_advisory: "హెచ్చరిక",
+                title_log: "డిజిటల్ లాగ్", btn_add: "జోడించు",
+                title_ai: "AI విశ్లేషణ", tool_pest: "పెస్ట్ డాక్టర్", desc_pest: "సమస్యలను గుర్తించండి.", btn_scan: "స్కాన్ చేయండి", tool_chat: "సహాయకుడు", desc_chat: "ప్రశ్నలు అడగండి.", btn_chat: "చాట్",
+                title_market: "వాణిజ్యం", tab_supplies: "సామాగ్రి", tab_produce: "నా పంట", tab_trace: "జాడ", btn_list_produce: "అమ్మండి",
+                title_comm: "కమ్యూనిటీ", tab_forum: "వేదిక", tab_map: "మ్యాప్",
+                title_settings: "సెట్టింగ్‌లు", set_profile: "ప్రొఫైల్", lbl_name: "పేరు", lbl_phone: "ఫోన్", btn_save_profile: "సేవ్ చేయండి", set_prefs: "ప్రాధాన్యతలు", lbl_alerts: "హెచ్చరికలు", btn_save_prefs: "సేవ్ చేయండి"
+            }
         };
-        document.getElementById('langSwitcher').addEventListener('change', (e) => {
-            const lang = e.target.value;
+
+        function updateLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('krishiLang', lang);
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if(translations[lang][key]) el.textContent = translations[lang][key];
+                if(translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
             });
+        }
+
+        document.getElementById('langSwitcher').addEventListener('change', (e) => {
+            updateLanguage(e.target.value);
         });
 
         // --- Geocoding (Open-Meteo) ---
@@ -900,6 +970,16 @@
                 if(data.results && data.results.length > 0) {
                     FARM_LAT = data.results[0].latitude;
                     FARM_LON = data.results[0].longitude;
+                    
+                    if (mapInstance) {
+                        mapInstance.setView([FARM_LAT, FARM_LON], 14);
+                        if (farmMarker) {
+                            farmMarker.setLatLng([FARM_LAT, FARM_LON])
+                                      .bindPopup(`<b>${data.results[0].name}</b>`)
+                                      .openPopup();
+                        }
+                    }
+
                     await fetchLiveWeatherAndSoil();
                     return data.results[0].name;
                 }
@@ -952,15 +1032,19 @@
             const temp = currentWeatherData ? currentWeatherData.current.temperature_2m : "N/A";
             const wind = currentWeatherData ? currentWeatherData.current.wind_speed_10m : "N/A";
 
+            // Lang map for prompt
+            const langMap = { en: "English", hi: "Hindi", kn: "Kannada", ta: "Tamil", te: "Telugu" };
+            const targetLang = langMap[currentLanguage] || "English";
+
             const prompt = `You are an expert agronomist. 
             Context: Farmer in ${locName || 'India'} growing ${crop}. 
             Current Weather: ${temp}°C, Wind ${wind} km/h.
             Reported Issue: "${issue}".
+            Language: Respond in ${targetLang}.
             Task: Provide a concise, actionable advisory in 3 distinct sections (Diagnosis, Immediate Treatment, Weather Note). Use HTML formatting (<b>, <br>, <ul>).`;
 
             const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                tools: [{ "google_search": {} }]
+                contents: [{ parts: [{ text: prompt }] }]
             };
 
             const advice = await callGeminiAPI(payload);
@@ -969,7 +1053,7 @@
             openModal('advisoryModal');
             
             btn.disabled = false;
-            btnText.textContent = "Get Smart Advisory";
+            btnText.textContent = translations[currentLanguage]['btn_advice'] || "Get Smart Advisory";
             spinner.style.display = 'none';
         }
 
@@ -981,10 +1065,13 @@
             chatBox.innerHTML += `<div class="chat-message user">${val}</div>`;
             document.getElementById('chatInput').value = '';
             
-            const prompt = `You are a helpful farming assistant named KrishiSahay. 
+            const langMap = { en: "English", hi: "Hindi", kn: "Kannada", ta: "Tamil", te: "Telugu" };
+            const targetLang = langMap[currentLanguage] || "English";
+
+            const prompt = `You are KrishiSahay, a helpful farming AI. 
             User Query: "${val}". 
             Context: Crop is ${document.getElementById('crop').value}. Location is ${document.getElementById('location').value}.
-            Keep answer short and helpful.`;
+            Requirement: Reply in ${targetLang}. Keep it short and helpful.`;
 
             const payload = { contents: [{ parts: [{ text: prompt }] }] };
             const reply = await callGeminiAPI(payload);
@@ -1014,13 +1101,16 @@
             btn.querySelector('span').textContent = "Analyzing...";
             btn.querySelector('.spinner').style.display = "block";
 
-            const prompt = `Analyze this crop image. Identify any pests, diseases, or deficiencies. Provide a name and 1-sentence treatment.`;
+            const langMap = { en: "English", hi: "Hindi", kn: "Kannada", ta: "Tamil", te: "Telugu" };
+            const targetLang = langMap[currentLanguage] || "English";
+
+            const prompt = `Analyze this crop image. Identify any pests, diseases, or deficiencies. Provide a name and 1-sentence treatment in ${targetLang}.`;
             
             const payload = {
                 contents: [{
                     parts: [
                         { text: prompt },
-                        { inlineData: { mimeType: "image/jpeg", data: pestBase64 } } // Assumes jpeg/png
+                        { inlineData: { mimeType: "image/jpeg", data: pestBase64 } } 
                     ]
                 }]
             };
@@ -1031,7 +1121,7 @@
             res.innerHTML = `<h4 style="color:var(--primary-green); margin-top:0;">Diagnosis</h4>${diagnosis}`;
             
             btn.disabled = false;
-            btn.querySelector('span').textContent = "Scan Photo";
+            btn.querySelector('span').textContent = translations[currentLanguage]['btn_scan'] || "Scan Photo";
             btn.querySelector('.spinner').style.display = "none";
         });
 
@@ -1039,13 +1129,10 @@
         function saveProfile() {
             const name = document.getElementById('setting-name').value;
             localStorage.setItem('krishiProfileName', name);
-            if(name) alert(`Profile updated for ${name}`);
+            alert(`Profile updated for ${name}`);
         }
         function savePrefs() {
-            const lang = document.getElementById('setting-lang').value;
-            localStorage.setItem('krishiLang', lang);
-            document.getElementById('langSwitcher').value = lang;
-            document.getElementById('langSwitcher').dispatchEvent(new Event('change'));
+            // Preferences are auto-saved via change events usually, but button provides feedback
             alert("Preferences saved.");
         }
         
@@ -1055,9 +1142,8 @@
             if(name) document.getElementById('setting-name').value = name;
             const lang = localStorage.getItem('krishiLang');
             if(lang) {
-                document.getElementById('setting-lang').value = lang;
                 document.getElementById('langSwitcher').value = lang;
-                document.getElementById('langSwitcher').dispatchEvent(new Event('change'));
+                updateLanguage(lang);
             }
         }
 
@@ -1092,12 +1178,7 @@
                 timeline: [ { title: "Seeded", date: seedDate, desc: "Certified seeds." }, { title: "Harvested", date: harvestDate, desc: "Farm Fresh." } ]
             };
 
-            const qrData = `AGRI-TRACE\nBatch: ${batchId}\nCrop: ${crop}\nHarvest: ${harvestDate}`;
-            const qr = new QRious({
-                element: document.getElementById('batchQRCanvas'),
-                value: qrData,
-                size: 200
-            });
+            renderQR(); // Helper function
 
             document.getElementById('trace-start-view').style.display = 'none';
             document.getElementById('trace-qr-view').style.display = 'block';
@@ -1123,6 +1204,7 @@
             if(!v) return;
             currentBatch.timeline.push({ title: "Transported", date: new Date().toLocaleDateString(), desc: `Vehicle: ${v}` });
             renderTraceLedger();
+            renderQR(); // Regenerate QR with new data
             closeModal('transportModal');
         }
         function handleSaveReceiver() {
@@ -1130,7 +1212,23 @@
             if(!n) return;
             currentBatch.timeline.push({ title: "Received", date: new Date().toLocaleDateString(), desc: `At: ${n}` });
             renderTraceLedger();
+            renderQR(); // Regenerate QR with new data
             closeModal('receiverModal');
+        }
+        
+        function renderQR() {
+            if(!currentBatch) return;
+            // Build a text summary of the timeline
+            let summary = `AGRI-TRACE\nID: ${currentBatch.id}\nCrop: ${currentBatch.crop}`;
+            currentBatch.timeline.forEach(t => {
+                summary += `\n- ${t.title}: ${t.desc} (${t.date})`;
+            });
+            
+            const qr = new QRious({
+                element: document.getElementById('batchQRCanvas'),
+                value: summary,
+                size: 200
+            });
         }
 
         // --- Forum ---
@@ -1144,10 +1242,17 @@
 
         // --- Map (Leaflet) ---
         function initMap() {
-            if(mapInstance) { mapInstance.invalidateSize(); return; }
+            if(mapInstance) { 
+                mapInstance.setView([FARM_LAT, FARM_LON], 14);
+                if (farmMarker) farmMarker.setLatLng([FARM_LAT, FARM_LON]);
+                else farmMarker = L.marker([FARM_LAT, FARM_LON]).addTo(mapInstance);
+                
+                setTimeout(() => mapInstance.invalidateSize(), 100); 
+                return; 
+            }
             mapInstance = L.map('farmMap').setView([FARM_LAT, FARM_LON], 14);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(mapInstance);
-            L.marker([FARM_LAT, FARM_LON]).addTo(mapInstance).bindPopup("My Farm").openPopup();
+            farmMarker = L.marker([FARM_LAT, FARM_LON]).addTo(mapInstance).bindPopup("My Farm").openPopup();
         }
 
         // --- Init ---
