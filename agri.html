@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSahay - Smart Farm OS</title>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+    
+    <!-- Leaflet CSS (Maps) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- Leaflet JS (Maps) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Open Source QR Generator (QRious) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-green: #15803d;
+            --light-green: #22c55e;
+            --bg-gray: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-dark: #1f2937;
+            --text-med: #4b5563;
+            --text-light: #6b7280;
+            --border-color: #e5e7eb;
+            --blue: #3b82f6;
+            --yellow: #ca8a04;
+            --purple: #8b5cf6;
+            --red: #dc2626;
+            --orange: #ea580c;
+        }
+
+        html { height: 100%; overflow: hidden; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-gray);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .navbar { display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 0.5rem; }
+        .logo h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
+        .logo span { animation: pulse-icon 2s infinite ease-in-out; }
+        .nav-icons { display: flex; align-items: center; gap: 1.25rem; }
+        .nav-icons span { cursor: pointer; transition: transform 0.2s ease; }
+        .nav-icons span:hover { transform: scale(1.1); }
+
+        .app-layout {
+            display: flex;
+            height: 100%;
+            padding-top: 64px;
+            box-sizing: border-box;
+            background-image: url('https://images.unsplash.com/photo-1560493676-04071c5f467b?auto=format&fit=crop&w=1600&q=80');
+            background-size: cover;
+            background-position: center center;
+            background-attachment: fixed;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1.5rem 0;
+            display: none;
+            flex-direction: column;
+        }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 0.5rem; padding: 0 1rem; }
+        .nav-item {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem;
+            border-radius: 8px; cursor: pointer; color: var(--text-med); font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .nav-item:hover { background-color: rgba(243, 244, 246, 0.7); color: var(--text-dark); transform: translateX(5px); }
+        .nav-item.active {
+            background: linear-gradient(120deg, var(--light-green), var(--primary-green));
+            color: white;
+            box-shadow: 0 4px 12px -1px rgba(21, 128, 61, 0.3);
+            transform: translateX(5px) scale(1.02); 
+        }
+        .sidebar-footer { margin-top: auto; padding: 1rem; }
+
+        /* Main Content */
+        .main-content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            padding-bottom: 80px;
+            background-color: transparent;
+        }
+        
+        .app-page { display: none; animation: pageFadeInUp 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000); }
+        .app-page.active { display: block; }
+        .page-title {
+            font-size: 1.75rem; font-weight: 700; margin-top: 0; margin-bottom: 1.5rem;
+            color: var(--text-dark); text-shadow: 0 1px 3px rgba(255,255,255,0.4);
+        }
+
+        .content-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+
+        /* Cards */
+        .card {
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem; border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex; flex-direction: column;
+        }
+        .card:hover { box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08); transform: translateY(-4px); }
+        .card-title {
+            font-size: 1.25rem; font-weight: 600; margin: 0 0 1.5rem 0;
+            color: var(--primary-green); border-bottom: 2px solid rgba(229, 231, 235, 0.6); padding-bottom: 0.75rem;
+        }
+        .card-content { flex: 1; }
+        .card-footer { margin-top: 1.5rem; }
+
+        /* Forms */
+        .form-space { display: flex; flex-direction: column; gap: 1rem; }
+        .form-group label { display: block; font-size: 0.875rem; font-weight: 500; color: var(--text-med); margin-bottom: 0.25rem; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%; padding: 0.75rem; background-color: rgba(249, 250, 251, 0.8);
+            border: 1px solid var(--border-color); border-radius: 8px;
+            box-shadow: inset 0 1px 2px 0 rgba(0, 0, 0, 0.05); box-sizing: border-box;
+        }
+
+        /* Buttons */
+        .button {
+            width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+            padding: 0.75rem 1rem; color: #ffffff; font-weight: 600; border-radius: 8px; border: none;
+            cursor: pointer; background: linear-gradient(120deg, var(--light-green), var(--primary-green));
+            background-size: 200% 200%; transition: all 0.3s ease;
+        }
+        .button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(21, 128, 61, 0.25); background-position: right center; }
+        .button:disabled { background: #a3a3a3; cursor: not-allowed; transform: none; }
+        
+        .button.secondary {
+             background: rgba(255, 255, 255, 0.8); color: var(--text-dark); border: 1px solid var(--border-color);
+        }
+        .button.secondary:hover { background: rgba(243, 244, 246, 0.9); transform: translateY(-3px); background-position: left center; }
+
+        /* Data Cards */
+        .data-card-list { display: flex; flex-direction: column; gap: 1rem; }
+        .data-card { display: flex; align-items: center; padding: 1rem; border-radius: 8px; }
+        .data-card-icon { margin-right: 1rem; padding: 0.5rem; border-radius: 50%; background-color: rgba(255, 255, 255, 0.7); }
+        .data-card-content p { margin: 0; }
+        .data-title { font-weight: 600; }
+        .data-value { font-size: 0.9rem; color: var(--text-dark); font-weight: 500; }
+        
+        .weather-card { background-color: rgba(239, 246, 255, 0.8); }
+        .weather-card .data-card-icon { color: var(--blue); }
+        .weather-card .data-title { color: #1d4ed8; }
+        
+        .soil-card { background-color: rgba(254, 252, 232, 0.8); }
+        .soil-card .data-card-icon { color: var(--yellow); }
+        .soil-card .data-title { color: #a16207; }
+        
+        .satellite-card { background-color: rgba(245, 243, 255, 0.8); }
+        .satellite-card .data-card-icon { color: var(--purple); }
+        .satellite-card .data-title { color: #6d28d9; }
+        
+        .health-card { background-color: rgba(240, 253, 244, 0.8); }
+        .health-card .data-card-icon { color: var(--light-green); }
+        .health-card .data-title { color: var(--primary-green); }
+        
+        .item-card {
+            display: flex; gap: 1rem; align-items: center;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.6); padding-bottom: 1rem;
+        }
+        .item-card:last-child { border-bottom: none; }
+        .item-icon { padding: 0.75rem; border-radius: 8px; background-color: rgba(243, 244, 246, 0.8); color: var(--primary-green); }
+        .item-content { flex: 1; }
+        .item-content h4 { margin: 0 0 0.25rem 0; font-size: 1.1rem; }
+        .item-content p { margin: 0; color: var(--text-med); font-size: 0.9rem; }
+        .item-action { font-weight: 600; color: var(--primary-green); }
+
+        /* Map Styles */
+        #farmMap {
+            width: 100%;
+            height: 450px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 1; 
+        }
+        .leaflet-top { top: 10px; }
+
+        /* Spinner & Animations */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1); width: 24px; height: 24px; border-radius: 50%;
+            border-left-color: white; animation: spin 1s ease infinite; display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pageFadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-icon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center;
+            z-index: 2000; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.visible { display: flex; opacity: 1; }
+        .modal-container {
+            background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); border-radius: 12px;
+            width: 90%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column;
+            transform: scale(0.95); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.visible .modal-container { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); align-items: center; }
+        .modal-header h2 { margin: 0; font-size: 1.25rem; color: var(--primary-green); }
+        .modal-content { padding: 1.5rem; overflow-y: auto; }
+        .close-modal-btn { background: none; border: none; cursor: pointer; padding: 0.25rem; color: var(--text-med); }
+        .close-modal-btn:hover { color: var(--text-dark); transform: rotate(90deg); }
+
+        /* Chat */
+        .chat-box { height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
+        .chat-message { padding: 0.5rem 0.75rem; border-radius: 8px; max-width: 80%; line-height: 1.4; white-space: pre-wrap; }
+        .chat-message.user { background-color: var(--primary-green); color: white; align-self: flex-end; }
+        .chat-message.bot { background-color: white; align-self: flex-start; border: 1px solid var(--border-color); }
+        
+        /* Tabs */
+        .tab-nav { display: flex; border-bottom: 2px solid rgba(229, 231, 235, 0.6); margin-bottom: 1.5rem; }
+        .tab-item { padding: 0.75rem 1.25rem; cursor: pointer; color: var(--text-med); border-bottom: 2px solid transparent; margin-bottom: -2px; }
+        .tab-item.active { color: var(--primary-green); border-bottom-color: var(--primary-green); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex; justify-content: space-around; padding: 0.5rem 0; z-index: 100;
+        }
+        .bottom-nav-item { display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-med); cursor: pointer; }
+        .bottom-nav-item.active { color: var(--primary-green); }
+        
+        /* Pest Camera Placeholder */
+        .camera-placeholder {
+            width: 100%; height: 200px; background-color: #000; border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; text-align: center; margin-bottom: 1rem;
+        }
+        .camera-placeholder img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+
+        /* Timeline Ledger Styles */
+        .ledger-item {
+            display: flex; gap: 1rem; padding: 1rem 0; border-left: 2px solid var(--border-color);
+            margin-left: 1rem; position: relative;
+        }
+        .ledger-dot {
+            position: absolute; left: -9px; top: 1.2rem; width: 16px; height: 16px;
+            background: white; border: 2px solid var(--primary-green); border-radius: 50%;
+        }
+        .ledger-content { background: rgba(243,244,246,0.5); padding: 0.75rem; border-radius: 8px; flex: 1; }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .sidebar { display: flex; }
+            .bottom-nav { display: none; }
+            .main-content-area { padding-bottom: 1.5rem; }
+        }
+        @media (min-width: 1024px) { .content-grid { grid-template-columns: repeat(3, 1fr); } }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <nav class="container navbar">
+            <div class="logo">
+                <span data-lucide="sprout"></span>
+                <h1>KrishiSahay</h1>
+            </div>
+            <div class="nav-icons">
+                <!-- Localized Language Switcher (Replaces Google Translate) -->
+                <select id="langSwitcher" class="form-select" style="background:transparent; border:1px solid rgba(255,255,255,0.5); color:white; width:auto; padding:0.25rem 0.5rem; font-size:0.9rem;">
+                    <option value="en" style="color:black;">English</option>
+                    <option value="hi" style="color:black;">हिन्दी</option>
+                </select>
+                <span data-lucide="bell"></span>
+                <span data-lucide="user" id="authStatus"></span>
+            </div>
+        </nav>
+    </header>
+
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-nav">
+                <div class="nav-item active" data-page="dashboard">
+                    <span data-lucide="layout-dashboard"></span> <span data-i18n="nav_dash">Dashboard</span>
+                </div>
+                <div class="nav-item" data-page="logbook">
+                    <span data-lucide="book-open"></span> <span data-i18n="nav_log">Digital Log</span>
+                </div>
+                <div class="nav-item" data-page="ai-tools">
+                    <span data-lucide="brain-circuit"></span> <span data-i18n="nav_ai">AI Tools</span>
+                </div>
+                <div class="nav-item" data-page="market">
+                    <span data-lucide="shopping-cart"></span> <span data-i18n="nav_market">Marketplace</span>
+                </div>
+                <div class="nav-item" data-page="community">
+                    <span data-lucide="users"></span> <span data-i18n="nav_comm">Community</span>
+                </div>
+                <div class="nav-item" data-page="settings">
+                    <span data-lucide="settings"></span> <span data-i18n="nav_set">Settings</span>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <div class="button secondary">
+                    <span data-lucide="wifi-off" style="width: 16px;"></span> Offline Mode
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content-area">
+
+            <!-- DASHBOARD -->
+            <div id="page-dashboard" class="app-page active">
+                <h2 class="page-title" data-i18n="title_dash">My Farm Dashboard</h2>
+                <div class="content-grid">
+                    <div class="card">
+                        <h3 class="card-title">My Farm Controls</h3>
+                        <div class="card-content form-space">
+                            <div class="form-group">
+                                <label>Location</label>
+                                <input type="text" id="location" value="Anantapur, Andhra Pradesh" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Main Crop</label>
+                                <select id="crop" class="form-select">
+                                    <option>Rice</option>
+                                    <option>Wheat</option>
+                                    <option selected>Cotton</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Observed Issue</label>
+                                <input type="text" id="issue" placeholder="e.g., Yellow leaves..." class="form-input" value="Leaves have white spots...">
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="button" id="getAdviceBtn" class="button">
+                                <span id="btnText">Get Smart Advisory</span>
+                                <div class="spinner" id="loadingSpinner"></div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 class="card-title">Live Farm Data</h3>
+                        <div class="card-content data-card-list">
+                            <div class="data-card weather-card">
+                                <span class="data-card-icon" id="weatherIcon" data-lucide="loader"></span>
+                                <div class="data-card-content">
+                                    <p class="data-title">Live Weather</p>
+                                    <p id="weatherData" class="data-value">Initializing...</p>
+                                </div>
+                            </div>
+                            <div class="data-card soil-card">
+                                <span class="data-card-icon" data-lucide="droplet"></span>
+                                <div class="data-card-content">
+                                    <p class="data-title">Soil Moisture</p>
+                                    <p id="soilData" class="data-value">Calculating...</p>
+                                </div>
+                            </div>
+                            <div class="data-card satellite-card">
+                                <span class="data-card-icon" data-lucide="thermometer-sun"></span>
+                                <div class="data-card-content">
+                                    <p class="data-title">Soil Temp</p>
+                                    <p id="soilTempData" class="data-value">Calculating...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                         <h3 class="card-title">Smart Widgets</h3>
+                         <div class="data-card-list">
+                            <div class="data-card">
+                                <span class="data-card-icon" data-lucide="trending-up"></span>
+                                <div class="data-card-content">
+                                    <p class="data-title">Market Price</p>
+                                    <p class="data-value" id="marketPriceWidget">Ask Chat...</p>
+                                </div>
+                            </div>
+                            <div class="data-card">
+                                <span class="data-card-icon" data-lucide="cloud-rain"></span>
+                                <div class="data-card-content">
+                                    <p class="data-title">Advisory</p>
+                                    <p class="data-value" id="weatherAlertWidget">Analyzing...</p>
+                                </div>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LOGBOOK -->
+            <div id="page-logbook" class="app-page">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 class="page-title" style="margin: 0;">Digital Farm Log</h2>
+                    <button class="button" style="width: auto;" id="addLogEntryBtn">
+                        <span data-lucide="plus" style="width: 16px;"></span> Add Entry
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="data-card-list" id="logbookEntries">
+                        <p>Loading entries...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI TOOLS -->
+            <div id="page-ai-tools" class="app-page">
+                <h2 class="page-title">AI & Analytics (Gemini Powered)</h2>
+                <div class="content-grid">
+                    <div class="card">
+                        <h3 class="card-title">Visual Pest Doctor</h3>
+                        <div class="card-content" style="text-align: center;">
+                            <span data-lucide="scan-line" style="width: 64px; height: 64px; color: var(--red);"></span>
+                            <p>Identify crop issues using Gemini Vision AI.</p>
+                        </div>
+                        <div class="card-footer">
+                            <button class="button" style="background: var(--red);" id="openPestDetectorBtn">
+                                <span data-lucide="camera"></span> Scan Plant
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">FarmChat Assistant</h3>
+                        <div class="card-content" style="text-align: center;">
+                             <span data-lucide="message-circle" style="width: 64px; height: 64px; color: var(--blue);"></span>
+                            <p>Ask questions about your crop and weather to our expert AI.</p>
+                        </div>
+                        <div class="card-footer">
+                            <button class="button" style="background: var(--blue);" id="openChatBtn">
+                                <span data-lucide="message-circle"></span> Open Chat
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MARKET -->
+            <div id="page-market" class="app-page">
+                <h2 class="page-title">Commerce & Supply Chain</h2>
+                <div class="tab-nav">
+                    <div class="tab-item active" data-tab="market-supplies">Supplies</div>
+                    <div class="tab-item" data-tab="market-produce">My Produce</div>
+                    <div class="tab-item" data-tab="market-trace">Agri-Trace</div>
+                </div>
+                
+                <div id="market-supplies" class="tab-content active">
+                    <div class="card">
+                        <div class="data-card-list" id="marketSuppliesList">
+                            <p>Loading live supplies...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="market-produce" class="tab-content">
+                     <div class="card">
+                         <div class="data-card-list" id="marketProduceList">
+                             <p>Loading listings...</p>
+                         </div>
+                         <div class="card-footer">
+                             <button class="button" id="listProduceBtn">List New Produce</button>
+                         </div>
+                     </div>
+                </div>
+
+                <div id="market-trace" class="tab-content">
+                    <div class="card" id="trace-container" style="align-items: center; text-align: center;">
+                        <!-- Initial State -->
+                        <div id="trace-start-view">
+                            <h3 class="card-title">Start New Harvest Batch</h3>
+                            <p style="margin-bottom:1.5rem; color:var(--text-med);">Create a verifiable identity for your crop batch.</p>
+                            <span data-lucide="qr-code" style="width:80px; height:80px; color:var(--text-light); margin-bottom:1.5rem;"></span>
+                            <button class="button" id="generateBatchBtn">Generate QR Code</button>
+                        </div>
+
+                        <!-- Generated QR State -->
+                        <div id="trace-qr-view" style="display:none; width:100%;">
+                            <h3 class="card-title">Batch QR Code</h3>
+                            <p>Print this and attach to your bags. (Generated Locally)</p>
+                            <div style="display:flex; justify-content:center; margin: 1rem 0;">
+                                <canvas id="batchQRCanvas" style="border-radius: 8px; border: 4px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></canvas>
+                            </div>
+                            <div class="card-footer" style="width: 100%;">
+                                <button class="button secondary" id="simulateScanBtn">Simulate Buyer Scan</button>
+                            </div>
+                        </div>
+
+                        <!-- Ledger View -->
+                        <div id="trace-ledger-view" style="display:none; width:100%; text-align:left;">
+                            <h3 class="card-title" style="text-align:center;">Immutable Ledger</h3>
+                            <div style="background:var(--bg-gray); padding:1rem; border-radius:8px; margin-bottom:1.5rem; border-left: 4px solid var(--primary-green);">
+                                <h4 style="margin:0 0 0.5rem 0; color:var(--primary-green); font-size:1.1rem;">Crop Details</h4>
+                                <div id="ledger-crop-details"></div>
+                            </div>
+                            <div id="ledger-content"></div>
+                            <div style="margin-top:2rem; display:flex; flex-direction:column; gap:0.75rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                                <h4 style="margin:0;">Supply Chain Actions</h4>
+                                <button class="button secondary" id="addTransportBtn"><span data-lucide="truck"></span> Add Transport Details</button>
+                                <button class="button secondary" id="addReceiverBtn"><span data-lucide="warehouse"></span> Record Receipt</button>
+                            </div>
+                            <button class="button" style="margin-top:1rem; background:gray;" onclick="location.reload()">Close & Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMMUNITY & MAPS -->
+            <div id="page-community" class="app-page">
+                <h2 class="page-title">Community & Maps</h2>
+                 <div class="tab-nav">
+                    <div class="tab-item active" data-tab="comm-forum">Forum</div>
+                    <div class="tab-item" data-tab="comm-map">Pest Map</div>
+                </div>
+
+                <div id="comm-forum" class="tab-content active">
+                    <div class="card">
+                        <div class="form-space" style="margin-bottom: 1.5rem;">
+                            <textarea id="newPostContent" class="form-textarea" rows="3" placeholder="Ask a question or share a tip..."></textarea>
+                            <button class="button" style="width: auto; align-self: flex-end;" id="submitPostBtn">
+                                <span data-lucide="send"></span> Post
+                            </button>
+                        </div>
+                        <div id="forumPostList">
+                            <p>Loading live posts...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="comm-map" class="tab-content">
+                    <div class="card">
+                        <h3 class="card-title">Interactive Farm Map</h3>
+                        <div id="farmMap"></div>
+                        <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                             <p style="margin:0; font-size: 0.85rem; color: var(--text-med);">
+                                <span data-lucide="layers" style="width:14px; display:inline;"></span> 
+                                Using OpenStreetMap Data
+                             </p>
+                             <button class="button" style="background: var(--red); width: auto;" id="reportSightingBtn">
+                                 <span data-lucide="map-pin"></span> Report Sighting
+                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS (UPDATED) -->
+            <div id="page-settings" class="app-page">
+                <h2 class="page-title">Settings</h2>
+                <div class="content-grid">
+                    <div class="card">
+                        <h3 class="card-title">Profile Settings</h3>
+                        <div class="form-space">
+                            <div class="form-group">
+                                <label>Farmer Name</label>
+                                <input type="text" id="setting-name" class="form-input" placeholder="Enter your name">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="text" id="setting-phone" class="form-input" placeholder="+91 XXXXX XXXXX">
+                            </div>
+                            <button class="button" id="saveProfileBtn">Save Profile</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">App Preferences</h3>
+                        <div class="form-space">
+                            <div class="form-group" style="display:flex; align-items:center; justify-content:space-between;">
+                                <label>Weather Alerts</label>
+                                <input type="checkbox" id="setting-alerts" checked style="width:20px; height:20px;">
+                            </div>
+                            <div class="form-group">
+                                <label>Default Language</label>
+                                <select id="setting-lang" class="form-select">
+                                    <option value="en">English</option>
+                                    <option value="hi">Hindi</option>
+                                </select>
+                            </div>
+                            <button class="button secondary" id="savePrefsBtn">Save Preferences</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        </main>
+
+        <nav class="bottom-nav">
+            <div class="bottom-nav-item active" data-page="dashboard"><span data-lucide="layout-dashboard"></span> Home</div>
+            <div class="bottom-nav-item" data-page="logbook"><span data-lucide="book-open"></span> Log</div>
+            <div class="bottom-nav-item" data-page="ai-tools"><span data-lucide="brain-circuit"></span> AI</div>
+            <div class="bottom-nav-item" data-page="market"><span data-lucide="shopping-cart"></span> Market</div>
+            <div class="bottom-nav-item" data-page="community"><span data-lucide="map"></span> Map</div>
+        </nav>
+    </div>
+
+    <!-- MODALS -->
+    <!-- 1. Advisory Modal -->
+    <div id="advisoryModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="modalTitle">Smart Advisory</h2>
+                <button class="close-modal-btn" data-modal="advisoryModal"><span data-lucide="x"></span></button>
+            </div>
+            <div id="modalContent" class="modal-content"></div>
+        </div>
+    </div>
+    
+    <!-- 2. Chat Modal -->
+    <div id="chatModal" class="modal-overlay">
+         <div class="modal-container">
+            <div class="modal-header">
+                <h2>FarmChat Assistant</h2>
+                <button class="close-modal-btn" data-modal="chatModal"><span data-lucide="x"></span></button>
+            </div>
+            <div class="modal-content chat-container">
+                <div class="chat-box" id="chatBox">
+                    <div class="chat-message bot">Hello! I am your AI FarmChat Assistant. I can help with weather, prices, and crop advice using Gemini AI.</div>
+                </div>
+                <div class="chat-input-area" style="display:flex; gap:0.5rem;">
+                    <input type="text" id="chatInput" class="form-input" placeholder="Type..." style="flex: 1;">
+                    <button class="button" id="chatSendBtn" style="width: auto;"><span data-lucide="send"></span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Log Entry Modal -->
+    <div id="logEntryModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Add Log Entry</h2>
+                <button class="close-modal-btn" data-modal="logEntryModal">
+                    <span data-lucide="x"></span>
+                </button>
+            </div>
+            <div class="modal-content form-space">
+                <div class="form-group">
+                    <label>Log Type</label>
+                    <select id="log-type" class="form-select">
+                        <option>Irrigation</option>
+                        <option>Fertilizer</option>
+                        <option>Pest Control</option>
+                        <option>Harvest</option>
+                        <option>Expense</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="log-notes" rows="3" class="form-textarea" placeholder="e.g., Watered Field 2..."></textarea>
+                </div>
+                <button class="button" id="saveLogBtn">Save to Digital Log</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Pest Detector Modal -->
+    <div id="pestDetectorModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Visual Pest Doctor</h2>
+                <button class="close-modal-btn" data-modal="pestDetectorModal">
+                    <span data-lucide="x"></span>
+                </button>
+            </div>
+            <div class="modal-content" style="display:flex; flex-direction:column; gap:1rem;">
+                <div class="camera-placeholder" id="imagePreviewContainer">
+                    <span data-lucide="image" style="width:48px; height:48px;"></span>
+                    Upload an image to scan
+                </div>
+                <input type="file" id="pestImageUpload" accept="image/*" class="form-input">
+                <button class="button" id="scanPestPhotoBtn" disabled>
+                    <span id="scanBtnText">Scan Photo</span>
+                    <div class="spinner" id="scanSpinner"></div>
+                </button>
+                <div id="pestResult" style="padding: 1rem; background: #f9fafb; border-radius: 8px; display:none; white-space: pre-wrap;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. List Produce Modal -->
+    <div id="listProduceModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>List Your Produce</h2>
+                <button class="close-modal-btn" data-modal="listProduceModal">
+                    <span data-lucide="x"></span>
+                </button>
+            </div>
+            <div class="modal-content form-space">
+                <div class="form-group">
+                    <label>Produce Name</label>
+                    <input type="text" id="produce-name" class="form-input" placeholder="e.g., Cotton (DCH-32)">
+                </div>
+                <div class="form-group">
+                    <label>Quantity (Quintals)</label>
+                    <input type="number" id="produce-qty" class="form-input" placeholder="e.g., 50">
+                </div>
+                <div class="form-group">
+                    <label>Price (per Quintal)</label>
+                    <input type="text" id="produce-price" class="form-input" placeholder="e.g., ₹7200">
+                </div>
+                <button class="button" id="saveProduceBtn">List on Marketplace</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Transport Modal -->
+    <div id="transportModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Add Transport Info</h2>
+                <button class="close-modal-btn" data-modal="transportModal"><span data-lucide="x"></span></button>
+            </div>
+            <div class="modal-content form-space">
+                <div class="form-group">
+                    <label>Vehicle Number</label>
+                    <input type="text" id="trans-vehicle" class="form-input" placeholder="e.g., AP-02-CX-1234">
+                </div>
+                <div class="form-group">
+                    <label>Driver Name</label>
+                    <input type="text" id="trans-driver" class="form-input" placeholder="e.g., Rajesh Kumar">
+                </div>
+                <button class="button" id="saveTransportBtn">Update Ledger</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Receiver Modal -->
+    <div id="receiverModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Record Receipt</h2>
+                <button class="close-modal-btn" data-modal="receiverModal"><span data-lucide="x"></span></button>
+            </div>
+            <div class="modal-content form-space">
+                <div class="form-group">
+                    <label>Buyer / Warehouse</label>
+                    <input type="text" id="recv-name" class="form-input" placeholder="e.g., Anantapur Central Warehouse">
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="recv-loc" class="form-input" placeholder="e.g., Zone 4, Bay 2">
+                </div>
+                <button class="button" id="saveReceiverBtn">Update Ledger</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script type="module">
+        
+        let userId = localStorage.getItem('krishiUserId') || 'u-' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('krishiUserId', userId);
+
+        let dbData = { logs: [], produce: [], forum: [] };
+        let currentBatch = null;
+        let FARM_LAT = 14.6819; // Default: Anantapur
+        let FARM_LON = 77.6006;
+        let farmMarker = null;
+        let mapInstance = null;
+        let currentWeatherData = null;
+        
+        // --- GEMINI CONFIG ---
+        const apiKey = ""; // Provided by environment
+        
+        async function callGeminiAPI(payload, isImage = false) {
+            try {
+                let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                // For image, use appropriate model if strict, but instructions say 2.5-flash-preview supports both.
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) throw new Error(response.statusText);
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response.";
+            } catch (error) {
+                console.error("Gemini Error:", error);
+                return "Error connecting to AI. Please try again.";
+            }
+        }
+
+        // --- DOM Elements ---
+        const pages = document.querySelectorAll('.app-page');
+        const navItems = document.querySelectorAll('.nav-item, .bottom-nav-item');
+        const tabItems = document.querySelectorAll('.tab-item');
+        const modals = document.querySelectorAll('.modal-overlay');
+        const closeModalBtns = document.querySelectorAll('.close-modal-btn');
+        const locInput = document.getElementById('location');
+
+        // --- Navigation ---
+        function navigateToPage(pageId) {
+            pages.forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            navItems.forEach(item => item.classList.toggle('active', item.dataset.page === pageId));
+            if(pageId === 'community') setTimeout(() => { if(mapInstance) mapInstance.invalidateSize(); }, 200);
+        }
+        navItems.forEach(item => item.addEventListener('click', (e) => navigateToPage(e.currentTarget.dataset.page)));
+
+        // --- Tabs ---
+        tabItems.forEach(item => item.addEventListener('click', (e) => {
+            const targetTab = e.currentTarget.dataset.tab;
+            const tabNav = e.currentTarget.closest('.tab-nav');
+            const contentContainer = tabNav.nextElementSibling.parentElement;
+            tabNav.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            contentContainer.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(targetTab).classList.add('active');
+            if (targetTab === 'comm-map') initMap();
+        }));
+
+        // --- Modals ---
+        function openModal(id) { document.getElementById(id).classList.add('visible'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('visible'); }
+        closeModalBtns.forEach(btn => btn.addEventListener('click', () => closeModal(btn.dataset.modal)));
+        modals.forEach(m => m.addEventListener('click', (e) => { if(e.target === m) closeModal(m.id); }));
+
+        // --- Listeners ---
+        document.getElementById('getAdviceBtn').addEventListener('click', handleGetAdvisory);
+        document.getElementById('addLogEntryBtn').addEventListener('click', () => openModal('logEntryModal'));
+        document.getElementById('saveLogBtn').addEventListener('click', handleSaveLog);
+        document.getElementById('openPestDetectorBtn').addEventListener('click', () => openModal('pestDetectorModal'));
+        document.getElementById('openChatBtn').addEventListener('click', () => openModal('chatModal'));
+        document.getElementById('listProduceBtn').addEventListener('click', () => openModal('listProduceModal'));
+        document.getElementById('saveProduceBtn').addEventListener('click', handleSaveProduce);
+        document.getElementById('submitPostBtn').addEventListener('click', handleSubmitPost);
+        document.getElementById('reportSightingBtn').addEventListener('click', () => alert("Sighting reported locally."));
+        
+        // Settings Listeners
+        document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
+        document.getElementById('savePrefsBtn').addEventListener('click', savePrefs);
+
+        // Agri-Trace
+        document.getElementById('generateBatchBtn').addEventListener('click', handleGenerateBatch);
+        document.getElementById('simulateScanBtn').addEventListener('click', handleScanBatch);
+        document.getElementById('addTransportBtn').addEventListener('click', () => openModal('transportModal'));
+        document.getElementById('addReceiverBtn').addEventListener('click', () => openModal('receiverModal'));
+        document.getElementById('saveTransportBtn').addEventListener('click', handleSaveTransport);
+        document.getElementById('saveReceiverBtn').addEventListener('click', handleSaveReceiver);
+
+        locInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); handleGetAdvisory(); } });
+
+        // --- Localization (Open Source) ---
+        const translations = {
+            en: { nav_dash: "Dashboard", nav_log: "Digital Log", nav_ai: "AI Tools", nav_market: "Marketplace", nav_comm: "Community", nav_set: "Settings", title_dash: "My Farm Dashboard" },
+            hi: { nav_dash: "डैशबोर्ड", nav_log: "डिजिटल लॉग", nav_ai: "AI टूल्स", nav_market: "बाज़ार", nav_comm: "समुदाय", nav_set: "सेटिंग्स", title_dash: "मेरा खेत डैशबोर्ड" }
+        };
+        document.getElementById('langSwitcher').addEventListener('change', (e) => {
+            const lang = e.target.value;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(translations[lang][key]) el.textContent = translations[lang][key];
+            });
+        });
+
+        // --- Geocoding (Open-Meteo) ---
+        async function updateLocationFromInput() {
+            const val = locInput.value;
+            if(!val) return false;
+            try {
+                const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=1&language=en&format=json`);
+                const data = await res.json();
+                if(data.results && data.results.length > 0) {
+                    FARM_LAT = data.results[0].latitude;
+                    FARM_LON = data.results[0].longitude;
+                    await fetchLiveWeatherAndSoil();
+                    return data.results[0].name;
+                }
+                return null;
+            } catch(e) { console.error(e); return null; }
+        }
+
+        // --- Weather (Open-Meteo) ---
+        async function fetchLiveWeatherAndSoil() {
+            try {
+                document.getElementById('weatherData').textContent = "Updating...";
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${FARM_LAT}&longitude=${FARM_LON}&current=temperature_2m,weather_code,wind_speed_10m&hourly=soil_temperature_0cm,soil_moisture_0_to_1cm&timezone=auto&forecast_days=1`);
+                const data = await res.json();
+                currentWeatherData = data; 
+
+                const curr = data.current;
+                document.getElementById('weatherData').innerHTML = `<span style="font-size:1.4rem; font-weight:700;">${curr.temperature_2m}°C</span><br><span style="font-size:0.8rem;">Wind: ${curr.wind_speed_10m} km/h</span>`;
+                
+                const wIcon = document.getElementById('weatherIcon');
+                const code = curr.weather_code;
+                if(code <= 3) wIcon.setAttribute('data-lucide', 'sun');
+                else if(code <= 60) wIcon.setAttribute('data-lucide', 'cloud');
+                else wIcon.setAttribute('data-lucide', 'cloud-rain');
+
+                const alertW = document.getElementById('weatherAlertWidget');
+                if(code > 60) { alertW.textContent = "Rain Expected."; alertW.style.color = "var(--orange)"; }
+                else { alertW.textContent = "Clear Skies."; alertW.style.color = "var(--primary-green)"; }
+
+                const h = new Date().getHours();
+                document.getElementById('soilData').innerHTML = `<span style="font-size:1.2rem; font-weight:700;">${(data.hourly.soil_moisture_0_to_1cm[h]*100).toFixed(1)}%</span>`;
+                document.getElementById('soilTempData').innerHTML = `<span style="font-size:1.2rem; font-weight:700;">${data.hourly.soil_temperature_0cm[h]}°C</span>`;
+                
+                lucide.createIcons();
+            } catch (e) { console.error(e); document.getElementById('weatherData').textContent = "Offline"; }
+        }
+
+        // --- GEMINI: Smart Advisory ---
+        async function handleGetAdvisory() {
+            const btn = document.getElementById('getAdviceBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('loadingSpinner');
+            
+            btn.disabled = true;
+            btnText.textContent = "Updating...";
+            spinner.style.display = 'block';
+            
+            const locName = await updateLocationFromInput();
+            const crop = document.getElementById('crop').value;
+            const issue = document.getElementById('issue').value;
+            const temp = currentWeatherData ? currentWeatherData.current.temperature_2m : "N/A";
+            const wind = currentWeatherData ? currentWeatherData.current.wind_speed_10m : "N/A";
+
+            const prompt = `You are an expert agronomist. 
+            Context: Farmer in ${locName || 'India'} growing ${crop}. 
+            Current Weather: ${temp}°C, Wind ${wind} km/h.
+            Reported Issue: "${issue}".
+            Task: Provide a concise, actionable advisory in 3 distinct sections (Diagnosis, Immediate Treatment, Weather Note). Use HTML formatting (<b>, <br>, <ul>).`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                tools: [{ "google_search": {} }]
+            };
+
+            const advice = await callGeminiAPI(payload);
+            
+            document.getElementById('modalContent').innerHTML = advice;
+            openModal('advisoryModal');
+            
+            btn.disabled = false;
+            btnText.textContent = "Get Smart Advisory";
+            spinner.style.display = 'none';
+        }
+
+        // --- GEMINI: Chat ---
+        document.getElementById('chatSendBtn').addEventListener('click', async () => {
+            const val = document.getElementById('chatInput').value.trim();
+            if(!val) return;
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML += `<div class="chat-message user">${val}</div>`;
+            document.getElementById('chatInput').value = '';
+            
+            const prompt = `You are a helpful farming assistant named KrishiSahay. 
+            User Query: "${val}". 
+            Context: Crop is ${document.getElementById('crop').value}. Location is ${document.getElementById('location').value}.
+            Keep answer short and helpful.`;
+
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+            const reply = await callGeminiAPI(payload);
+
+            chatBox.innerHTML += `<div class="chat-message bot">${reply}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        // --- GEMINI: Pest Detector ---
+        let pestBase64 = null;
+        document.getElementById('pestImageUpload').addEventListener('change', (e) => {
+            if(e.target.files[0]) {
+                const r = new FileReader();
+                r.onload = (ev) => {
+                    document.getElementById('imagePreviewContainer').innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:contain;">`;
+                    pestBase64 = ev.target.result.split(',')[1];
+                    document.getElementById('scanPestPhotoBtn').disabled = false;
+                };
+                r.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        document.getElementById('scanPestPhotoBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('scanPestPhotoBtn');
+            const res = document.getElementById('pestResult');
+            btn.disabled = true;
+            btn.querySelector('span').textContent = "Analyzing...";
+            btn.querySelector('.spinner').style.display = "block";
+
+            const prompt = `Analyze this crop image. Identify any pests, diseases, or deficiencies. Provide a name and 1-sentence treatment.`;
+            
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: prompt },
+                        { inlineData: { mimeType: "image/jpeg", data: pestBase64 } } // Assumes jpeg/png
+                    ]
+                }]
+            };
+
+            const diagnosis = await callGeminiAPI(payload, true);
+            
+            res.style.display = 'block';
+            res.innerHTML = `<h4 style="color:var(--primary-green); margin-top:0;">Diagnosis</h4>${diagnosis}`;
+            
+            btn.disabled = false;
+            btn.querySelector('span').textContent = "Scan Photo";
+            btn.querySelector('.spinner').style.display = "none";
+        });
+
+        // --- Settings Logic ---
+        function saveProfile() {
+            const name = document.getElementById('setting-name').value;
+            localStorage.setItem('krishiProfileName', name);
+            if(name) alert(`Profile updated for ${name}`);
+        }
+        function savePrefs() {
+            const lang = document.getElementById('setting-lang').value;
+            localStorage.setItem('krishiLang', lang);
+            document.getElementById('langSwitcher').value = lang;
+            document.getElementById('langSwitcher').dispatchEvent(new Event('change'));
+            alert("Preferences saved.");
+        }
+        
+        // --- Init Settings ---
+        function initSettings() {
+            const name = localStorage.getItem('krishiProfileName');
+            if(name) document.getElementById('setting-name').value = name;
+            const lang = localStorage.getItem('krishiLang');
+            if(lang) {
+                document.getElementById('setting-lang').value = lang;
+                document.getElementById('langSwitcher').value = lang;
+                document.getElementById('langSwitcher').dispatchEvent(new Event('change'));
+            }
+        }
+
+        // --- Logbook ---
+        function handleSaveLog() {
+            const type = document.getElementById('log-type').value;
+            const notes = document.getElementById('log-notes').value;
+            if(!notes) return;
+            dbData.logs.unshift({ type, notes, date: new Date().toLocaleString() });
+            renderLogs();
+            closeModal('logEntryModal');
+        }
+        function renderLogs() {
+            const list = document.getElementById('logbookEntries');
+            list.innerHTML = dbData.logs.length ? '' : '<p>No entries yet.</p>';
+            dbData.logs.forEach(log => {
+                list.innerHTML += `<div class="item-card"><div class="item-icon"><span data-lucide="book"></span></div><div class="item-content"><h4>${log.type}</h4><p>${log.notes}</p><p style="font-size:0.8rem; color:#888;">${log.date}</p></div></div>`;
+            });
+            lucide.createIcons();
+        }
+
+        // --- Agri-Trace (QRious) ---
+        function handleGenerateBatch() {
+            const crop = document.getElementById('crop').value;
+            const batchId = 'BATCH-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            const today = new Date();
+            const seedDate = new Date(today.setMonth(today.getMonth()-4)).toLocaleDateString();
+            const harvestDate = new Date().toLocaleDateString();
+
+            currentBatch = {
+                id: batchId, crop: crop, seedDate: seedDate, harvestDate: harvestDate,
+                timeline: [ { title: "Seeded", date: seedDate, desc: "Certified seeds." }, { title: "Harvested", date: harvestDate, desc: "Farm Fresh." } ]
+            };
+
+            const qrData = `AGRI-TRACE\nBatch: ${batchId}\nCrop: ${crop}\nHarvest: ${harvestDate}`;
+            const qr = new QRious({
+                element: document.getElementById('batchQRCanvas'),
+                value: qrData,
+                size: 200
+            });
+
+            document.getElementById('trace-start-view').style.display = 'none';
+            document.getElementById('trace-qr-view').style.display = 'block';
+        }
+
+        function handleScanBatch() {
+            document.getElementById('trace-qr-view').style.display = 'none';
+            document.getElementById('trace-ledger-view').style.display = 'block';
+            renderTraceLedger();
+        }
+
+        function renderTraceLedger() {
+            document.getElementById('ledger-crop-details').innerHTML = `<p><strong>ID:</strong> ${currentBatch.id}</p><p><strong>Crop:</strong> ${currentBatch.crop}</p><p><strong>Harvest:</strong> ${currentBatch.harvestDate}</p>`;
+            const con = document.getElementById('ledger-content');
+            con.innerHTML = '';
+            currentBatch.timeline.forEach(i => {
+                con.innerHTML += `<div class="ledger-item"><div class="ledger-dot"></div><div class="ledger-content"><strong>${i.title}</strong><span style="float:right;font-size:0.8rem;">${i.date}</span><p>${i.desc}</p></div></div>`;
+            });
+        }
+
+        function handleSaveTransport() {
+            const v = document.getElementById('trans-vehicle').value;
+            if(!v) return;
+            currentBatch.timeline.push({ title: "Transported", date: new Date().toLocaleDateString(), desc: `Vehicle: ${v}` });
+            renderTraceLedger();
+            closeModal('transportModal');
+        }
+        function handleSaveReceiver() {
+            const n = document.getElementById('recv-name').value;
+            if(!n) return;
+            currentBatch.timeline.push({ title: "Received", date: new Date().toLocaleDateString(), desc: `At: ${n}` });
+            renderTraceLedger();
+            closeModal('receiverModal');
+        }
+
+        // --- Forum ---
+        function handleSubmitPost() {
+            const val = document.getElementById('newPostContent').value;
+            if(!val) return;
+            const list = document.getElementById('forumPostList');
+            list.innerHTML = `<div style="padding:0.5rem 0; border-bottom:1px solid #eee;"><strong>You</strong><br><span style="color:#555;">${val}</span></div>` + list.innerHTML;
+            document.getElementById('newPostContent').value = '';
+        }
+
+        // --- Map (Leaflet) ---
+        function initMap() {
+            if(mapInstance) { mapInstance.invalidateSize(); return; }
+            mapInstance = L.map('farmMap').setView([FARM_LAT, FARM_LON], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(mapInstance);
+            L.marker([FARM_LAT, FARM_LON]).addTo(mapInstance).bindPopup("My Farm").openPopup();
+        }
+
+        // --- Init ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initSettings();
+            lucide.createIcons();
+            fetchLiveWeatherAndSoil();
+            // Dummy Data
+            const sList = document.getElementById('marketSuppliesList');
+            sList.innerHTML = `<div class="item-card"><div class="item-icon"><span data-lucide="shopping-bag"></span></div><div class="item-content"><h4>Urea (45kg)</h4><p>Farmer Co-op</p></div><div class="item-action">₹266</div></div>`;
+            const fList = document.getElementById('forumPostList');
+            fList.innerHTML = `<div style="padding:0.5rem 0; border-bottom:1px solid #eee;"><strong>Ramesh</strong><br><span style="color:#555;">Best time to sow?</span></div>`;
+            lucide.createIcons();
+        });
+
+        // Marketplace Produce Logic
+        function handleSaveProduce() {
+            const name = document.getElementById('produce-name').value;
+            const price = document.getElementById('produce-price').value;
+            if(!name) return;
+            const list = document.getElementById('marketProduceList');
+            if(list.innerText.includes('Loading')) list.innerHTML = '';
+            list.innerHTML += `<div class="item-card"><div class="item-icon"><span data-lucide="package"></span></div><div class="item-content"><h4>${name}</h4></div><div class="item-action">${price}</div></div>`;
+            closeModal('listProduceModal');
+            lucide.createIcons();
+        }
+
+    </script>
+</body>
+</html>
