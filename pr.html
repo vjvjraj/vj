@@ -3,684 +3,711 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TravelGPT Suite | Open Source Real</title>
+    <title>TravelGPT | Ultra UI</title>
     
-    <!-- Tailwind CSS (Open Source Styling) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Phosphor Icons (Open Source Icons) -->
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Leaflet CSS (Open Source Maps) -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <!-- Google Fonts (Open Source License) -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         /* === CORE STYLING === */
         body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #0f172a; /* Slate 900 */
+            font-family: 'Outfit', sans-serif; 
+            background-color: #020617; 
             color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Hide Scrollbar */
+        /* Ambient Noise Texture */
+        .noise-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.03;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Scrollbar Hiding */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Glassmorphism */
+        /* Premium Glassmorphism */
         .glass {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:active { transform: scale(0.98); }
+
+        /* Input Glow */
+        .input-glow:focus-within {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.5);
         }
 
         /* Animations */
-        @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scan { 0% { top: 0%; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
         
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+        .animate-slide-up { animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        .scan-line { animation: scan 3s linear infinite; }
+        .float-anim { animation: float 3s ease-in-out infinite; }
+        
+        /* Ticket Perforation Effect */
+        .ticket-perforation {
+            background-image: radial-gradient(circle at 0 0, transparent 6px, #1e293b 7px);
+            background-size: 100% 100%;
+            background-position: top left;
         }
 
-        @keyframes scan-vertical {
-            0% { top: 0%; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
+        #map { height: 100%; width: 100%; z-index: 0; border-radius: 2rem; }
+        video { object-fit: cover; }
         
-        @keyframes ripple {
-            0% { transform: scale(1); opacity: 0.6; }
-            100% { transform: scale(3); opacity: 0; }
-        }
-
-        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .pulse-btn { animation: pulse-glow 2s infinite; }
-        .scan-line { animation: scan-vertical 2.5s linear infinite; }
-        .ripple-effect { animation: ripple 1.5s linear infinite; }
-
-        /* Map Specific */
-        #map { height: 100%; width: 100%; z-index: 0; }
-        .leaflet-control-attribution { display: none; }
-        
-        /* Video Element for AR */
-        video {
-            object-fit: cover;
-            transform: scaleX(-1); /* Mirror effect for selfie mode if defaulted */
-        }
+        /* Dropdown styling */
+        select option { background-color: #0f172a; color: white; }
     </style>
 </head>
-<body class="h-screen w-full flex justify-center items-center bg-gradient-to-br from-slate-900 via-orange-950 to-slate-900">
+<body class="h-screen w-full flex justify-center items-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+
+    <div class="noise-bg"></div>
 
     <!-- APP CONTAINER -->
-    <div class="relative w-full h-full max-w-md bg-slate-900 md:rounded-[3rem] md:h-[95vh] md:border-8 md:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+    <div class="relative w-full h-full max-w-md bg-slate-950 md:rounded-[3rem] md:h-[95vh] md:border-[8px] md:border-slate-800 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col z-10">
         
         <!-- === TOP BAR === -->
-        <header class="absolute top-0 w-full z-40 px-6 py-4 flex justify-between items-center glass border-b-0">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
-                    <i class="ph ph-paper-plane-tilt text-white text-lg"></i>
-                </div>
-                <span class="font-bold text-lg tracking-tight">TravelGPT <span class="text-xs text-orange-400">IN</span></span>
-            </div>
+        <header class="absolute top-0 w-full z-40 px-6 py-5 flex justify-between items-center glass border-b-0 border-t-0 bg-gradient-to-b from-slate-900/90 to-transparent">
             <div class="flex items-center gap-3">
-                <button class="relative p-2 rounded-full hover:bg-white/10 transition">
-                    <i class="ph ph-bell text-xl"></i>
-                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-slate-900"></span>
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <i class="ph-bold ph-paper-plane-tilt text-white text-lg"></i>
+                </div>
+                <span class="font-bold text-xl tracking-tight text-white">Travel<span class="text-emerald-400">GPT</span></span>
+            </div>
+            <div class="flex items-center gap-4 relative">
+                <button onclick="toggleNotifications()" class="relative p-2 rounded-full hover:bg-white/5 transition-colors group">
+                    <i class="ph-bold ph-bell text-xl text-slate-300 group-hover:text-white transition"></i>
+                    <span id="notif-badge" class="hidden absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-slate-950 animate-pulse"></span>
                 </button>
-                <div class="w-8 h-8 rounded-full bg-gray-300 overflow-hidden border-2 border-orange-500/50">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Rohan" alt="User" />
+                <div class="w-9 h-9 rounded-full p-[2px] bg-gradient-to-br from-emerald-500 to-transparent">
+                    <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix" alt="User" class="rounded-full bg-slate-900 w-full h-full object-cover" />
+                </div>
+
+                <!-- NOTIFICATIONS PANEL -->
+                <div id="notif-dropdown" class="absolute top-16 right-0 w-80 glass rounded-2xl shadow-2xl hidden z-50 animate-slide-up origin-top-right border border-white/5">
+                    <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
+                        <h3 class="font-semibold text-xs uppercase tracking-wider text-slate-400">Notifications</h3>
+                        <button onclick="clearNotifications()" class="text-[10px] text-emerald-400 hover:text-emerald-300 font-medium">Mark all read</button>
+                    </div>
+                    <div id="notif-list" class="max-h-72 overflow-y-auto no-scrollbar">
+                        <!-- Dynamic notifications -->
+                        <div class="text-center p-8 text-xs text-slate-500 flex flex-col items-center gap-2">
+                            <i class="ph-duotone ph-bell-slash text-2xl opacity-50"></i>
+                            <span>All caught up!</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <!-- === MAIN SCROLLABLE CONTENT === -->
-        <main id="main-container" class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-24 relative">
+        <!-- === MAIN CONTENT === -->
+        <main id="main-container" class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-28 relative">
             
-            <!-- VIEW: HOME / DASHBOARD -->
-            <section id="view-home" class="view-section min-h-full px-6 pt-24 pb-6 space-y-6">
+            <!-- VIEW: HOME -->
+            <section id="view-home" class="view-section min-h-full px-6 pt-28 pb-6 space-y-8">
                 
-                <!-- Weather Widget -->
-                <div class="glass-card rounded-3xl p-6 relative overflow-hidden group">
-                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-orange-500/20 rounded-full blur-2xl"></div>
-                    <div class="relative z-10 flex justify-between items-end">
-                        <div>
-                            <p class="text-slate-400 text-sm font-medium mb-1">Current Location</p>
-                            <h2 class="text-2xl font-bold flex items-center gap-2">
-                                <i class="ph-fill ph-map-pin text-orange-400"></i> New Delhi, India
-                            </h2>
-                            <div class="mt-4 flex items-center gap-3">
-                                <i class="ph-fill ph-sun text-4xl text-yellow-400"></i>
-                                <div>
-                                    <span class="text-3xl font-bold">32°</span>
-                                    <p class="text-xs text-slate-400">Haze • UV High</p>
+                <!-- Hero Weather Card -->
+                <div class="relative w-full h-48 rounded-[2rem] overflow-hidden shadow-2xl group">
+                    <!-- Gradient Mesh Background -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-900 to-slate-900 opacity-90"></div>
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-400 rounded-full mix-blend-overlay filter blur-[60px] opacity-20 animate-pulse"></div>
+                    <div class="absolute bottom-0 left-0 w-64 h-64 bg-cyan-400 rounded-full mix-blend-overlay filter blur-[60px] opacity-20"></div>
+                    
+                    <div class="absolute inset-0 p-6 flex flex-col justify-between z-10">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="flex items-center gap-1.5 text-emerald-100/80 text-xs font-medium uppercase tracking-wider mb-1">
+                                    <i class="ph-fill ph-navigation-arrow"></i> Current Location
                                 </div>
+                                <h2 class="text-3xl font-bold text-white tracking-tight">New Delhi</h2>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs font-semibold text-white shadow-lg">
+                                AQI: 145
                             </div>
                         </div>
-                        <div class="text-right">
-                            <div class="bg-orange-600/30 border border-orange-500/30 px-3 py-1 rounded-full text-xs font-semibold text-orange-300 mb-1">
-                                Safety Score
+                        <div class="flex items-end gap-4">
+                            <i class="ph-duotone ph-sun-dim text-5xl text-yellow-300 float-anim"></i>
+                            <div>
+                                <span class="text-4xl font-bold text-white">32°</span>
+                                <p class="text-sm text-emerald-100/70 font-medium">Sunny & Clear</p>
                             </div>
-                            <span class="text-3xl font-bold text-emerald-400">88</span>
-                            <span class="text-xs text-slate-500 block">/100</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- AI Prompt Area -->
-                <div class="space-y-3">
-                    <h3 class="text-lg font-semibold">AI Trip Planner</h3>
-                    <div class="glass-card p-1 rounded-2xl flex items-center">
-                        <input type="text" id="ai-input" placeholder="E.g., Street food, History, Shopping..." class="bg-transparent border-none text-sm w-full px-4 py-3 focus:outline-none text-white placeholder-slate-500">
-                        <button onclick="generateTrip()" class="bg-orange-600 hover:bg-orange-500 text-white p-3 rounded-xl transition shadow-lg shadow-orange-600/20">
-                            <i class="ph-bold ph-magic-wand"></i>
+                <!-- Trip Planner Input -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-slate-200">Where to next?</h3>
+                    <div class="input-glow glass-card p-1.5 rounded-2xl flex items-center gap-2 transition-all duration-300 group focus-within:bg-slate-800/50">
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 group-focus-within:text-emerald-400 transition-colors">
+                            <i class="ph-bold ph-magnifying-glass text-lg"></i>
+                        </div>
+                        <input type="text" id="ai-input" placeholder="Try 'Street food in Delhi'..." class="bg-transparent border-none text-sm w-full px-2 py-3 focus:outline-none text-white placeholder-slate-500 font-medium">
+                        <button onclick="generateTrip()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 p-3 rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)] active:scale-95">
+                            <i class="ph-bold ph-magic-wand text-lg"></i>
                         </button>
                     </div>
-                    <!-- Quick Chips -->
-                    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-                        <button onclick="setInput('Heritage Walk')" class="whitespace-nowrap px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs hover:bg-orange-600/20 transition">🕌 Heritage</button>
-                        <button onclick="setInput('Street Food')" class="whitespace-nowrap px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs hover:bg-orange-600/20 transition">🌶️ Food</button>
-                        <button onclick="setInput('Shopping')" class="whitespace-nowrap px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs hover:bg-orange-600/20 transition">🛍️ Shopping</button>
-                    </div>
-                </div>
-
-                <!-- Generated Itinerary -->
-                <div id="ai-result" class="hidden space-y-4 pt-2">
-                    <div class="flex items-center gap-2 text-orange-400 text-sm font-semibold">
-                        <i class="ph ph-sparkle-fill"></i> Suggested Itinerary: <span id="itin-title" class="text-white ml-1">Delhi</span>
-                    </div>
                     
-                    <!-- Dynamic Timeline Container -->
-                    <div id="timeline-container" class="relative pl-4 border-l border-white/10 space-y-6">
-                        <!-- Content injected via JS -->
+                    <!-- Chips -->
+                    <div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                        <button onclick="setInput('Heritage')" class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-slate-800/50 border border-white/5 text-xs font-medium text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/30 transition-all flex items-center gap-2">
+                            <i class="ph-duotone ph-columns"></i> Heritage
+                        </button>
+                        <button onclick="setInput('Food')" class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-slate-800/50 border border-white/5 text-xs font-medium text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/30 transition-all flex items-center gap-2">
+                            <i class="ph-duotone ph-bowl-food"></i> Food
+                        </button>
+                        <button onclick="setInput('Shopping')" class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-slate-800/50 border border-white/5 text-xs font-medium text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/30 transition-all flex items-center gap-2">
+                            <i class="ph-duotone ph-shopping-bag"></i> Shopping
+                        </button>
                     </div>
                 </div>
 
-                <!-- Smart Widgets Grid -->
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="switchTab('ar')" class="glass-card p-4 rounded-2xl flex flex-col items-start gap-2 hover:bg-white/10 transition">
-                        <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
-                            <i class="ph-fill ph-goggles text-xl"></i>
+                <!-- Results -->
+                <div id="ai-result" class="hidden space-y-5 pt-2">
+                    <div class="flex justify-between items-center px-1">
+                        <div class="flex items-center gap-2 text-emerald-400 text-sm font-semibold tracking-wide uppercase">
+                            <i class="ph-fill ph-sparkle"></i> Your Itinerary
                         </div>
-                        <span class="font-semibold text-sm">AR Guide</span>
-                        <span class="text-[10px] text-slate-400">Live Camera Feed</span>
-                    </button>
-                    <button onclick="switchTab('map')" class="glass-card p-4 rounded-2xl flex flex-col items-start gap-2 hover:bg-white/10 transition">
-                        <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                            <i class="ph-fill ph-shield-check text-xl"></i>
-                        </div>
-                        <span class="font-semibold text-sm">Safety Map</span>
-                        <span class="text-[10px] text-slate-400">Real GPS Location</span>
-                    </button>
+                        <button onclick="clearItinerary()" class="text-xs text-slate-500 hover:text-white transition-colors">Clear</button>
+                    </div>
+                    <div id="timeline-container" class="relative pl-6 space-y-6 before:absolute before:left-[9px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gradient-to-b before:from-emerald-500 before:to-transparent">
+                        <!-- Dynamic Items -->
+                    </div>
                 </div>
             </section>
 
-            <!-- VIEW: MAP (Full Screen) -->
+            <!-- VIEW: MAP -->
             <section id="view-map" class="view-section hidden w-full h-full relative">
-                <!-- Leaflet Container -->
-                <div id="map" class="w-full h-full bg-slate-800"></div>
+                <div id="map" class="bg-slate-800 h-full w-full grayscale-[50%] contrast-[1.1]"></div>
                 
-                <!-- Map Overlay Controls -->
-                <div class="absolute top-24 right-4 z-[400] flex flex-col gap-3">
-                    <button onclick="toggleSafetyLayer()" id="safety-toggle" class="w-12 h-12 glass rounded-full flex items-center justify-center text-white shadow-lg active:scale-95 transition">
-                        <i class="ph-fill ph-shield-warning text-xl"></i>
-                    </button>
-                    <button onclick="locateUserReal()" class="w-12 h-12 glass rounded-full flex items-center justify-center text-white shadow-lg active:scale-95 transition">
-                        <i class="ph-fill ph-crosshair text-xl text-orange-500"></i>
+                <div class="absolute top-28 right-4 z-[400] flex flex-col gap-3">
+                    <button onclick="locateUserReal()" class="w-12 h-12 glass rounded-2xl flex items-center justify-center text-white shadow-xl active:scale-90 transition-all border border-white/10 bg-slate-900/80">
+                        <i class="ph-bold ph-crosshair text-xl text-emerald-400"></i>
                     </button>
                 </div>
-
-                <div class="absolute bottom-24 left-1/2 -translate-x-1/2 z-[400]">
-                    <button onclick="triggerSOS()" class="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-bold shadow-xl shadow-red-900/50 flex items-center gap-2 pulse-btn transition">
-                        <i class="ph-bold ph-warning"></i> SOS
+                <!-- Context Card -->
+                <div id="map-card" class="absolute bottom-28 left-6 right-6 glass p-5 rounded-3xl animate-slide-up hidden z-[400] bg-slate-900/90 border border-white/10 shadow-2xl">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h4 id="map-card-title" class="font-bold text-lg text-white">Location</h4>
+                            <div class="flex items-center gap-1 text-xs text-emerald-400 mt-1">
+                                <i class="ph-fill ph-check-circle"></i> Safe Zone
+                            </div>
+                        </div>
+                        <button onclick="document.getElementById('map-card').classList.add('hidden')" class="text-slate-500 hover:text-white"><i class="ph-bold ph-x"></i></button>
+                    </div>
+                    <p id="map-card-desc" class="text-sm text-slate-400 mb-4 leading-relaxed">Description goes here.</p>
+                    <button onclick="switchTab('ar')" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-3 rounded-xl text-sm font-bold shadow-lg shadow-emerald-900/50 transition-all flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-goggles"></i> View in AR
                     </button>
                 </div>
             </section>
 
-            <!-- VIEW: AR (Full Screen with Live Camera) -->
+            <!-- VIEW: AR -->
             <section id="view-ar" class="view-section hidden w-full h-full relative bg-black">
-                <!-- REAL VIDEO FEED -->
-                <video id="ar-video" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover opacity-80"></video>
+                <video id="ar-video" autoplay playsinline muted class="absolute inset-0 w-full h-full opacity-60"></video>
                 
-                <!-- Fallback Message -->
-                <div id="camera-error" class="hidden absolute inset-0 flex items-center justify-center bg-slate-900 z-50 text-center p-6">
-                    <div>
-                        <i class="ph-fill ph-camera-slash text-4xl text-slate-500 mb-2"></i>
-                        <p class="text-sm text-slate-300">Camera access denied or unavailable.<br>Ensure you are using HTTPS.</p>
+                <!-- Grid Overlay Effect -->
+                <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+                
+                <div id="camera-error" class="hidden absolute inset-0 flex items-center justify-center bg-slate-950 z-50 text-center p-8">
+                    <div class="max-w-xs">
+                        <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4">
+                            <i class="ph-fill ph-camera-slash text-3xl text-slate-500"></i>
+                        </div>
+                        <h3 class="text-white font-bold mb-2">Camera Unavailable</h3>
+                        <p class="text-sm text-slate-400">Please ensure you are using HTTPS or localhost to enable AR features.</p>
                     </div>
                 </div>
-                
-                <!-- Historical Overlay Image -->
-                 <div id="ar-overlay-img" class="absolute inset-0 w-full h-full bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-1000 pointer-events-none">
+
+                <div id="ar-overlay-img" class="absolute inset-0 w-full h-full bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-700 pointer-events-none backdrop-blur-sm">
                      <div class="text-center">
-                         <h2 class="text-4xl font-bold text-orange-400 drop-shadow-lg">1931</h2>
-                         <p class="text-white">Inauguration Era</p>
+                         <h2 class="text-5xl font-bold text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.8)] mb-2 tracking-tighter">1931</h2>
+                         <p class="text-white text-lg tracking-widest uppercase font-light">Inauguration Era</p>
                      </div>
                  </div>
 
-                <!-- HUD Overlay -->
-                <div class="absolute inset-0 z-10 p-6 flex flex-col justify-between">
-                    <div class="flex justify-between">
-                        <div class="bg-black/40 backdrop-blur px-3 py-1 rounded-full border border-white/10 text-xs font-mono text-green-400 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE CAM
+                <!-- HUD -->
+                <div class="absolute inset-0 z-10 p-6 flex flex-col justify-between pointer-events-none">
+                    <div class="flex justify-between items-start">
+                         <div class="bg-slate-900/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-[10px] font-mono text-emerald-400 flex items-center gap-2 shadow-lg">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]"></span> LIVE
                         </div>
-                        <div class="bg-black/40 backdrop-blur px-3 py-1 rounded-full border border-white/10 text-xs font-mono text-white">
-                            <span id="ar-coords">Locating...</span>
-                        </div>
+                        <div class="scan-line h-0.5 w-full bg-emerald-500/50 absolute top-0 left-0 shadow-[0_0_10px_#10b981]"></div>
                     </div>
-
-                    <!-- Scanning Graphic -->
-                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div class="w-64 h-64 border-2 border-white/20 rounded-lg relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-orange-500"></div>
-                            <div class="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-orange-500"></div>
-                            <div class="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-orange-500"></div>
-                            <div class="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-orange-500"></div>
-                            <div class="absolute w-full h-0.5 bg-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,1)] scan-line"></div>
+                    
+                    <div class="glass p-4 rounded-2xl flex items-center gap-4 pointer-events-auto shadow-2xl bg-slate-900/80 border-t border-white/10">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+                            <i class="ph-duotone ph-clock-counter-clockwise text-2xl"></i>
                         </div>
-                    </div>
-
-                    <!-- Bottom Controls -->
-                    <div class="glass p-4 rounded-2xl">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-lg bg-orange-600/20 flex items-center justify-center">
-                                <i class="ph-fill ph-clock-counter-clockwise text-orange-500 text-2xl"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-sm">Time Travel Mode</h4>
-                                <p class="text-[10px] text-gray-300">Overlay historical data on camera</p>
-                            </div>
-                            <label class="ml-auto relative inline-flex items-center cursor-pointer">
-                                <input id="ar-toggle-input" type="checkbox" value="" class="sr-only peer" onchange="toggleAROverlay()">
-                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-                            </label>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-sm text-white">Time Travel</h4>
+                            <p class="text-[10px] text-slate-400 font-medium">Visualise historical layers</p>
                         </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input id="ar-toggle-input" type="checkbox" value="" class="sr-only peer" onchange="toggleAROverlay()">
+                            <div class="w-12 h-7 bg-slate-700 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md transition-colors"></div>
+                        </label>
                     </div>
                 </div>
             </section>
 
-            <!-- VIEW: TRANSLATE (Real Voice) -->
-            <section id="view-translate" class="view-section hidden min-h-full px-6 pt-24 pb-6 space-y-6 flex flex-col">
-                
-                <div class="flex items-center justify-between px-4">
-                    <div class="text-center">
-                        <span class="block text-2xl">🇮🇳</span>
-                        <span class="text-xs font-bold text-slate-400">Hindi</span>
+             <!-- VIEW: TRANSLATE -->
+            <section id="view-translate" class="view-section hidden min-h-full px-6 pt-28 pb-6 space-y-6 flex flex-col">
+                <div class="glass p-1.5 rounded-2xl flex justify-between items-center relative z-20 bg-slate-900/60">
+                    <div class="flex-1 text-center">
+                        <select id="lang-source" class="w-full bg-transparent text-emerald-400 font-bold text-center text-sm appearance-none py-3 focus:outline-none cursor-pointer">
+                            <option value="en-US">English</option>
+                            <option value="hi-IN">Hindi</option>
+                            <option value="es-ES">Spanish</option>
+                        </select>
                     </div>
-                    <i class="ph-bold ph-arrows-left-right text-orange-400 text-xl"></i>
-                    <div class="text-center">
-                        <span class="block text-2xl">🇺🇸</span>
-                        <span class="text-xs font-bold text-slate-400">English</span>
+                    <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 shadow-inner">
+                        <i class="ph-bold ph-arrows-left-right text-xs"></i>
+                    </div>
+                    <div class="flex-1 text-center">
+                        <select id="lang-target" class="w-full bg-transparent text-white font-bold text-center text-sm appearance-none py-3 focus:outline-none cursor-pointer">
+                            <option value="hi-IN">Hindi</option>
+                            <option value="es-ES">Spanish</option>
+                            <option value="en-US">English</option>
+                        </select>
                     </div>
                 </div>
-
-                <!-- Chat Area -->
-                <div id="translate-chat" class="flex-1 space-y-4 overflow-y-auto max-h-[50vh] p-2 bg-slate-800/50 rounded-2xl border border-white/5">
-                    <div class="text-center text-xs text-slate-500 mt-4">Tap the mic and speak in English or Hindi</div>
+            
+                <div id="translate-chat" class="flex-1 overflow-y-auto no-scrollbar space-y-4 p-2">
+                    <div class="h-full flex flex-col items-center justify-center text-slate-600 gap-3 opacity-60">
+                        <div class="w-16 h-16 rounded-full bg-slate-900 flex items-center justify-center">
+                            <i class="ph-duotone ph-microphone text-3xl"></i>
+                        </div>
+                        <p class="text-sm">Tap mic to start translating</p>
+                    </div>
                 </div>
-
-                <!-- Mic Control -->
-                <div class="mt-auto flex flex-col items-center gap-4">
-                    <p id="listening-text" class="text-xs text-orange-300 h-4 transition-opacity opacity-0">Listening...</p>
-                    <button onclick="toggleListening()" id="mic-btn" class="w-20 h-20 bg-slate-700 rounded-full shadow-lg flex items-center justify-center transition relative overflow-hidden">
-                        <div id="mic-ripple" class="absolute inset-0 rounded-full border border-orange-400 opacity-0"></div>
-                        <i class="ph-fill ph-microphone text-3xl text-white"></i>
+            
+                <div class="mt-auto flex flex-col items-center justify-center pb-24 gap-4">
+                    <p id="listening-status" class="text-xs text-emerald-400 h-4 opacity-0 transition-opacity font-mono tracking-widest uppercase">Listening...</p>
+                    <button id="mic-btn" onclick="toggleListening()" class="w-20 h-20 bg-slate-800 rounded-full shadow-[0_0_0_4px_rgba(30,41,59,0.5)] flex items-center justify-center transition-all duration-300 relative overflow-hidden group hover:scale-105 active:scale-95 border border-white/5">
+                         <div id="mic-ripple" class="absolute inset-0 rounded-full border-2 border-emerald-500 opacity-0 transition-all duration-1000"></div>
+                        <i class="ph-fill ph-microphone text-3xl text-white group-hover:text-emerald-400 transition-colors"></i>
                     </button>
-                    <p class="text-xs text-slate-500">Click to Start/Stop</p>
                 </div>
             </section>
 
-             <!-- VIEW: WALLET -->
-             <section id="view-wallet" class="view-section hidden min-h-full px-6 pt-24 pb-6 space-y-6">
-                <h2 class="text-xl font-bold">Trip Wallet</h2>
-                <!-- Ticket Card -->
-                <div class="bg-white text-slate-900 rounded-3xl overflow-hidden relative">
-                    <div class="absolute top-0 left-0 w-full h-2 bg-orange-500"></div>
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-6">
-                            <div>
-                                <p class="text-xs font-bold text-slate-400 tracking-wider">FLIGHT</p>
-                                <h3 class="text-2xl font-bold">LHR <i class="ph-bold ph-airplane-tilt text-orange-500 mx-1"></i> DEL</h3>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xs font-bold text-slate-400">DATE</p>
-                                <p class="font-bold">12 NOV</p>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center bg-slate-100 rounded-xl p-3 mb-4">
-                            <div class="text-center">
-                                <p class="text-[10px] text-slate-500 font-bold">DEPART</p>
-                                <p class="font-bold text-lg">10:30</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-[10px] text-slate-500 font-bold">GATE</p>
-                                <p class="font-bold text-lg text-orange-600">3A</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-[10px] text-slate-500 font-bold">SEAT</p>
-                                <p class="font-bold text-lg">12F</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="absolute top-[68%] -left-3 w-6 h-6 bg-slate-900 rounded-full"></div>
-                    <div class="absolute top-[68%] -right-3 w-6 h-6 bg-slate-900 rounded-full"></div>
+            <!-- VIEW: WALLET -->
+            <section id="view-wallet" class="view-section hidden min-h-full px-6 pt-28 pb-6 space-y-6">
+                <div class="flex justify-between items-end mb-2">
+                    <h2 class="text-2xl font-bold text-white">My Trips</h2>
+                    <span id="wallet-count" class="text-[10px] font-bold bg-slate-800 text-slate-400 px-2.5 py-1 rounded-lg border border-white/5">0 PASSES</span>
+                </div>
+                
+                <div id="wallet-container" class="space-y-5">
+                    <!-- Dynamic Tickets -->
                 </div>
             </section>
-
         </main>
 
-        <!-- === BOTTOM NAVIGATION === -->
-        <nav class="absolute bottom-0 w-full glass z-50 pb-6 pt-4 px-6 border-t-0 rounded-t-3xl">
-            <div class="flex justify-between items-center text-slate-400">
-                <button onclick="switchTab('home')" id="btn-home" class="nav-btn active flex flex-col items-center gap-1 text-orange-400 transition">
-                    <i class="ph-fill ph-house text-2xl"></i>
-                    <span class="text-[10px] font-medium">Home</span>
-                </button>
-                <button onclick="switchTab('map')" id="btn-map" class="nav-btn flex flex-col items-center gap-1 hover:text-orange-400 transition">
-                    <i class="ph-bold ph-map-trifold text-2xl"></i>
-                    <span class="text-[10px] font-medium">Map</span>
-                </button>
-                <button onclick="switchTab('ar')" class="relative -top-6 bg-gradient-to-r from-orange-600 to-red-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-orange-600/40 border-4 border-slate-900 active:scale-95 transition">
-                    <i class="ph-bold ph-camera text-2xl"></i>
-                </button>
-                <button onclick="switchTab('translate')" id="btn-translate" class="nav-btn flex flex-col items-center gap-1 hover:text-orange-400 transition">
-                    <i class="ph-bold ph-microphone text-2xl"></i>
-                    <span class="text-[10px] font-medium">Talk</span>
-                </button>
-                <button onclick="switchTab('wallet')" id="btn-wallet" class="nav-btn flex flex-col items-center gap-1 hover:text-orange-400 transition">
-                    <i class="ph-bold ph-suitcase text-2xl"></i>
-                    <span class="text-[10px] font-medium">Trip</span>
-                </button>
-            </div>
-        </nav>
-
-        <!-- === SOS OVERLAY === -->
-        <div id="sos-overlay" class="absolute inset-0 z-[500] bg-red-600 text-white hidden flex-col items-center justify-center p-8 text-center transition-opacity duration-300">
-            <div class="w-24 h-24 rounded-full bg-white/20 animate-ping absolute"></div>
-            <div class="w-20 h-20 rounded-full bg-white text-red-600 flex items-center justify-center text-3xl font-bold mb-6 relative z-10 shadow-xl">
-                <i class="ph-fill ph-warning"></i>
-            </div>
-            <h2 class="text-3xl font-bold mb-2">SOS TRIGGERED</h2>
-            <p class="text-red-100 mb-8">Calling Emergency Services (112)...</p>
-            <button onclick="cancelSOS()" class="bg-white text-red-600 px-8 py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition">
-                CANCEL
+        <!-- === FLOATING BOTTOM NAV === -->
+        <nav class="absolute bottom-6 left-6 right-6 h-16 glass rounded-2xl z-50 flex justify-between items-center px-6 shadow-2xl shadow-black/50 border border-white/10">
+            <button onclick="switchTab('home')" id="btn-home" class="nav-btn active group flex flex-col items-center gap-1 w-12">
+                <i class="ph-fill ph-house text-2xl text-emerald-400 transition-all group-active:scale-90"></i>
+                <span class="w-1 h-1 rounded-full bg-emerald-400 mt-1"></span>
             </button>
-        </div>
+            <button onclick="switchTab('map')" id="btn-map" class="nav-btn group flex flex-col items-center gap-1 w-12 opacity-60 hover:opacity-100 transition-opacity">
+                <i class="ph-bold ph-map-trifold text-2xl text-slate-300 transition-all"></i>
+                <span class="w-1 h-1 rounded-full bg-transparent mt-1"></span>
+            </button>
+            <button onclick="switchTab('ar')" class="relative -top-8 w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-[0_8px_20px_rgba(16,185,129,0.4)] border-[4px] border-slate-950 hover:scale-105 active:scale-95 transition-all group">
+                <i class="ph-bold ph-aperture text-2xl text-white animate-spin-slow"></i>
+            </button>
+             <button onclick="switchTab('translate')" id="btn-translate" class="nav-btn group flex flex-col items-center gap-1 w-12 opacity-60 hover:opacity-100 transition-opacity">
+                <i class="ph-bold ph-microphone text-2xl text-slate-300 transition-all"></i>
+                <span class="w-1 h-1 rounded-full bg-transparent mt-1"></span>
+            </button>
+            <button onclick="switchTab('wallet')" id="btn-wallet" class="nav-btn group flex flex-col items-center gap-1 w-12 opacity-60 hover:opacity-100 transition-opacity">
+                <i class="ph-bold ph-ticket text-2xl text-slate-300 transition-all"></i>
+                <span class="w-1 h-1 rounded-full bg-transparent mt-1"></span>
+            </button>
+        </nav>
 
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // --- State ---
-        let mapInitialized = false;
-        let map, safetyLayer;
+        const DB = {
+            save: (key, data) => localStorage.setItem(key, JSON.stringify(data)),
+            get: (key) => JSON.parse(localStorage.getItem(key)) || null,
+            addNotification: (msg) => {
+                let notifs = DB.get('notifications') || [];
+                notifs.unshift({ msg, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+                DB.save('notifications', notifs);
+                renderNotifications();
+            },
+            addToWallet: (ticket) => {
+                let wallet = DB.get('wallet') || [];
+                wallet.push(ticket);
+                DB.save('wallet', wallet);
+                DB.addNotification(`Added to wallet: ${ticket.title}`);
+                renderWallet();
+            }
+        };
+
+        let map, mapMarkers = [];
         let arStream = null;
         let recognition = null;
         let isListening = false;
 
-        // --- Navigation Logic ---
-        function switchTab(tabId) {
-            // Stop Camera if leaving AR
-            if(document.getElementById('view-ar').classList.contains('hidden') === false && tabId !== 'ar') {
-                stopCamera();
-            }
+        window.onload = () => {
+            renderNotifications();
+            renderWallet();
+            const savedTrip = DB.get('currentTrip');
+            if(savedTrip) renderTimeline(savedTrip);
+        };
 
-            // Hide all views
+        function switchTab(tabId) {
+            if(tabId !== 'ar') stopCamera();
+            else startCamera();
+
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            
-            // Show target view
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
 
-            // Initialize Logic specific to tabs
-            if (tabId === 'map' && !mapInitialized) initMap();
-            if (tabId === 'ar') startCamera();
+            if(tabId === 'map') {
+                setTimeout(() => {
+                    if(!map) initMap();
+                    else map.invalidateSize();
+                }, 100);
+            }
 
-            // Nav Styling
+            // Update Nav State
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-orange-400', 'active');
-                btn.classList.add('text-slate-400');
-                const icon = btn.querySelector('i');
-                if(icon) icon.classList.replace('ph-fill', 'ph-bold');
+                btn.classList.add('opacity-60');
+                btn.querySelector('i').classList.replace('ph-fill', 'ph-bold');
+                btn.querySelector('i').classList.replace('text-emerald-400', 'text-slate-300');
+                btn.querySelector('span').classList.replace('bg-emerald-400', 'bg-transparent');
             });
-
-            const activeBtn = document.getElementById(`btn-${tabId}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('text-slate-400');
-                activeBtn.classList.add('text-orange-400', 'active');
-                const icon = activeBtn.querySelector('i');
-                if(icon) icon.classList.replace('ph-bold', 'ph-fill');
+            const active = document.getElementById(`btn-${tabId}`);
+            if(active) {
+                active.classList.remove('opacity-60');
+                active.querySelector('i').classList.replace('ph-bold', 'ph-fill');
+                active.querySelector('i').classList.replace('text-slate-300', 'text-emerald-400');
+                active.querySelector('span').classList.replace('bg-transparent', 'bg-emerald-400');
             }
         }
 
-        // --- REAL CAMERA LOGIC (AR) ---
-        async function startCamera() {
-            const video = document.getElementById('ar-video');
-            const errorMsg = document.getElementById('camera-error');
+        function setInput(val) { document.getElementById('ai-input').value = val; }
+
+        function generateTrip() {
+            const input = document.getElementById('ai-input').value.toLowerCase();
+            const btn = document.querySelector('#view-home button[onclick="generateTrip()"]');
             
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                try {
-                    arStream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: { ideal: "environment" } } 
-                    });
-                    video.srcObject = arStream;
-                    errorMsg.classList.add('hidden');
-                } catch (err) {
-                    console.error("Camera Error:", err);
-                    errorMsg.classList.remove('hidden');
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>';
+
+            setTimeout(() => {
+                btn.innerHTML = '<i class="ph-bold ph-magic-wand"></i>';
+                let items = [];
+                if(input.includes('food')) {
+                    items = [
+                        { id: 101, time: '09:00 AM', title: 'Paranthe Wali Gali', desc: 'Old Delhi famous breakfast', lat: 28.6559, lng: 77.2309 },
+                        { id: 102, time: '01:00 PM', title: 'Karim\'s', desc: 'Mughlai cuisine near Jama Masjid', lat: 28.6506, lng: 77.2335 }
+                    ];
+                } else if(input.includes('shopping')) {
+                    items = [
+                        { id: 201, time: '11:00 AM', title: 'Sarojini Nagar', desc: 'Market for clothes', lat: 28.5757, lng: 77.1990 },
+                        { id: 202, time: '04:00 PM', title: 'Dilli Haat', desc: 'Handicraft village', lat: 28.5732, lng: 77.2079 }
+                    ];
+                } else {
+                    items = [
+                        { id: 301, time: '10:00 AM', title: 'Red Fort', desc: 'Historic Fort Tour', lat: 28.6562, lng: 77.2410 },
+                        { id: 302, time: '05:00 PM', title: 'India Gate', desc: 'War Memorial', lat: 28.6129, lng: 77.2295 }
+                    ];
                 }
-            } else {
-                errorMsg.classList.remove('hidden');
-            }
+                DB.save('currentTrip', items);
+                renderTimeline(items);
+                updateMapMarkers(items);
+                DB.addNotification('Itinerary Ready: ' + input);
+            }, 800);
         }
 
-        function stopCamera() {
-            if (arStream) {
-                arStream.getTracks().forEach(track => track.stop());
-                arStream = null;
-            }
+        function renderTimeline(items) {
+            const container = document.getElementById('timeline-container');
+            document.getElementById('ai-result').classList.remove('hidden');
+            container.innerHTML = items.map((item, i) => `
+                <div class="relative group animate-slide-up" style="animation-delay: ${i * 100}ms">
+                    <div class="absolute -left-[29px] top-1 w-4 h-4 rounded-full border-4 border-slate-900 bg-emerald-500 shadow-[0_0_10px_#10b981]"></div>
+                    <div class="glass-card p-4 rounded-2xl flex justify-between items-center hover:bg-slate-800 transition-colors border border-white/5">
+                        <div>
+                            <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">${item.time}</span>
+                            <h4 class="font-bold text-base text-white mt-0.5">${item.title}</h4>
+                            <p class="text-xs text-slate-400 mt-1">${item.desc}</p>
+                        </div>
+                        <button onclick="bookItem('${item.title}', '${item.time}', '${item.desc}')" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold transition-all border border-emerald-500/20 hover:border-emerald-500">
+                            Book
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function toggleAROverlay() {
-            const checkbox = document.getElementById('ar-toggle-input');
-            const overlay = document.getElementById('ar-overlay-img');
-            overlay.style.opacity = checkbox.checked ? '1' : '0';
+        function bookItem(title, time, desc) {
+            DB.addToWallet({ title, time, desc, id: Date.now() });
+            alert(`Booked: ${title}`);
         }
 
-        // --- REAL GEOLOCATION LOGIC (MAP) ---
-        function initMap() {
-            const defaultPos = [28.6129, 77.2295]; // New Delhi
-            map = L.map('map', { zoomControl: false }).setView(defaultPos, 13);
+        function clearItinerary() {
+            localStorage.removeItem('currentTrip');
+            document.getElementById('ai-result').classList.add('hidden');
+            document.getElementById('timeline-container').innerHTML = '';
+        }
 
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '© OSM contributors',
-                subdomains: 'abcd',
-                maxZoom: 20
-            }).addTo(map);
-
-            // Safety Layers
-            const safeZone = L.circle([28.6304, 77.2177], { color: 'green', fillColor: '#2ecc71', fillOpacity: 0.2, radius: 800 });
-            const dangerZone = L.circle([28.6427, 77.2127], { color: 'orange', fillColor: '#f39c12', fillOpacity: 0.3, radius: 500 });
-            safetyLayer = L.layerGroup([dangerZone, safeZone]);
+        function renderWallet() {
+            const wallet = DB.get('wallet') || [];
+            const container = document.getElementById('wallet-container');
+            document.getElementById('wallet-count').innerText = `${wallet.length} PASSES`;
             
-            mapInitialized = true;
-            setTimeout(() => { map.invalidateSize(); }, 100);
+            if(wallet.length === 0) {
+                container.innerHTML = `<div class="text-center py-20 opacity-30 flex flex-col items-center"><i class="ph-duotone ph-ticket text-6xl mb-4"></i><p class="text-sm">Your wallet is empty</p></div>`;
+                return;
+            }
+            container.innerHTML = wallet.map(item => `
+                <div class="bg-white rounded-3xl relative overflow-hidden shadow-xl animate-slide-up group">
+                    <!-- Top Section -->
+                    <div class="p-5 bg-slate-50 border-b border-dashed border-slate-300 relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="font-bold text-xl text-slate-900">${item.title}</h4>
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">${item.desc}</span>
+                            </div>
+                            <div class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold">CONFIRMED</div>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-600">
+                            <i class="ph-bold ph-clock"></i>
+                            <span class="text-sm font-semibold">${item.time}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Tear-off Section -->
+                    <div class="p-4 bg-slate-100 relative z-10 flex justify-between items-center">
+                         <!-- Cutouts -->
+                        <div class="absolute -left-3 top-[-12px] w-6 h-6 bg-slate-950 rounded-full z-20"></div>
+                        <div class="absolute -right-3 top-[-12px] w-6 h-6 bg-slate-950 rounded-full z-20"></div>
+                        
+                        <div>
+                             <p class="text-[10px] text-slate-400 font-bold uppercase">Ticket ID</p>
+                             <p class="text-sm font-mono text-slate-700">#${item.id.toString().slice(-6)}</p>
+                        </div>
+                        <i class="ph-fill ph-qr-code text-3xl text-slate-900 opacity-80"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderNotifications() {
+            const notifs = DB.get('notifications') || [];
+            const badge = document.getElementById('notif-badge');
+            const list = document.getElementById('notif-list');
+            if(notifs.length > 0) badge.classList.remove('hidden');
+            else badge.classList.add('hidden');
+            if(notifs.length === 0) {
+                list.innerHTML = `<div class="text-center p-8 text-xs text-slate-500">All caught up</div>`;
+                return;
+            }
+            list.innerHTML = notifs.map(n => `
+                <div class="p-4 border-b border-white/5 flex gap-3 hover:bg-white/5 transition-colors">
+                    <div class="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 flex items-center justify-center text-sm border border-white/5">
+                        <i class="ph-fill ph-bell-ringing"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-200 font-medium leading-relaxed">${n.msg}</p>
+                        <p class="text-[10px] text-slate-500 mt-1">${n.time}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleNotifications() {
+            document.getElementById('notif-dropdown').classList.toggle('hidden');
+            document.getElementById('notif-badge').classList.add('hidden');
+        }
+
+        function clearNotifications() {
+            localStorage.removeItem('notifications');
+            renderNotifications();
+        }
+
+        function initMap() {
+            map = L.map('map', { zoomControl: false }).setView([28.6129, 77.2295], 13);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '' }).addTo(map);
+            const savedTrip = DB.get('currentTrip');
+            if(savedTrip) updateMapMarkers(savedTrip);
+        }
+
+        function updateMapMarkers(items) {
+            if(!map) return;
+            mapMarkers.forEach(m => map.removeLayer(m));
+            mapMarkers = [];
+            const bounds = [];
+            items.forEach(item => {
+                // Custom DivIcon for premium feel
+                const icon = L.divIcon({
+                    className: 'bg-transparent',
+                    html: `<div class="w-4 h-4 bg-emerald-500 rounded-full border-[3px] border-slate-900 shadow-[0_0_15px_#10b981]"></div>`
+                });
+                
+                const mk = L.marker([item.lat, item.lng], {icon: icon}).addTo(map);
+                mk.bindPopup(`<div class="text-slate-900 font-bold">${item.title}</div>`);
+                mk.on('click', () => showMapCard(item));
+                mapMarkers.push(mk);
+                bounds.push([item.lat, item.lng]);
+            });
+            if(bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
+        }
+
+        function showMapCard(item) {
+            const card = document.getElementById('map-card');
+            document.getElementById('map-card-title').innerText = item.title;
+            document.getElementById('map-card-desc').innerText = item.desc;
+            card.classList.remove('hidden');
         }
 
         function locateUserReal() {
-            if (!navigator.geolocation) {
-                alert("Geolocation is not supported by your browser");
-                return;
-            }
-
-            const btn = document.querySelector('button[onclick="locateUserReal()"] i');
-            btn.classList.add('animate-spin');
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const userPos = [lat, lng];
-                    
-                    // Add/Update Marker
-                    L.marker(userPos).addTo(map)
-                        .bindPopup("<b>You are here</b>").openPopup();
-                    
-                    map.flyTo(userPos, 16);
-                    btn.classList.remove('animate-spin');
-                },
-                () => {
-                    alert("Unable to retrieve your location.");
-                    btn.classList.remove('animate-spin');
-                }
-            );
+            if(!navigator.geolocation) return alert('No Geo support');
+            navigator.geolocation.getCurrentPosition(pos => {
+                const { latitude, longitude } = pos.coords;
+                L.marker([latitude, longitude]).addTo(map).bindPopup('You').openPopup();
+                map.flyTo([latitude, longitude], 15);
+            });
         }
 
-        function toggleSafetyLayer() {
-            if (!mapInitialized) return;
-            const btn = document.getElementById('safety-toggle');
-            if (map.hasLayer(safetyLayer)) {
-                map.removeLayer(safetyLayer);
-                btn.classList.remove('bg-orange-600');
-                btn.classList.add('glass');
-            } else {
-                map.addLayer(safetyLayer);
-                btn.classList.remove('glass');
-                btn.classList.add('bg-orange-600');
+        async function startCamera() {
+            try {
+                arStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                document.getElementById('ar-video').srcObject = arStream;
+                document.getElementById('camera-error').classList.add('hidden');
+            } catch(e) {
+                document.getElementById('camera-error').classList.remove('hidden');
             }
         }
+        function stopCamera() {
+            if(arStream) arStream.getTracks().forEach(t => t.stop());
+        }
+        function toggleAROverlay() {
+            const on = document.getElementById('ar-toggle-input').checked;
+            document.getElementById('ar-overlay-img').style.opacity = on ? 1 : 0;
+        }
 
-        // --- REAL SPEECH RECOGNITION (TRANSLATE) ---
-        // Feature check for Web Speech API
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
         function toggleListening() {
             const btn = document.getElementById('mic-btn');
             const ripple = document.getElementById('mic-ripple');
-            const label = document.getElementById('listening-text');
+            const status = document.getElementById('listening-status');
+            const sourceLang = document.getElementById('lang-source').value;
 
-            if (!SpeechRecognition) {
-                alert("Speech recognition is not supported in this browser. Try Chrome/Edge/Safari.");
-                return;
-            }
+            if (!SpeechRecognition) return alert("Browser does not support Speech API");
 
             if (isListening) {
-                // Stop
                 if (recognition) recognition.stop();
                 isListening = false;
-                btn.classList.replace('bg-orange-600', 'bg-slate-700');
+                btn.classList.replace('bg-emerald-600', 'bg-slate-800');
                 ripple.classList.remove('ripple-effect', 'opacity-100');
-                label.style.opacity = '0';
+                status.style.opacity = '0';
             } else {
-                // Start
                 recognition = new SpeechRecognition();
-                recognition.lang = 'en-US'; // Default to English for demo, detects distinct speech
+                recognition.lang = sourceLang;
                 recognition.continuous = false;
                 recognition.interimResults = false;
 
                 recognition.onstart = () => {
                     isListening = true;
-                    btn.classList.replace('bg-slate-700', 'bg-orange-600');
+                    btn.classList.replace('bg-slate-800', 'bg-emerald-600');
                     ripple.classList.add('ripple-effect');
                     ripple.style.opacity = '1';
-                    label.innerText = "Listening...";
-                    label.style.opacity = '1';
+                    status.innerText = "Listening...";
+                    status.style.opacity = '1';
                 };
 
                 recognition.onresult = (event) => {
                     const transcript = event.results[0][0].transcript;
-                    addChatMessage(transcript, 'user');
-                    // Mock Translation Response based on simple keywords
+                    addChatBubble(transcript, 'user');
+                    status.innerText = "Translating...";
                     setTimeout(() => {
-                        let translation = "Translation unavailable for this phrase.";
-                        if(transcript.toLowerCase().includes('hello')) translation = "Namaste! (नमस्ते)";
-                        else if(transcript.toLowerCase().includes('how much')) translation = "Ye kitne ka hai? (ये कितने का है?)";
-                        else if(transcript.toLowerCase().includes('where')) translation = "Kahan hai? (कहाँ है?)";
-                        else translation = "Translated: " + transcript + " (Simulated Hindi)";
-                        
-                        addChatMessage(translation, 'bot');
-                    }, 800);
-                };
-
-                recognition.onerror = (event) => {
-                    console.error(event.error);
-                    isListening = false;
-                    btn.classList.replace('bg-orange-600', 'bg-slate-700');
-                    ripple.classList.remove('ripple-effect');
-                    label.innerText = "Error. Try again.";
-                };
-
-                recognition.onend = () => {
-                    isListening = false;
-                    btn.classList.replace('bg-orange-600', 'bg-slate-700');
-                    ripple.classList.remove('ripple-effect');
-                    label.style.opacity = '0';
+                        const translation = getMockTranslation(transcript);
+                        addChatBubble(translation, 'bot');
+                        status.style.opacity = '0';
+                        toggleListening(); 
+                    }, 1000);
                 };
 
                 recognition.start();
             }
         }
 
-        function addChatMessage(text, sender) {
+        function addChatBubble(text, sender) {
             const chat = document.getElementById('translate-chat');
+            if(chat.querySelector('.text-center')) chat.innerHTML = '';
+
             const div = document.createElement('div');
             div.className = sender === 'user' ? "flex flex-col items-start animate-slide-up" : "flex flex-col items-end animate-slide-up";
             
-            const bubbleColor = sender === 'user' ? "bg-white/10" : "bg-orange-600 shadow-lg";
-            const align = sender === 'user' ? "rounded-tl-none" : "rounded-tr-none";
-            const subtext = sender === 'user' ? "You said" : "Translated";
+            const color = sender === 'user' ? "bg-slate-800/80" : "bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg shadow-emerald-900/40";
+            const rounded = sender === 'user' ? "rounded-tl-none" : "rounded-tr-none";
+            const label = sender === 'user' ? "Original" : "Translated";
 
             div.innerHTML = `
-                <div class="${bubbleColor} p-3 rounded-2xl ${align} text-sm max-w-[80%]">
+                <div class="${color} p-4 rounded-2xl ${rounded} text-sm max-w-[85%] backdrop-blur-md border border-white/5">
                     ${text}
                 </div>
-                <span class="text-[10px] text-slate-500 mt-1 mx-1">${subtext}</span>
+                <span class="text-[10px] text-slate-500 mt-1 mx-1">${label}</span>
             `;
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
         }
 
-        // --- ENHANCED AI SIMULATION ---
-        function setInput(text) { document.getElementById('ai-input').value = text; }
-
-        function generateTrip() {
-            const input = document.getElementById('ai-input').value.toLowerCase();
-            const btn = document.querySelector('#view-home button[onclick="generateTrip()"]');
-            const resultArea = document.getElementById('ai-result');
-            const container = document.getElementById('timeline-container');
-            
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>';
-
-            setTimeout(() => {
-                btn.innerHTML = '<i class="ph-bold ph-magic-wand"></i>';
-                resultArea.classList.remove('hidden');
-                
-                // Simple keyword-based AI logic
-                let items = [];
-                if (input.includes('food')) {
-                    items = [
-                        { time: '09:00 AM', title: 'Paranthe Wali Gali', desc: 'Famous breakfast street.', tag: 'Food', safe: true },
-                        { time: '01:00 PM', title: 'Karim\'s Jama Masjid', desc: 'Legendary Mughlai lunch.', tag: 'Crowded', safe: true }
-                    ];
-                } else if (input.includes('shopping')) {
-                    items = [
-                        { time: '11:00 AM', title: 'Sarojini Nagar', desc: 'Bargain market hunt.', tag: 'Budget', safe: true },
-                        { time: '05:00 PM', title: 'Dilli Haat', desc: 'Handicrafts & open air.', tag: 'Cultural', safe: true }
-                    ];
-                } else {
-                    // Default Heritage
-                    items = [
-                        { time: '10:00 AM', title: 'Red Fort', desc: 'Mughal Architecture tour.', tag: 'History', safe: true },
-                        { time: '04:00 PM', title: 'India Gate', desc: 'Evening walk & war memorial.', tag: 'View', safe: true }
-                    ];
-                }
-
-                // Render
-                container.innerHTML = items.map((item, i) => `
-                    <div class="relative group animate-slide-up" style="animation-delay: ${i * 100}ms">
-                        <div class="absolute -left-[21px] top-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-slate-900"></div>
-                        <div class="glass-card p-4 rounded-xl hover:bg-white/10 transition">
-                            <div class="flex justify-between mb-1">
-                                <h4 class="font-bold">${item.title}</h4>
-                                <span class="text-xs text-slate-400">${item.time}</span>
-                            </div>
-                            <p class="text-xs text-slate-400 mb-2">${item.desc}</p>
-                            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded">${item.tag}</span>
-                        </div>
-                    </div>
-                `).join('');
-                
-            }, 1000);
+        function getMockTranslation(text) {
+            const target = document.getElementById('lang-target').value;
+            const lower = text.toLowerCase();
+            const dict = {
+                'hello': { 'hi-IN': 'Namaste', 'es-ES': 'Hola' },
+                'how much': { 'hi-IN': 'Kitne ka hai?', 'es-ES': 'Cuanto cuesta?' },
+                'thank you': { 'hi-IN': 'Dhanyavaad', 'es-ES': 'Gracias' },
+                'bathroom': { 'hi-IN': 'Souchalay', 'es-ES': 'Bano' }
+            };
+            for (let key in dict) {
+                if (lower.includes(key)) return dict[key][target] || `[${target}] ${text}`;
+            }
+            return `[${target}] ${text}`; 
         }
-
-        // --- SOS ---
-        function triggerSOS() {
-            document.getElementById('sos-overlay').classList.remove('hidden');
-            document.getElementById('sos-overlay').classList.add('flex');
-        }
-        function cancelSOS() {
-            document.getElementById('sos-overlay').classList.add('hidden');
-            document.getElementById('sos-overlay').classList.remove('flex');
-        }
-
-        // Initialize
-        switchTab('home');
 
     </script>
 </body>
