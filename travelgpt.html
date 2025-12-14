@@ -26,13 +26,13 @@
     <style>
         /* === PROFESSIONAL THEME === */
         :root {
-            --primary: #4f46e5;
-            --primary-soft: #e0e7ff;
+            --primary: #4f46e5; /* Indigo 600 */
+            --primary-soft: #e0e7ff; /* Indigo 100 */
             --surface: #ffffff;
-            --bg-body: #f8fafc;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
+            --bg-body: #f8fafc; /* Slate 50 */
+            --text-main: #0f172a; /* Slate 900 */
+            --text-muted: #64748b; /* Slate 500 */
+            --border: #e2e8f0; /* Slate 200 */
         }
 
         body { 
@@ -44,14 +44,16 @@
             width: 100vw;
         }
 
+        /* === RESPONSIVE LAYOUT UTILS === */
         .app-shell { display: flex; height: 100%; width: 100%; flex-direction: column; }
         @media (min-width: 768px) { .app-shell { flex-direction: row; } }
 
+        /* === UI COMPONENTS === */
         .pro-card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 12px;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             transition: box-shadow 0.2s ease, transform 0.2s ease;
         }
         .pro-card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
@@ -63,12 +65,18 @@
             background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft);
         }
 
+        /* === ANIMATIONS === */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
-        
+
+        .scan-line { width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 8px var(--primary); animation: scan 2s linear infinite; }
+        @keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+
+        /* === UTILS === */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         select { -webkit-appearance: none; background: transparent; }
 
+        /* Navigation Styles */
         .nav-link {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: var(--text-muted); transition: all 0.2s; border-radius: 8px;
@@ -82,7 +90,11 @@
         #ar-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
         .msg-user { background-color: var(--primary); color: white; border-radius: 12px 12px 2px 12px; }
         .msg-ai { background-color: white; border: 1px solid var(--border); border-radius: 12px 12px 12px 2px; }
-        #auth-overlay { background-image: radial-gradient(circle at 50% 0%, #e0e7ff 0%, #f8fafc 100%); }
+
+        /* AUTH SCREEN STYLES */
+        #auth-overlay {
+            background-image: radial-gradient(circle at 50% 0%, #e0e7ff 0%, #f8fafc 100%);
+        }
     </style>
 </head>
 <body>
@@ -203,6 +215,7 @@
                 <img id="ar-static-img" class="absolute inset-0 w-full h-full object-contain bg-black hidden z-10">
                 <canvas id="ar-canvas" class="relative z-10"></canvas>
                 <input type="file" id="img-upload" accept="image/*" class="hidden" onchange="handleFileUpload(this)">
+
                 <div class="absolute top-0 left-0 w-full p-4 flex justify-between z-20 bg-gradient-to-b from-black/80 to-transparent">
                      <div class="bg-black/40 backdrop-blur-md rounded-lg p-1 flex gap-1 border border-white/10">
                         <button onclick="switchVision('object')" id="btn-vis-obj" class="px-3 py-1.5 rounded-md text-xs font-bold bg-white text-black transition">Object</button>
@@ -510,6 +523,7 @@
                 const data = await safeJsonFetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
                 if(data.length) {
                     updateLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), t);
+                    // NEW: Expanded query for multiple types of top places
                     document.getElementById('osm-query').value = 'attractions';
                     queryOverpass();
                     incrementStats();
@@ -592,24 +606,45 @@
             resArea.innerHTML = '<div class="col-span-full text-center py-10 opacity-50 text-xs animate-pulse font-bold text-indigo-600">Scouting Sector...</div>';
             
             let ql = '';
-            const r = 5000;
-            if(q==='attractions') ql = `[out:json][timeout:25];(node["tourism"~"attraction|viewpoint"](around:${r},${currentLat},${currentLng});node["historic"](around:${r},${currentLat},${currentLng}););out 25;`;
-            else if(q==='temple') ql = `[out:json][timeout:25];node["amenity"="place_of_worship"](around:${r},${currentLat},${currentLng});out 25;`;
-            else if(q==='park') ql = `[out:json][timeout:25];node["leisure"="park"](around:${r},${currentLat},${currentLng});out 25;`;
-            else ql = `[out:json][timeout:25];node["amenity"~"${q.includes('hotel')?'hotel':q}"](around:${r},${currentLat},${currentLng});out 25;`;
+            // EXPANDED RADIUS AND TYPES FOR "TOP PLACES"
+            const r = 15000; // Increased to 15km
+            if(q==='attractions') {
+                // Query Nodes, Ways, Relations (NWR) for comprehensive results
+                ql = `[out:json][timeout:25];
+                    (
+                      nwr["tourism"~"attraction|viewpoint|museum|zoo|theme_park"](around:${r},${currentLat},${currentLng});
+                      nwr["historic"~"monument|memorial|castle|ruins|fort"](around:${r},${currentLat},${currentLng});
+                      nwr["natural"~"water|beach|peak|waterfall"](around:${r},${currentLat},${currentLng});
+                      nwr["religion"~"hindu|christian|muslim|buddhist|sikh|jain"](around:${r},${currentLat},${currentLng});
+                    );
+                    out center 25;`; // Get center of polygons
+            }
+            else if(q==='temple') ql = `[out:json][timeout:25];nwr["amenity"="place_of_worship"](around:${r},${currentLat},${currentLng});out center 25;`;
+            else if(q==='park') ql = `[out:json][timeout:25];nwr["leisure"~"park|garden|nature_reserve"](around:${r},${currentLat},${currentLng});out center 25;`;
+            else if(q==='shopping') ql = `[out:json][timeout:25];nwr["shop"~"mall|department_store|supermarket|clothes"](around:${r},${currentLat},${currentLng});out center 25;`;
+            else if(q==='restaurant') ql = `[out:json][timeout:25];nwr["amenity"~"restaurant|cafe|fast_food|food_court"](around:${r},${currentLat},${currentLng});out center 25;`;
+            else ql = `[out:json][timeout:25];nwr["amenity"~"${q.includes('hotel')?'hotel':q}"](around:${r},${currentLat},${currentLng});out center 25;`;
 
-            const eps = ['https://overpass-api.de/api/interpreter', 'https://lz4.overpass-api.de/api/interpreter'];
+            const eps = ['https://overpass-api.de/api/interpreter', 'https://lz4.overpass-api.de/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
             let data=null;
             for(let ep of eps) { try{ data=await safeJsonFetch(`${ep}?data=${encodeURIComponent(ql)}`); if(data) break; }catch(e){} }
 
             resArea.innerHTML=''; mapMarkers.forEach(m=>map.removeLayer(m)); mapMarkers=[];
             if(!data || !data.elements.length) resArea.innerHTML = '<div class="col-span-full text-center py-10 opacity-40 text-xs font-bold text-slate-400">Sector Empty</div>';
             else {
-                data.elements.slice(0,25).forEach((p, i) => {
+                data.elements.forEach((p, i) => {
                     const name = p.tags.name; if(!name) return;
-                    const url = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}`;
+                    
+                    // Handle Center for Ways/Relations
+                    let lat = p.lat; let lon = p.lon;
+                    if (!lat && p.center) { lat = p.center.lat; lon = p.center.lon; }
+                    if (!lat) return; // Skip if no geometry
+
+                    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
                     let icon = 'ph-map-pin';
                     if(p.tags.tourism) icon='ph-camera'; else if(p.tags.amenity==='place_of_worship') icon='ph-mosque';
+                    else if(p.tags.leisure==='park') icon='ph-tree';
+                    else if(p.tags.shop) icon='ph-shopping-bag';
                     
                     const card = document.createElement('div');
                     card.className = "pro-card p-4 flex justify-between items-center animate-fade-in hover:border-indigo-500/50";
@@ -619,13 +654,13 @@
                             <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0"><i class="ph-fill ${icon} text-lg"></i></div>
                             <div class="truncate">
                                 <h4 class="text-sm font-bold text-slate-800 truncate">${name}</h4>
-                                <p class="text-[10px] text-slate-500 font-medium truncate uppercase tracking-wide">${p.tags.amenity||p.tags.tourism||"Location"}</p>
+                                <p class="text-[10px] text-slate-500 font-medium truncate uppercase tracking-wide">${p.tags.amenity||p.tags.tourism||p.tags.historic||p.tags.leisure||"Place"}</p>
                             </div>
                         </div>
                         <a href="${url}" target="_blank" class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white hover:bg-indigo-700 transition shadow-sm active:scale-95"><i class="ph-bold ph-navigation-arrow"></i></a>
                     `;
                     resArea.appendChild(card);
-                    const m=L.marker([p.lat, p.lon]).addTo(map).bindPopup(name);
+                    const m=L.marker([lat, lon]).addTo(map).bindPopup(name);
                     mapMarkers.push(m);
                 });
             }
