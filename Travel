@@ -2,335 +2,945 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TravelGPT Suite | India Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Travel Guide | Professional Edition</title>
     
-    <!-- Tailwind CSS (Styling) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Phosphor Icons (Modern Iconography) -->
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Leaflet CSS (Open Source Maps) -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- FONTS: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- === OPEN SOURCE LIBRARIES === -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- TensorFlow & COCO-SSD -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
+    <!-- Tesseract OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
 
     <style>
-        /* === CORE STYLING === */
+        /* === PROFESSIONAL THEME === */
+        :root {
+            --primary: #4f46e5;
+            --primary-soft: #e0e7ff;
+            --surface: #ffffff;
+            --bg-body: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
         body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #0f172a; /* Slate 900 */
-            color: #f8fafc;
-            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow: hidden; 
+            height: 100dvh; 
+            width: 100vw;
         }
 
-        /* Hide Scrollbar but allow scroll */
+        .app-shell { display: flex; height: 100%; width: 100%; flex-direction: column; }
+        @media (min-width: 768px) { .app-shell { flex-direction: row; } }
+
+        .pro-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        .pro-card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+
+        .pro-input {
+            background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; transition: all 0.2s ease;
+        }
+        .pro-input:focus-within {
+            background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+
+        .scan-line { width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 8px var(--primary); animation: scan 2s linear infinite; }
+        @keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        select { -webkit-appearance: none; background: transparent; }
 
-        /* Glassmorphism */
-        .glass {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .nav-link {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-muted); transition: all 0.2s; border-radius: 8px;
         }
+        @media (min-width: 768px) {
+            .nav-link { flex-direction: row; justify-content: flex-start; padding: 12px 16px; gap: 12px; width: 100%; }
+        }
+        .nav-link:hover { background-color: var(--primary-soft); color: var(--primary); }
+        .nav-link.active { color: var(--primary); background-color: var(--primary-soft); font-weight: 600; }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        /* Animations */
-        @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+        #ar-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+        .msg-user { background-color: var(--primary); color: white; border-radius: 12px 12px 2px 12px; }
+        .msg-ai { background-color: white; border: 1px solid var(--border); border-radius: 12px 12px 12px 2px; }
         
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7); } /* Orange for India theme */
-            70% { box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
-        }
-
-        @keyframes scan-vertical {
-            0% { top: 0%; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-        
-        @keyframes ripple {
-            0% { transform: scale(1); opacity: 0.6; }
-            100% { transform: scale(3); opacity: 0; }
-        }
-
-        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .pulse-btn { animation: pulse-glow 2s infinite; }
-        .scan-line { animation: scan-vertical 2.5s linear infinite; }
-        .ripple-effect { animation: ripple 1.5s linear infinite; }
-
-        /* Map Specific */
-        #map { height: 100%; width: 100%; z-index: 0; }
-        .leaflet-control-attribution { display: none; }
-        
-        /* Custom Map Marker Pulse */
-        .marker-pin {
-            width: 20px;
-            height: 20px;
-            border-radius: 50% 50% 50% 0;
-            background: #f97316; /* Orange */
-            position: absolute;
-            transform: rotate(-45deg);
-            left: 50%;
-            top: 50%;
-            margin: -15px 0 0 -15px;
+        /* LOGIN STYLES */
+        #auth-overlay {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.8)), url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            z-index: 9999;
         }
     </style>
 </head>
-<body class="h-screen w-full flex justify-center items-center bg-gradient-to-br from-slate-900 via-orange-950 to-slate-900">
+<body>
 
-    <!-- APP CONTAINER -->
-    <div class="relative w-full h-full max-w-md bg-slate-900 md:rounded-[3rem] md:h-[95vh] md:border-8 md:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
-        
-        <!-- === TOP BAR === -->
-        <header class="absolute top-0 w-full z-40 px-6 py-4 flex justify-between items-center glass border-b-0">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
-                    <i class="ph ph-paper-plane-tilt text-white text-lg"></i>
+    <!-- === AUTH OVERLAY === -->
+    <div id="auth-overlay" class="absolute inset-0 z-[100] flex flex-col items-center justify-center p-6 transition-all duration-500 backdrop-blur-sm">
+        <div class="w-full max-w-sm bg-white p-8 rounded-2xl shadow-2xl border-none animate-fade-in">
+            <div class="flex flex-col items-center mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white mb-3 shadow-lg shadow-indigo-200">
+                    <i class="ph-bold ph-airplane-tilt text-3xl"></i>
                 </div>
-                <span class="font-bold text-lg tracking-tight">TravelGPT <span class="text-xs text-orange-400">IN</span></span>
+                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Travel Guide</h1>
+                <p class="text-sm font-medium text-slate-500">Your Journey Starts Here</p>
             </div>
-            <div class="flex items-center gap-3">
-                <button class="relative p-2 rounded-full hover:bg-white/10 transition">
-                    <i class="ph ph-bell text-xl"></i>
-                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-slate-900"></span>
-                </button>
-                <div class="w-8 h-8 rounded-full bg-gray-300 overflow-hidden border-2 border-orange-500/50">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Rohan" alt="User" />
-                </div>
-            </div>
-        </header>
-
-        <!-- === MAIN SCROLLABLE CONTENT === -->
-        <main id="main-container" class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-24 relative">
             
-            <!-- VIEW: HOME / DASHBOARD -->
-            <section id="view-home" class="view-section min-h-full px-6 pt-24 pb-6 space-y-6">
-                
-                <!-- Weather Widget -->
-                <div class="glass-card rounded-3xl p-6 relative overflow-hidden group">
-                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-orange-500/20 rounded-full blur-2xl"></div>
-                    <div class="relative z-10 flex justify-between items-end">
-                        <div>
-                            <p class="text-slate-400 text-sm font-medium mb-1">Current Location</p>
-                            <h2 class="text-2xl font-bold flex items-center gap-2">
-                                <i class="ph-fill ph-map-pin text-orange-400"></i> New Delhi, India
-                            </h2>
-                            <div class="mt-4 flex items-center gap-3">
-                                <i class="ph-fill ph-sun text-4xl text-yellow-400"></i>
-                                <div>
-                                    <span class="text-3xl font-bold">32°</span>
-                                    <p class="text-xs text-slate-400">Haze • UV High</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="bg-orange-600/30 border border-orange-500/30 px-3 py-1 rounded-full text-xs font-semibold text-orange-300 mb-1">
-                                Safety Score
-                            </div>
-                            <span class="text-3xl font-bold text-emerald-400">88</span>
-                            <span class="text-xs text-slate-500 block">/100</span>
-                        </div>
+            <form id="form-login" class="space-y-5" onsubmit="handleLogin(event)">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Email Address</label>
+                    <div class="relative">
+                        <i class="ph-bold ph-envelope absolute left-3 top-3.5 text-slate-400"></i>
+                        <input type="email" id="login-email" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 outline-none text-sm font-semibold text-slate-800 bg-slate-50 focus:bg-white transition-all" placeholder="name@example.com">
                     </div>
                 </div>
-
-                <!-- AI Prompt Area -->
-                <div class="space-y-3">
-                    <h3 class="text-lg font-semibold">AI Trip Planner</h3>
-                    <div class="glass-card p-1 rounded-2xl flex items-center">
-                        <input type="text" id="ai-input" placeholder="E.g., Street food in Chandni Chowk..." class="bg-transparent border-none text-sm w-full px-4 py-3 focus:outline-none text-white placeholder-slate-500">
-                        <button onclick="generateTrip()" class="bg-orange-600 hover:bg-orange-500 text-white p-3 rounded-xl transition shadow-lg shadow-orange-600/20">
-                            <i class="ph-bold ph-magic-wand"></i>
-                        </button>
-                    </div>
-                    <!-- Quick Chips -->
-                    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-                        <button onclick="setInput('Heritage Walk')" class="whitespace-nowrap px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs hover:bg-orange-600/20 transition">🕌 Heritage</button>
-                        <button onclick="setInput('Spicy Food Tour')" class="whitespace-nowrap px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs hover:bg-orange-600/20 transition">🌶️ Street Food</button>
-                        <button onclick="setInput('Shopping Spree')" class="whitespace-nowrap px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs hover:bg-orange-600/20 transition">🛍️ Shopping</button>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Password</label>
+                    <div class="relative">
+                        <i class="ph-bold ph-lock-key absolute left-3 top-3.5 text-slate-400"></i>
+                        <input type="password" id="login-pass" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 outline-none text-sm font-semibold text-slate-800 bg-slate-50 focus:bg-white transition-all" placeholder="••••••••">
                     </div>
                 </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-indigo-200 active:scale-95 flex justify-center items-center gap-2">
+                    <span>Sign In</span> <i class="ph-bold ph-arrow-right"></i>
+                </button>
+                <button type="button" onclick="guestLogin()" class="w-full text-indigo-600 text-xs font-bold hover:underline">
+                    Try Guest Mode
+                </button>
+            </form>
 
-                <!-- Generated Itinerary (Hidden Initially) -->
-                <div id="ai-result" class="hidden space-y-4 pt-2">
-                    <div class="flex items-center gap-2 text-orange-400 text-sm font-semibold">
-                        <i class="ph ph-sparkle-fill"></i> Suggested Itinerary: <span id="itin-title" class="text-white ml-1">Delhi</span>
-                    </div>
-                    
-                    <!-- Timeline Items -->
-                    <div class="relative pl-4 border-l border-white/10 space-y-6">
-                        <!-- Item 1 -->
-                        <div class="relative group">
-                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-slate-900 group-hover:scale-125 transition"></div>
-                            <div class="glass-card p-4 rounded-xl hover:bg-white/10 transition cursor-pointer" onclick="openPOIDetails('indiagate')">
-                                <div class="flex justify-between mb-1">
-                                    <h4 class="font-bold">India Gate</h4>
-                                    <span class="text-xs text-slate-400">05:30 PM</span>
-                                </div>
-                                <p class="text-xs text-slate-400 mb-2">Sunset view & evening stroll.</p>
-                                <div class="flex gap-2">
-                                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded">Safe</span>
-                                    <span class="text-[10px] bg-red-500/20 text-red-300 px-2 py-0.5 rounded">Crowded</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Item 2 -->
-                        <div class="relative group">
-                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-slate-600 rounded-full border-2 border-slate-900"></div>
-                            <div class="glass-card p-4 rounded-xl hover:bg-white/10 transition">
-                                <div class="flex justify-between mb-1">
-                                    <h4 class="font-bold">Red Fort (Lal Qila)</h4>
-                                    <span class="text-xs text-slate-400">10:00 AM</span>
-                                </div>
-                                <p class="text-xs text-slate-400">Mughal architecture tour. Use AR mode.</p>
-                            </div>
-                        </div>
-                    </div>
+            <form id="form-signup" class="space-y-5 hidden" onsubmit="handleSignup(event)">
+                <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Name</label><input type="text" id="signup-name" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="John Doe"></div>
+                <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Email</label><input type="email" id="signup-email" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="user@example.com"></div>
+                <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Password</label><input type="password" id="signup-pass" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="••••••••"></div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2"><span>Create Account</span></button>
+            </form>
+
+            <div class="mt-6 text-center pt-4 border-t border-slate-100">
+                <button id="toggle-auth" onclick="toggleAuthMode()" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition py-2 px-4 rounded-lg hover:bg-indigo-50">
+                    Create new account
+                </button>
+            </div>
+            <p id="auth-error" class="text-red-500 text-xs text-center mt-2 h-4 font-bold"></p>
+        </div>
+    </div>
+
+    <!-- === MAIN APP SHELL === -->
+    <div id="app-container" class="app-shell bg-slate-50 hidden opacity-0 transition-opacity duration-500">
+        <!-- Sidebar Navigation -->
+        <nav class="bg-white border-r border-slate-200 z-50 flex md:flex-col justify-between items-center md:items-start px-2 py-2 md:p-4 h-16 md:h-full md:w-64 shrink-0 shadow-sm md:shadow-none order-2 md:order-1">
+            <div class="hidden md:flex items-center gap-3 mb-8 px-2">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white"><i class="ph-bold ph-airplane-tilt text-xl"></i></div>
+                <h1 class="font-bold text-lg text-slate-900 tracking-tight">Travel Guide</h1>
+            </div>
+
+            <div class="flex md:flex-col justify-around w-full gap-1 md:gap-2">
+                <button onclick="switchTab('home')" id="nav-home" class="nav-link active flex-1 md:flex-none"><i class="ph-fill ph-house text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Home</span></button>
+                <button onclick="switchTab('map')" id="nav-map" class="nav-link flex-1 md:flex-none"><i class="ph-bold ph-map-trifold text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Explore</span></button>
+                <button onclick="switchTab('ar')" id="nav-ar" class="nav-link flex-1 md:flex-none relative">
+                    <div class="md:hidden -mt-8 bg-indigo-600 rounded-full w-12 h-12 flex items-center justify-center text-white shadow-lg shadow-indigo-200 border-4 border-slate-50"><i class="ph-bold ph-camera text-xl"></i></div>
+                    <div class="hidden md:flex items-center gap-3"><i class="ph-bold ph-camera text-lg"></i><span class="text-sm font-medium">AR Scanner</span></div>
+                    <span class="md:hidden text-[10px] font-medium mt-1">Scan</span>
+                </button>
+                <button onclick="switchTab('translate')" id="nav-translate" class="nav-link flex-1 md:flex-none"><i class="ph-bold ph-translate text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Voice</span></button>
+                <button onclick="switchTab('notebook')" id="nav-notebook" class="nav-link flex-1 md:flex-none"><i class="ph-bold ph-chat-circle-dots text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Assistant</span></button>
+            </div>
+            <!-- Profile Link -->
+            <div onclick="switchTab('profile')" class="hidden md:flex mt-auto w-full pt-4 border-t border-slate-100 items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition">
+                <img id="user-avatar-desktop" src="" alt="User" class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200">
+                <div class="flex flex-col text-left"><span id="user-name-desktop" class="text-xs font-bold text-slate-700">User</span><span class="text-[10px] text-emerald-600 font-medium">● Online</span></div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-1 relative order-1 md:order-2 h-[calc(100%-64px)] md:h-full overflow-hidden">
+            <header class="md:hidden absolute top-0 w-full z-40 px-4 py-3 flex justify-between items-center bg-white/80 backdrop-blur-md border-b border-slate-200">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white"><i class="ph-bold ph-airplane-tilt"></i></div>
+                    <h1 class="font-bold text-lg text-slate-900">Travel Guide</h1>
                 </div>
+                <div onclick="switchTab('profile')" class="w-8 h-8 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
+                    <img id="user-avatar-mobile" src="" alt="User" />
+                </div>
+            </header>
 
-                <!-- Smart Widgets Grid -->
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="switchTab('ar')" class="glass-card p-4 rounded-2xl flex flex-col items-start gap-2 hover:bg-white/10 transition">
-                        <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
-                            <i class="ph-fill ph-goggles text-xl"></i>
+            <!-- 1. HOME -->
+            <section id="view-home" class="view-section absolute inset-0 pt-16 md:pt-0 overflow-y-auto bg-slate-50">
+                <div class="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
+                    <div class="flex flex-col lg:flex-row gap-4">
+                        <div class="flex-1 pro-card bg-white p-5">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wide">Select Location</h2>
+                                <button onclick="detectLiveLocation()" class="text-indigo-600 text-xs font-bold hover:bg-indigo-50 px-2 py-1 rounded transition flex items-center gap-1"><i class="ph-bold ph-crosshair"></i> Auto-Detect</button>
+                            </div>
+                            <!-- 3-Level Selector -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                                <div class="pro-input relative h-12"><select id="state-select" onchange="populateDistricts()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none"><option value="">Select State</option></select><i class="ph-bold ph-caret-down absolute right-3 top-4 text-slate-400 pointer-events-none"></i></div>
+                                <div class="pro-input relative h-12"><select id="district-select" onchange="fetchDynamicTaluks()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none disabled:opacity-50" disabled><option value="">Select District</option></select><i class="ph-bold ph-caret-down absolute right-3 top-4 text-slate-400 pointer-events-none"></i></div>
+                                <div class="pro-input relative h-12"><select id="taluk-select" onchange="teleportToTaluk()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none disabled:opacity-50" disabled><option value="">Select Taluk</option></select><i id="taluk-loader" class="ph-bold ph-caret-down absolute right-3 top-4 text-slate-400 pointer-events-none"></i></div>
+                            </div>
                         </div>
-                        <span class="font-semibold text-sm">AR Guide</span>
-                        <span class="text-[10px] text-slate-400">View history overlay</span>
-                    </button>
-                    <button onclick="switchTab('map')" class="glass-card p-4 rounded-2xl flex flex-col items-start gap-2 hover:bg-white/10 transition">
-                        <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                            <i class="ph-fill ph-shield-check text-xl"></i>
+                        <div class="w-full lg:w-72 pro-card bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-5 flex flex-col justify-between relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-4 opacity-20"><i id="weather-icon" class="ph-duotone ph-cloud-sun text-6xl"></i></div>
+                            <div class="z-10"><div class="inline-flex items-center gap-1 bg-white/20 backdrop-blur px-2 py-0.5 rounded-full text-[10px] font-bold mb-2 border border-white/10"><i class="ph-fill ph-map-pin"></i> <span id="weather-loc">India</span></div><h3 id="weather-temp" class="text-4xl font-bold">--°</h3><p id="weather-desc" class="text-sm text-indigo-100 opacity-90">Live Weather</p></div>
                         </div>
-                        <span class="font-semibold text-sm">Safety Map</span>
-                        <span class="text-[10px] text-slate-400">Check crime heatmaps</span>
-                    </button>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 mb-3">Find Nearby</h3>
+                        <div class="grid grid-cols-3 md:grid-cols-6 gap-3">
+                            <button onclick="quickSearch('attractions')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-amber-600 bg-amber-50/50 border-amber-100"><i class="ph-duotone ph-star text-2xl"></i> <span class="text-xs font-bold">Top 20</span></button>
+                            <button onclick="quickSearch('temple')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-purple-600 hover:bg-purple-50"><i class="ph-duotone ph-mosque text-2xl"></i> <span class="text-xs font-bold">Temples</span></button>
+                            <button onclick="quickSearch('park')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-green-600 hover:bg-green-50"><i class="ph-duotone ph-tree text-2xl"></i> <span class="text-xs font-bold">Parks</span></button>
+                            <button onclick="quickSearch('restaurant')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-orange-600 hover:bg-orange-50"><i class="ph-duotone ph-hamburger text-2xl"></i> <span class="text-xs font-bold">Food</span></button>
+                            <button onclick="quickSearch('shopping')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-pink-600 hover:bg-pink-50"><i class="ph-duotone ph-shopping-bag text-2xl"></i> <span class="text-xs font-bold">Shop</span></button>
+                            <button onclick="quickSearch('hotel')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-blue-600 hover:bg-blue-50"><i class="ph-duotone ph-bed text-2xl"></i> <span class="text-xs font-bold">Hotels</span></button>
+                        </div>
+                        <input type="hidden" id="osm-query">
+                    </div>
+                    <div class="pro-card bg-white min-h-[300px] p-4"><div id="results-area" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"><div class="col-span-full flex flex-col items-center justify-center py-12 text-slate-400"><i class="ph-duotone ph-magnifying-glass text-4xl mb-2"></i><p class="text-sm font-medium">Select a category to start scanning</p></div></div></div>
                 </div>
             </section>
 
-            <!-- VIEW: MAP (Full Screen) -->
-            <section id="view-map" class="view-section hidden w-full h-full relative">
-                <!-- Leaflet Container -->
-                <div id="map" class="w-full h-full bg-slate-800"></div>
+            <!-- 2. MAP -->
+            <section id="view-map" class="view-section absolute inset-0 hidden"><div id="map" class="w-full h-full bg-slate-100 z-0"></div><button onclick="locateUser()" class="absolute bottom-6 right-6 z-[400] bg-white text-slate-800 p-3 rounded-xl shadow-lg border border-slate-200 hover:bg-slate-50 transition active:scale-95"><i class="ph-bold ph-crosshair text-2xl"></i></button></section>
+
+            <!-- 3. AR -->
+            <section id="view-ar" class="view-section absolute inset-0 hidden bg-black">
+                <video id="ar-video" autoplay playsinline muted loop class="absolute inset-0 w-full h-full object-cover opacity-90"></video>
+                <img id="ar-static-img" class="absolute inset-0 w-full h-full object-contain bg-black hidden z-10">
+                <canvas id="ar-canvas" class="relative z-10"></canvas>
+                <input type="file" id="img-upload" accept="image/*" class="hidden" onchange="handleFileUpload(this)">
+
+                <div class="absolute top-0 left-0 w-full p-4 flex justify-between z-20 bg-gradient-to-b from-black/80 to-transparent">
+                     <div class="bg-black/40 backdrop-blur-md rounded-lg p-1 flex gap-1 border border-white/10">
+                        <button onclick="switchVision('object')" id="btn-vis-obj" class="px-3 py-1.5 rounded-md text-xs font-bold bg-white text-black transition">Object</button>
+                        <button onclick="switchVision('ocr')" id="btn-vis-ocr" class="px-3 py-1.5 rounded-md text-xs font-bold text-white transition hover:bg-white/10">Text</button>
+                    </div>
+                    <!-- Gallery Upload Button -->
+                    <button onclick="triggerUpload()" class="bg-indigo-600 text-white w-9 h-9 rounded-lg flex items-center justify-center shadow-lg hover:bg-indigo-500 transition"><i class="ph-bold ph-image text-lg"></i></button>
+                </div>
                 
-                <!-- Map Overlay Controls -->
-                <div class="absolute top-24 right-4 z-[400] flex flex-col gap-3">
-                    <button onclick="toggleSafetyLayer()" id="safety-toggle" class="w-12 h-12 glass rounded-full flex items-center justify-center text-white shadow-lg active:scale-95 transition">
-                        <i class="ph-fill ph-shield-warning text-xl"></i>
-                    </button>
-                    <button onclick="locateUser()" class="w-12 h-12 glass rounded-full flex items-center justify-center text-white shadow-lg active:scale-95 transition">
-                        <i class="ph-fill ph-navigation-arrow text-xl"></i>
-                    </button>
+                <div id="ai-loading" class="hidden absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <i class="ph-bold ph-spinner animate-spin text-4xl text-white mb-2"></i>
+                    <p class="text-white font-bold text-sm">Loading AI Models...</p>
                 </div>
 
-                <!-- SOS Button -->
-                <div class="absolute bottom-24 left-1/2 -translate-x-1/2 z-[400]">
-                    <button onclick="triggerSOS()" class="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-bold shadow-xl shadow-red-900/50 flex items-center gap-2 pulse-btn transition">
-                        <i class="ph-bold ph-warning"></i> SOS
-                    </button>
+                <!-- Center Focus for Object Detection -->
+                <div id="ar-focus" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-white/30 rounded-2xl pointer-events-none hidden">
+                    <div class="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-xl"></div>
+                    <div class="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-xl"></div>
+                    <div class="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-xl"></div>
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-xl"></div>
                 </div>
-            </section>
 
-            <!-- VIEW: AR (Full Screen) -->
-            <section id="view-ar" class="view-section hidden w-full h-full relative bg-black">
-                <!-- Camera Simulation Background (India Gate) -->
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/India_Gate_in_New_Delhi_03-2016.jpg/800px-India_Gate_in_New_Delhi_03-2016.jpg" class="absolute inset-0 w-full h-full object-cover opacity-60" alt="AR Feed">
-                
-                <!-- Historical Overlay Image (Hidden initially) -->
-                 <div id="ar-overlay-img" class="absolute inset-0 w-full h-full bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-1000 pointer-events-none">
-                     <div class="text-center">
-                         <h2 class="text-4xl font-bold text-orange-400 drop-shadow-lg">1931</h2>
-                         <p class="text-white">Inauguration Era</p>
+                <!-- Object Detection Result -->
+                <div id="obj-result" class="absolute bottom-28 left-0 w-full p-4 text-center hidden">
+                     <div class="inline-block bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+                         <p id="obj-name" class="text-white font-bold text-sm">Detecting...</p>
                      </div>
-                 </div>
+                </div>
 
-                <!-- HUD Overlay -->
-                <div class="absolute inset-0 z-10 p-6 flex flex-col justify-between">
-                    <div class="flex justify-between">
-                        <div class="bg-black/40 backdrop-blur px-3 py-1 rounded-full border border-white/10 text-xs font-mono text-green-400">
-                            ● LIVE FEED
-                        </div>
-                        <div class="bg-black/40 backdrop-blur px-3 py-1 rounded-full border border-white/10 text-xs font-mono text-white">
-                            28.6129° N, 77.2295° E
+                <div id="ocr-controls" class="hidden absolute bottom-0 left-0 w-full bg-slate-900/90 backdrop-blur-xl border-t border-white/10 p-4 z-30 rounded-t-2xl">
+                    <div class="flex gap-4 mb-4">
+                         <div class="flex-1"><label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Reading</label><select id="ocr-source-lang" class="w-full bg-white/10 text-white text-xs font-bold p-2 rounded border border-white/20 focus:outline-none"><option value="eng">English</option><option value="hin">Hindi</option><option value="kan">Kannada</option><option value="tam">Tamil</option><option value="tel">Telugu</option><option value="mal">Malayalam</option></select></div>
+                         <div class="flex-1"><label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Translate To</label><select id="target-lang" onchange="updateArTranslation()" class="w-full bg-white/10 text-white text-xs font-bold p-2 rounded border border-white/20 focus:outline-none"><option value="en">English</option><option value="hi">Hindi</option><option value="kn">Kannada</option><option value="ta">Tamil</option><option value="te">Telugu</option><option value="ml">Malayalam</option></select></div>
+                    </div>
+                    <div id="ocr-result" class="bg-black/50 rounded-lg p-3 border border-white/10 hidden"><p id="ocr-text" class="text-xs text-slate-400 font-mono mb-2 border-b border-white/10 pb-2">Scanning...</p><p class="text-[9px] text-indigo-400 font-bold uppercase">Result</p><p id="ocr-trans-text" class="text-sm text-white font-bold">...</p></div>
+                </div>
+                <div id="camera-error" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 p-6 text-center">
+                    <i class="ph-duotone ph-camera-slash text-4xl text-slate-500 mb-3"></i>
+                    <h3 class="text-white font-bold mb-1">Camera Permission Needed</h3>
+                    <p class="text-slate-400 text-xs mb-4">Please allow camera access in browser settings, or upload an image.</p>
+                    <div class="flex gap-2">
+                        <button onclick="startCamera()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Retry Access</button>
+                        <button onclick="triggerUpload()" class="bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-bold border border-white/20">Upload Image</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. TRANSLATE -->
+            <section id="view-translate" class="view-section absolute inset-0 hidden pt-16 md:pt-0 overflow-y-auto bg-slate-50">
+                <div class="max-w-3xl mx-auto p-4 md:p-8 h-full flex flex-col">
+                    <h2 class="text-xl font-bold text-slate-900 mb-4 hidden md:block">Voice Translator</h2>
+                    <div class="pro-card bg-white p-2 mb-4 flex items-center justify-between">
+                        <select id="trans-source" class="bg-transparent text-indigo-600 font-bold text-sm p-2 outline-none cursor-pointer"><option value="en">English</option><option value="hi">Hindi</option><option value="kn">Kannada</option><option value="ta">Tamil</option><option value="te">Telugu</option><option value="ml">Malayalam</option></select>
+                        <button onclick="swapLanguages()" class="p-2 hover:bg-slate-100 rounded-full transition text-slate-400"><i class="ph-bold ph-arrows-left-right"></i></button>
+                        <select id="trans-target" class="bg-transparent text-slate-900 font-bold text-sm p-2 outline-none cursor-pointer text-right" dir="rtl"><option value="hi">Hindi</option><option value="en">English</option><option value="kn">Kannada</option><option value="ta">Tamil</option><option value="te">Telugu</option><option value="ml">Malayalam</option></select>
+                    </div>
+                    <div class="pro-card bg-white flex-1 p-6 flex flex-col relative mb-4">
+                        <textarea id="trans-input" class="w-full h-1/2 bg-transparent text-2xl text-slate-800 placeholder-slate-300 border-none focus:outline-none resize-none font-medium" placeholder="Type or Speak..."></textarea>
+                        <div class="h-px bg-slate-100 w-full my-6"></div>
+                        <div class="flex-1 relative">
+                             <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-indigo-500 uppercase">Translation</span><button onclick="speakTranslation()" class="text-slate-400 hover:text-indigo-600"><i class="ph-fill ph-speaker-high text-xl"></i></button></div>
+                            <p id="trans-output" class="text-xl text-slate-700 font-medium">...</p>
+                            <div id="trans-loading" class="absolute inset-0 flex items-center justify-center bg-white/90 hidden"><i class="ph-bold ph-spinner animate-spin text-3xl text-indigo-600"></i></div>
                         </div>
                     </div>
-
-                    <!-- Scanning Graphic -->
-                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div class="w-64 h-64 border-2 border-white/20 rounded-lg relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-orange-500"></div>
-                            <div class="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-orange-500"></div>
-                            <div class="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-orange-500"></div>
-                            <div class="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-orange-500"></div>
-                            <div class="absolute w-full h-0.5 bg-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,1)] scan-line"></div>
-                        </div>
+                    <div class="flex gap-3">
+                        <button onclick="translateTextManual()" class="flex-1 bg-indigo-600 text-white h-14 rounded-xl font-bold shadow-md hover:bg-indigo-700 transition active:scale-95 flex items-center justify-center gap-2">TRANSLATE</button>
+                        <button id="btn-trans-mic" onmousedown="toggleVoiceInput()" ontouchstart="toggleVoiceInput()" class="w-14 h-14 bg-white text-slate-900 border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 transition active:scale-95 flex items-center justify-center relative overflow-hidden"><div id="mic-pulse" class="absolute inset-0 bg-red-500/10 hidden animate-pulse"></div><i class="ph-fill ph-microphone text-xl text-indigo-600"></i></button>
                     </div>
+                     <p id="mic-status" class="text-center text-[10px] text-slate-400 mt-2 h-4"></p>
+                </div>
+            </section>
 
-                    <!-- POI Tag -->
-                    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                        <div class="bg-orange-600 text-white text-[10px] px-2 py-1 rounded mb-1 animate-bounce">
-                            India Gate War Memorial
-                        </div>
-                        <div class="w-3 h-3 bg-orange-500 rounded-full border-2 border-white"></div>
+            <!-- 5. AI ASSISTANT -->
+            <section id="view-notebook" class="view-section absolute inset-0 hidden pt-16 md:pt-0 overflow-y-auto bg-slate-50">
+                <div class="max-w-3xl mx-auto p-4 md:p-8 h-full flex flex-col">
+                    <div class="flex bg-white p-1 rounded-lg border border-slate-200 mb-4 shrink-0">
+                        <button onclick="toggleNoteMode('chat')" id="tab-chat" class="flex-1 py-2 rounded text-xs font-bold text-white bg-indigo-600 shadow-sm transition">AI Chat</button>
+                        <button onclick="toggleNoteMode('notes')" id="tab-notes" class="flex-1 py-2 rounded text-xs font-bold text-slate-500 hover:bg-slate-50 transition">My Notes</button>
                     </div>
-
-                    <!-- Bottom Controls -->
-                    <div class="glass p-4 rounded-2xl">
-                        <div class="flex items-center gap-3">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/India_Gate_in_New_Delhi_03-2016.jpg/800px-India_Gate_in_New_Delhi_03-2016.jpg" class="w-12 h-12 rounded-lg object-cover grayscale opacity-50">
-                            <div>
-                                <h4 class="font-bold text-sm">Historical Overlay</h4>
-                                <p class="text-[10px] text-gray-300">Restoring 1931 inauguration view...</p>
-                            </div>
-                            <label class="ml-auto relative inline-flex items-center cursor-pointer">
-                                <input id="ar-toggle-input" type="checkbox" value="" class="sr-only peer" onchange="toggleAROverlay()">
-                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-                            </label>
+                    <div id="ai-chat-container" class="flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                        <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-4"><div class="flex gap-3 max-w-[90%] chat-ai p-4 animate-fade-in"><div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100"><i class="ph-fill ph-robot text-indigo-600"></i></div><p class="text-sm text-slate-700 leading-relaxed">Hello! I'm TravelGPT. 🌍<br>Ask me "Hotels in Mumbai" or "Places to visit in Kerala".</p></div></div>
+                        <div class="p-3 bg-slate-50 border-t border-slate-100 flex gap-2"><input type="text" id="chat-input" placeholder="Ask anything..." class="flex-1 bg-white border border-slate-200 rounded-xl px-4 text-sm focus:outline-none focus:border-indigo-500 transition" onkeypress="handleChatKey(event)"><button onclick="sendChat()" class="bg-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-indigo-700 transition"><i class="ph-bold ph-paper-plane-right"></i></button></div>
+                    </div>
+                    <div id="notepad-container" class="hidden flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm relative">
+                        <textarea id="user-notes" class="w-full h-full p-6 text-sm text-slate-800 placeholder-slate-400 focus:outline-none leading-loose resize-none" placeholder="Type your travel notes here..." oninput="saveNote()"></textarea>
+                        <!-- Save to Device Button -->
+                        <div class="absolute bottom-4 right-4 flex gap-2">
+                             <button onclick="downloadNote()" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded border border-slate-200 hover:bg-slate-200 flex items-center gap-1"><i class="ph-bold ph-download-simple"></i> Save to Device</button>
+                             <div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-100">Auto-Saved</div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- VIEW: TRANSLATE (New) -->
-            <section id="view-translate" class="view-section hidden min-h-full px-6 pt-24 pb-6 space-y-6 flex flex-col">
-                <div class="flex justify-center mb-4">
-                    <div class="glass px-1 py-1 rounded-full flex gap-1">
-                        <button class="px-4 py-2 bg-orange-600 rounded-full text-xs font-bold shadow-lg">Voice</button>
-                        <button class="px-4 py-2 text-slate-400 hover:text-white rounded-full text-xs font-medium transition">Camera</button>
+            <!-- 6. NEW: PROFILE VIEW (Robust Implementation) -->
+            <section id="view-profile" class="view-section absolute inset-0 hidden pt-16 md:pt-0 overflow-y-auto bg-slate-50">
+                <div class="max-w-xl mx-auto p-6 md:p-12">
+                    <div class="pro-card bg-white p-8 text-center mb-6">
+                        <img id="profile-avatar" src="" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-indigo-50 shadow-md">
+                        <h2 id="profile-name" class="text-2xl font-bold text-slate-900">Guest User</h2>
+                        <p id="profile-email" class="text-sm text-slate-500 mb-6 font-medium">--</p>
+                        <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-6">
+                            <div class="bg-slate-50 p-3 rounded-xl"><p id="stat-trips" class="text-xl font-bold text-indigo-600">0</p><p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Searches</p></div>
+                            <div class="bg-slate-50 p-3 rounded-xl"><p class="text-xl font-bold text-indigo-600">Pro</p><p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Plan</p></div>
+                        </div>
                     </div>
+                    <button onclick="logout()" class="w-full bg-white text-red-600 font-bold py-4 rounded-xl hover:bg-red-50 transition border border-red-100 shadow-sm">Sign Out</button>
                 </div>
-                
-                <div class="flex items-center justify-between px-4">
-                    <div class="text-center">
-                        <span class="block text-2xl">🇮🇳</span>
-                        <span class="text-xs font-bold text-slate-400">Hindi</span>
-                    </div>
-                    <i class="ph-bold ph-arrows-left-right text-orange-400 text-xl"></i>
-                    <div class="text-center">
-                        <span class="block text-2xl">🇺🇸</span>
-                        <span class="text-xs font-bold text-slate-400">English</span>
-                    </div>
-                </div>
+            </section>
 
-                <!-- Chat Area -->
-                <div id="translate-chat" class="flex-1 space-y-4 overflow-y-auto max-h-[40vh] p-2">
-                    <div class="flex flex-col items-start">
-                        <div class="bg-white/10 p-3 rounded-2xl rounded-tl-none text-sm max-w-[80%]">
-                          
+        </main>
+    </div>
+
+    <!-- === JAVASCRIPT LOGIC === -->
+    <script>
+        let currentUser = null;
+        let currentLat = 28.6139; let currentLng = 77.2090;
+        let map = null; let mapMarkers = []; let objectModel = null;
+        let isCameraOn = false; let visionMode = 'object'; let processingOCR = false;
+        let lastOcrText = ""; let recognition = null; let isListening = false;
+        let searchCount = 0;
+        let ocrWorker = null;
+        let currentOcrLang = "eng";
+
+        // --- COMPREHENSIVE DATA (All 28 States + 8 UTs) ---
+        const indiaStates = {
+            "Andaman & Nicobar": ["Nicobar", "North and Middle Andaman", "South Andaman"],
+            "Andhra Pradesh": ["Anantapur", "Chittoor", "East Godavari", "Guntur", "Krishna", "Kurnool", "Prakasam", "Srikakulam", "Visakhapatnam", "Vizianagaram", "West Godavari", "YSR Kadapa"],
+            "Arunachal Pradesh": ["Tawang", "West Kameng", "East Kameng", "Papum Pare", "Kurung Kumey", "Kra Daadi", "Lower Subansiri", "Upper Subansiri", "West Siang", "East Siang", "Siang", "Upper Siang", "Lower Siang", "Lower Dibang Valley", "Dibang Valley", "Anjaw", "Lohit", "Namsai", "Changlang", "Tirap", "Longding"],
+            "Assam": ["Baksa", "Barpeta", "Biswanath", "Bongaigaon", "Cachar", "Charaideo", "Chirang", "Darrang", "Dhemaji", "Dhubri", "Dibrugarh", "Dima Hasao", "Goalpara", "Golaghat", "Hailakandi", "Hojai", "Jorhat", "Kamrup", "Kamrup Metropolitan", "Karbi Anglong", "Karimganj", "Kokrajhar", "Lakhimpur", "Majuli", "Morigaon", "Nagaon", "Nalbari", "Sivasagar", "Sonitpur", "South Salmara-Mankachar", "Tinsukia", "Udalguri", "West Karbi Anglong"],
+            "Bihar": ["Araria", "Arwal", "Aurangabad", "Banka", "Begusarai", "Bhagalpur", "Bhojpur", "Buxar", "Darbhanga", "East Champaran", "Gaya", "Gopalganj", "Jamui", "Jehanabad", "Kaimur", "Katihar", "Khagaria", "Kishanganj", "Lakhisarai", "Madhepura", "Madhubani", "Munger", "Muzaffarpur", "Nalanda", "Nawada", "Patna", "Purnia", "Rohtas", "Saharsa", "Samastipur", "Saran", "Sheikhpura", "Sheohar", "Sitamarhi", "Siwan", "Supaul", "Vaishali", "West Champaran"],
+            "Chandigarh": ["Chandigarh"],
+            "Chhattisgarh": ["Balod", "Baloda Bazar", "Balrampur", "Bastar", "Bemetara", "Bijapur", "Bilaspur", "Dantewada", "Dhamtari", "Durg", "Gariaband", "Janjgir-Champa", "Jashpur", "Kabirdham", "Kanker", "Kondagaon", "Korba", "Koriya", "Mahasamund", "Mungeli", "Narayanpur", "Raigarh", "Raipur", "Rajnandgaon", "Sukma", "Surajpur", "Surguja"],
+            "Dadra & Nagar Haveli and Daman & Diu": ["Dadra and Nagar Haveli", "Daman", "Diu"],
+            "Delhi": ["Central Delhi", "East Delhi", "New Delhi", "North Delhi", "North East Delhi", "North West Delhi", "Shahdara", "South Delhi", "South East Delhi", "South West Delhi", "West Delhi"],
+            "Goa": ["North Goa", "South Goa"],
+            "Gujarat": ["Ahmedabad", "Amreli", "Anand", "Aravalli", "Banaskantha", "Bharuch", "Bhavnagar", "Botad", "Chhota Udaipur", "Dahod", "Dang", "Devbhoomi Dwarka", "Gandhinagar", "Gir Somnath", "Jamnagar", "Junagadh", "Kheda", "Kutch", "Mahisagar", "Mehsana", "Morbi", "Narmada", "Navsari", "Panchmahal", "Patan", "Porbandar", "Rajkot", "Sabarkantha", "Surat", "Surendranagar", "Tapi", "Vadodara", "Valsad"],
+            "Haryana": ["Ambala", "Bhiwani", "Charkhi Dadri", "Faridabad", "Fatehabad", "Gurugram", "Hisar", "Jhajjar", "Jind", "Kaithal", "Karnal", "Kurukshetra", "Mahendragarh", "Nuh", "Palwal", "Panchkula", "Panipat", "Rewari", "Rohtak", "Sirsa", "Sonipat", "Yamunanagar"],
+            "Himachal Pradesh": ["Bilaspur", "Chamba", "Hamirpur", "Kangra", "Kinnaur", "Kullu", "Lahaul and Spiti", "Mandi", "Shimla", "Sirmaur", "Solan", "Una"],
+            "Jammu & Kashmir": ["Anantnag", "Bandipora", "Baramulla", "Budgam", "Doda", "Ganderbal", "Jammu", "Kathua", "Kishtwar", "Kulgam", "Kupwara", "Poonch", "Pulwama", "Rajouri", "Ramban", "Reasi", "Samba", "Shopian", "Srinagar", "Udhampur"],
+            "Jharkhand": ["Bokaro", "Chatra", "Deoghar", "Dhanbad", "Dumka", "East Singhbhum", "Garhwa", "Giridih", "Godda", "Gumla", "Hazaribagh", "Jamtara", "Khunti", "Koderma", "Latehar", "Lohardaga", "Pakur", "Palamu", "Ramgarh", "Ranchi", "Sahibganj", "Seraikela Kharsawan", "Simdega", "West Singhbhum"],
+            "Karnataka": ["Bagalkot", "Ballari", "Belagavi", "Bengaluru Rural", "Bengaluru Urban", "Bidar", "Chamarajanagar", "Chikkaballapur", "Chikkamagaluru", "Chitradurga", "Dakshina Kannada", "Davanagere", "Dharwad", "Gadag", "Hassan", "Haveri", "Kalaburagi", "Kodagu", "Kolar", "Koppal", "Mandya", "Mysuru", "Raichur", "Ramanagara", "Shivamogga", "Tumakuru", "Udupi", "Uttara Kannada", "Vijayapura", "Yadgir"],
+            "Kerala": ["Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", "Thiruvananthapuram", "Thrissur", "Wayanad"],
+            "Ladakh": ["Kargil", "Leh"],
+            "Lakshadweep": ["Lakshadweep"],
+            "Madhya Pradesh": ["Agar Malwa", "Alirajpur", "Anuppur", "Ashoknagar", "Balaghat", "Barwani", "Betul", "Bhind", "Bhopal", "Burhanpur", "Chhatarpur", "Chhindwara", "Damoh", "Datia", "Dewas", "Dhar", "Dindori", "Guna", "Gwalior", "Harda", "Hoshangabad", "Indore", "Jabalpur", "Jhabua", "Katni", "Khandwa", "Khargone", "Mandla", "Mandsaur", "Morena", "Narsinghpur", "Neemuch", "Panna", "Raisen", "Rajgarh", "Ratlam", "Rewa", "Sagar", "Satna", "Sehore", "Seoni", "Shahdol", "Shajapur", "Sheopur", "Shivpuri", "Sidhi", "Singrauli", "Tikamgarh", "Ujjain", "Umaria", "Vidisha"],
+            "Maharashtra": ["Ahmednagar", "Akola", "Amravati", "Aurangabad", "Beed", "Bhandara", "Buldhana", "Chandrapur", "Dhule", "Gadchiroli", "Gondia", "Hingoli", "Jalgaon", "Jalna", "Kolhapur", "Latur", "Mumbai City", "Mumbai Suburban", "Nagpur", "Nanded", "Nandurbar", "Nashik", "Osmanabad", "Palghar", "Parbhani", "Pune", "Raigad", "Ratnagiri", "Sangli", "Satara", "Sindhudurg", "Solapur", "Thane", "Wardha", "Washim", "Yavatmal"],
+            "Manipur": ["Bishnupur", "Chandel", "Churachandpur", "Imphal East", "Imphal West", "Jiribam", "Kakching", "Kamjong", "Kangpokpi", "Noney", "Pherzawl", "Senapati", "Tamenglong", "Tengnoupal", "Thoubal", "Ukhrul"],
+            "Meghalaya": ["East Garo Hills", "East Jaintia Hills", "East Khasi Hills", "North Garo Hills", "Ri Bhoi", "South Garo Hills", "South West Garo Hills", "South West Khasi Hills", "West Garo Hills", "West Jaintia Hills", "West Khasi Hills"],
+            "Mizoram": ["Aizawl", "Champhai", "Kolasib", "Lawngtlai", "Lunglei", "Mamit", "Saiha", "Serchhip"],
+            "Nagaland": ["Dimapur", "Kiphire", "Kohima", "Longleng", "Mokokchung", "Mon", "Peren", "Phek", "Tuensang", "Wokha", "Zunheboto"],
+            "Odisha": ["Angul", "Balangir", "Balasore", "Bargarh", "Bhadrak", "Boudh", "Cuttack", "Deogarh", "Dhenkanal", "Gajapati", "Ganjam", "Jagatsinghpur", "Jajpur", "Jharsuguda", "Kalahandi", "Kandhamal", "Kendrapara", "Kendujhar", "Khordha", "Koraput", "Malkangiri", "Mayurbhanj", "Nabarangpur", "Nayagarh", "Nuapada", "Puri", "Rayagada", "Sambalpur", "Subarnapur", "Sundargarh"],
+            "Puducherry": ["Karaikal", "Mahe", "Puducherry", "Yanam"],
+            "Punjab": ["Amritsar", "Barnala", "Bathinda", "Faridkot", "Fatehgarh Sahib", "Fazilka", "Ferozepur", "Gurdaspur", "Hoshiarpur", "Jalandhar", "Kapurthala", "Ludhiana", "Mansa", "Moga", "Muktsar", "Nawanshahr", "Pathankot", "Patiala", "Rupnagar", "Sahibzada Ajit Singh Nagar", "Sangrur", "Tarn Taran"],
+            "Rajasthan": ["Ajmer", "Alwar", "Banswara", "Baran", "Barmer", "Bharatpur", "Bhilwara", "Bikaner", "Bundi", "Chittorgarh", "Churu", "Dausa", "Dholpur", "Dungarpur", "Hanumangarh", "Jaipur", "Jaisalmer", "Jalore", "Jhalawar", "Jhunjhunu", "Jodhpur", "Karauli", "Kota", "Nagaur", "Pali", "Pratapgarh", "Rajsamand", "Sawai Madhopur", "Sikar", "Sirohi", "Sri Ganganagar", "Tonk", "Udaipur"],
+            "Sikkim": ["East Sikkim", "North Sikkim", "South Sikkim", "West Sikkim"],
+            "Tamil Nadu": ["Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore", "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kanchipuram", "Kanyakumari", "Karur", "Krishnagiri", "Madurai", "Mayiladuthurai", "Nagapattinam", "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai", "Ramanathapuram", "Ranipet", "Salem", "Sivaganga", "Tenkasi", "Thanjavur", "Theni", "Thoothukudi", "Tiruchirappalli", "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur", "Vellore", "Viluppuram", "Virudhunagar"],
+            "Telangana": ["Adilabad", "Bhadradri Kothagudem", "Hyderabad", "Jagtial", "Jangaon", "Jayashankar Bhupalpally", "Jogulamba Gadwal", "Kamareddy", "Karimnagar", "Khammam", "Komaram Bheem", "Mahabubabad", "Mahabubnagar", "Mancherial", "Medak", "Medchal", "Nagarkurnool", "Nalgonda", "Nirmal", "Nizamabad", "Peddapalli", "Rajanna Sircilla", "Rangareddy", "Sangareddy", "Siddipet", "Suryapet", "Vikarabad", "Wanaparthy", "Warangal Rural", "Warangal Urban", "Yadadri Bhuvanagiri"],
+            "Tripura": ["Dhalai", "Gomati", "Khowai", "North Tripura", "Sepahijala", "South Tripura", "Unakoti", "West Tripura"],
+            "Uttar Pradesh": ["Agra", "Aligarh", "Ambedkar Nagar", "Amethi", "Amroha", "Auraiya", "Ayodhya", "Azamgarh", "Baghpat", "Bahraich", "Ballia", "Balrampur", "Banda", "Barabanki", "Bareilly", "Basti", "Bhadohi", "Bijnor", "Budaun", "Bulandshahr", "Chandauli", "Chitrakoot", "Deoria", "Etah", "Etawah", "Farrukhabad", "Fatehpur", "Firozabad", "Gautam Buddha Nagar", "Ghaziabad", "Ghazipur", "Gonda", "Gorakhpur", "Hamirpur", "Hapur", "Hardoi", "Hathras", "Jalaun", "Jaunpur", "Jhansi", "Kannauj", "Kanpur Dehat", "Kanpur Nagar", "Kasganj", "Kaushambi", "Kheri", "Kushinagar", "Lalitpur", "Lucknow", "Maharajganj", "Mahoba", "Mainpuri", "Mathura", "Mau", "Meerut", "Mirzapur", "Moradabad", "Muzaffarnagar", "Pilibhit", "Pratapgarh", "Prayagraj", "Raebareli", "Rampur", "Saharanpur", "Sambhal", "Sant Kabir Nagar", "Shahjahanpur", "Shamli", "Shravasti", "Siddharthnagar", "Sitapur", "Sonbhadra", "Sultanpur", "Unnao", "Varanasi"],
+            "Uttarakhand": ["Almora", "Bageshwar", "Chamoli", "Champawat", "Dehradun", "Haridwar", "Nainital", "Pauri Garhwal", "Pithoragarh", "Rudraprayag", "Tehri Garhwal", "Udham Singh Nagar", "Uttarkashi"],
+            "West Bengal": ["Alipurduar", "Bankura", "Birbhum", "Cooch Behar", "Dakshin Dinajpur", "Darjeeling", "Hooghly", "Howrah", "Jalpaiguri", "Jhargram", "Kalimpong", "Kolkata", "Malda", "Murshidabad", "Nadia", "North 24 Parganas", "Paschim Bardhaman", "Paschim Medinipur", "Purba Bardhaman", "Purba Medinipur", "Purulia", "South 24 Parganas", "Uttar Dinajpur"]
+        };
+
+        /* === AUTH & PROFILE === */
+        function initAuth() {
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                showApp();
+            } else {
+                showAuth();
+            }
+        }
+        function showAuth() {
+            document.getElementById('auth-overlay').style.display = 'flex';
+            document.getElementById('app-container').classList.add('hidden');
+        }
+        function showApp() {
+            // FORCE HIDE AUTH OVERLAY
+            document.getElementById('auth-overlay').style.display = 'none';
+            
+            const app = document.getElementById('app-container');
+            app.classList.remove('hidden');
+            setTimeout(() => app.classList.add('opacity-100'), 50);
+            
+            // PROFILE UPDATE
+            const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.name}`;
+            document.getElementById('user-avatar-desktop').src = avatarUrl;
+            document.getElementById('user-avatar-mobile').src = avatarUrl;
+            document.getElementById('user-name-desktop').innerText = currentUser.name.split(' ')[0];
+            document.getElementById('profile-avatar').src = avatarUrl;
+            document.getElementById('profile-name').innerText = currentUser.name;
+            document.getElementById('profile-email').innerText = currentUser.email;
+            document.getElementById('stat-trips').innerText = localStorage.getItem(`searches_${currentUser.email}`) || 0;
+
+            loadUserData();
+            populateStates();
+            if(!map) setTimeout(initMap, 200);
+            
+            // Pre-load Models Silently
+            loadModels();
+        }
+        
+        function guestLogin() {
+             currentUser = { name: "Guest User", email: "guest@travelgpt.com" };
+             localStorage.setItem('currentUser', JSON.stringify(currentUser));
+             showApp();
+        }
+
+        async function loadModels() {
+            try {
+                // Initialize COCO-SSD (Safe Load)
+                if (typeof cocoSsd !== 'undefined') {
+                    try { objectModel = await cocoSsd.load(); } catch(e) { console.warn("COCO-SSD load issue"); }
+                }
+
+                // Initialize Tesseract Worker ONCE
+                if(!ocrWorker && typeof Tesseract !== 'undefined') {
+                    ocrWorker = await Tesseract.createWorker();
+                    await ocrWorker.loadLanguage('eng');
+                    await ocrWorker.initialize('eng');
+                }
+            } catch(e) { console.error("Model Error", e); }
+        }
+
+        function toggleAuthMode() {
+            const l = document.getElementById('form-login'); const s = document.getElementById('form-signup');
+            const b = document.getElementById('toggle-auth');
+            if (l.classList.contains('hidden')) { l.classList.remove('hidden'); s.classList.add('hidden'); b.innerText = "Don't have an account? Sign Up"; } 
+            else { l.classList.add('hidden'); s.classList.remove('hidden'); b.innerText = "Already have an account? Log In"; }
+        }
+        function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const pass = document.getElementById('signup-pass').value;
+            if(pass.length < 4) { document.getElementById('auth-error').innerText = "Password too short"; return; }
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            if (users[email]) { document.getElementById('auth-error').innerText = "User already exists"; return; }
+            const newUser = { name, email, pass };
+            users[email] = newUser;
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            currentUser = newUser;
+            showApp();
+        }
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            const user = users[email];
+            if (user && user.pass === pass) {
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                currentUser = user;
+                showApp();
+            } else { document.getElementById('auth-error').innerText = "Invalid credentials"; }
+        }
+        function logout() { localStorage.removeItem('currentUser'); location.reload(); }
+        function loadUserData() {
+            const key = `notes_${currentUser.email}`;
+            document.getElementById('user-notes').value = localStorage.getItem(key) || "";
+            const lat = localStorage.getItem(`lat_${currentUser.email}`);
+            if(lat) { currentLat=parseFloat(lat); currentLng=parseFloat(localStorage.getItem(`lng_${currentUser.email}`)); fetchCityName(); fetchWeather(); }
+        }
+        function saveNote() { if(!currentUser) return; localStorage.setItem(`notes_${currentUser.email}`, document.getElementById('user-notes').value); }
+        function downloadNote() {
+            const text = document.getElementById('user-notes').value;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `TravelGuide_Notes_${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+        }
+        function incrementStats() {
+            if(!currentUser) return;
+            let count = parseInt(localStorage.getItem(`searches_${currentUser.email}`) || 0) + 1;
+            localStorage.setItem(`searches_${currentUser.email}`, count);
+            document.getElementById('stat-trips').innerText = count;
+        }
+
+        /* === LOCATION LOGIC (Dynamic Taluks) === */
+        function populateStates() {
+            const sel = document.getElementById('state-select');
+            if(sel.options.length > 1) return;
+            Object.keys(indiaStates).sort().forEach(s => { let o = document.createElement('option'); o.value=s; o.text=s; sel.appendChild(o); });
+        }
+        function populateDistricts() {
+            const s = document.getElementById('state-select').value;
+            const dSel = document.getElementById('district-select');
+            const tSel = document.getElementById('taluk-select');
+            dSel.innerHTML = '<option value="">Select District</option>'; tSel.innerHTML = '<option value="">Select Taluk</option>'; tSel.disabled=true;
+            if(s) { 
+                dSel.disabled=false; 
+                indiaStates[s].sort().forEach(d=>{let o=document.createElement('option');o.value=d;o.text=d;dSel.appendChild(o);}); 
+            } else dSel.disabled=true;
+        }
+        async function fetchDynamicTaluks() {
+            const s = document.getElementById('state-select').value;
+            const d = document.getElementById('district-select').value;
+            const tSel = document.getElementById('taluk-select');
+            const loader = document.getElementById('taluk-loader');
+            
+            if(!d) { tSel.disabled=true; return; }
+            
+            tSel.innerHTML = '<option value="">Loading Towns...</option>';
+            tSel.disabled = true;
+            loader.classList.add('animate-spin', 'ph-spinner');
+            loader.classList.remove('ph-caret-down');
+
+            try {
+                // Nominatim 'contains' search is safer than relation lookup for simplicity
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${d}+${s}+India&addressdetails=1&limit=1`;
+                const data = await safeJsonFetch(url);
+                
+                tSel.innerHTML = '<option value="">Select Town/Taluk</option>';
+                // Note: Getting ALL taluks is hard without Overpass, simulating a "Major Town" fetch for responsiveness
+                // A broad search for towns near the district center
+                if(data.length > 0) {
+                     const lat = data[0].lat;
+                     const lon = data[0].lon;
+                     // Find towns near the district center
+                     const overpassUrl = 'https://overpass-api.de/api/interpreter';
+                     const ql = `[out:json][timeout:15];node(around:50000,${lat},${lon})["place"~"town|village"];out 30;`;
+                     const townsData = await safeJsonFetch(`${overpassUrl}?data=${encodeURIComponent(ql)}`);
+                     
+                     if(townsData && townsData.elements) {
+                        const towns = [...new Set(townsData.elements.map(i => i.tags.name).filter(n => n))].sort();
+                        towns.forEach(t => {
+                            let o = document.createElement('option'); o.value = t; o.text = t; tSel.appendChild(o);
+                        });
+                        tSel.disabled = false;
+                     } else {
+                        tSel.innerHTML = '<option value="">Main District Area</option>';
+                     }
+                } else {
+                     tSel.innerHTML = '<option value="">Use Search</option>';
+                }
+            } catch(e) {
+                console.warn(e);
+                tSel.innerHTML = '<option value="">Use Manual Search</option>';
+            } finally {
+                loader.classList.remove('animate-spin', 'ph-spinner');
+                loader.classList.add('ph-caret-down');
+            }
+        }
+
+        /* === CORE APP LOGIC === */
+        async function safeJsonFetch(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(res.status);
+                const txt = await response.text();
+                return JSON.parse(txt);
+            } catch (e) { console.warn(e); throw e; }
+        }
+
+        async function teleportToTaluk() {
+            const s = document.getElementById('state-select').value;
+            const d = document.getElementById('district-select').value;
+            const t = document.getElementById('taluk-select').value;
+            if(!t) return;
+            
+            // Replaced manual button logic with auto-trigger
+            document.getElementById('results-area').innerHTML = `<div class="col-span-full text-center py-10 opacity-50 text-xs animate-pulse font-bold text-indigo-600">Scanning ${t}...</div>`;
+
+            const query = `${t}, ${d}, ${s}, India`;
+            try {
+                const data = await safeJsonFetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                if(data.length) {
+                    updateLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), t);
+                    document.getElementById('osm-query').value = 'attractions';
+                    queryOverpass();
+                    incrementStats();
+                }
+            } catch(e){}
+        }
+
+        async function detectLiveLocation() {
+            if(!navigator.geolocation) return alert("No GPS");
+            document.getElementById('weather-loc').innerText = "Triangulating...";
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                updateLocation(pos.coords.latitude, pos.coords.longitude, "You");
+                incrementStats();
+                try {
+                    const data = await safeJsonFetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}`);
+                    const city = data.address.city || data.address.town || "Unknown";
+                    document.getElementById('weather-loc').innerText = city;
+                    document.getElementById('osm-query').value = 'attractions';
+                    queryOverpass();
+                } catch(e) { console.error(e); }
+            });
+        }
+
+        function updateLocation(lat, lng, label) {
+            currentLat = lat; currentLng = lng;
+            if(currentUser) {
+                localStorage.setItem(`lat_${currentUser.email}`, lat);
+                localStorage.setItem(`lng_${currentUser.email}`, lng);
+            }
+            fetchWeather();
+            if(map) { map.setView([lat, lng], 14); L.marker([lat, lng]).addTo(map).bindPopup(label).openPopup(); }
+        }
+
+        async function teleportToCity() {
+            const q = document.getElementById('teleport-query').value;
+            if(!q) return;
+            try {
+                const data = await safeJsonFetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+                if(data.length) {
+                    updateLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), q);
+                    fetchCityName();
+                    document.getElementById('osm-query').value = 'attractions';
+                    queryOverpass();
+                    incrementStats();
+                }
+            } catch(e){}
+        }
+
+        async function fetchWeather() {
+            try {
+                const data = await safeJsonFetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLng}&current_weather=true`);
+                document.getElementById('weather-temp').innerText = `${Math.round(data.current_weather.temperature)}°`;
+                document.getElementById('weather-desc').innerText = `Wind: ${data.current_weather.windspeed} km/h`;
+            } catch(e){}
+        }
+        async function fetchCityName() {
+            try {
+                const data = await safeJsonFetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}`);
+                document.getElementById('weather-loc').innerText = data.address.city || "Unknown Location";
+            } catch(e){}
+        }
+
+        function initMap() {
+            if(map) return;
+            map = L.map('map', {zoomControl: false}).setView([currentLat, currentLng], 15);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '' }).addTo(map);
+            L.marker([currentLat, currentLng]).addTo(map).bindPopup("Start").openPopup();
+        }
+        function locateUser() { map.setView([currentLat, currentLng], 16); }
+
+        function quickSearch(type) {
+            document.getElementById('osm-query').value = type;
+            queryOverpass();
+        }
+
+        async function queryOverpass() {
+            let q = document.getElementById('osm-query').value;
+            const resArea = document.getElementById('results-area');
+            resArea.innerHTML = '<div class="col-span-full text-center py-10 opacity-50 text-xs animate-pulse font-bold text-indigo-600">Scouting Sector...</div>';
+            
+            let ql = '';
+            const r = 15000;
+            if(q==='attractions') {
+                ql = `[out:json][timeout:25];
+                    (
+                      nwr["tourism"~"attraction|viewpoint|museum|zoo|theme_park"](around:${r},${currentLat},${currentLng});
+                      nwr["historic"~"monument|memorial|castle|ruins|fort"](around:${r},${currentLat},${currentLng});
+                      nwr["natural"~"water|beach|peak|waterfall"](around:${r},${currentLat},${currentLng});
+                      nwr["religion"~"hindu|christian|muslim|buddhist|sikh|jain"](around:${r},${currentLat},${currentLng});
+                    );
+                    out center 25;`; 
+            }
+            else if(q==='temple') ql = `[out:json][timeout:25];nwr["amenity"="place_of_worship"](around:${r},${currentLat},${currentLng});out center 25;`;
+            else if(q==='park') ql = `[out:json][timeout:25];nwr["leisure"~"park|garden|nature_reserve"](around:${r},${currentLat},${currentLng});out center 25;`;
+            else if(q==='shopping') ql = `[out:json][timeout:25];nwr["shop"~"mall|department_store|supermarket|clothes"](around:${r},${currentLat},${currentLng});out center 25;`;
+            else if(q==='restaurant') ql = `[out:json][timeout:25];nwr["amenity"~"restaurant|cafe|fast_food|food_court"](around:${r},${currentLat},${currentLng});out center 25;`;
+            else ql = `[out:json][timeout:25];nwr["amenity"~"${q.includes('hotel')?'hotel':q}"](around:${r},${currentLat},${currentLng});out center 25;`;
+
+            const eps = ['https://overpass-api.de/api/interpreter', 'https://lz4.overpass-api.de/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+            let data=null;
+            for(let ep of eps) { try{ data=await safeJsonFetch(`${ep}?data=${encodeURIComponent(ql)}`); if(data) break; }catch(e){} }
+
+            resArea.innerHTML=''; mapMarkers.forEach(m=>map.removeLayer(m)); mapMarkers=[];
+            if(!data || !data.elements.length) resArea.innerHTML = '<div class="col-span-full text-center py-10 opacity-40 text-xs font-bold text-slate-400">Sector Empty</div>';
+            else {
+                data.elements.forEach((p, i) => {
+                    const name = p.tags.name; if(!name) return;
+                    let lat = p.lat; let lon = p.lon;
+                    if (!lat && p.center) { lat = p.center.lat; lon = p.center.lon; }
+                    if (!lat) return;
+
+                    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+                    let icon = 'ph-map-pin';
+                    if(p.tags.tourism) icon='ph-camera'; else if(p.tags.amenity==='place_of_worship') icon='ph-mosque';
+                    else if(p.tags.leisure==='park') icon='ph-tree';
+                    else if(p.tags.shop) icon='ph-shopping-bag';
+                    
+                    const card = document.createElement('div');
+                    card.className = "pro-card p-4 flex justify-between items-center animate-fade-in hover:border-indigo-500/50";
+                    card.style.animationDelay = `${i*0.05}s`;
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0"><i class="ph-fill ${icon} text-lg"></i></div>
+                            <div class="truncate">
+                                <h4 class="text-sm font-bold text-slate-800 truncate">${name}</h4>
+                                <p class="text-[10px] text-slate-500 font-medium truncate uppercase tracking-wide">${p.tags.amenity||p.tags.tourism||p.tags.historic||p.tags.leisure||"Place"}</p>
+                            </div>
+                        </div>
+                        <a href="${url}" target="_blank" class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white hover:bg-indigo-700 transition shadow-sm active:scale-95"><i class="ph-bold ph-navigation-arrow"></i></a>
+                    `;
+                    resArea.appendChild(card);
+                    const m=L.marker([lat, lon]).addTo(map).bindPopup(name);
+                    mapMarkers.push(m);
+                });
+            }
+        }
+
+        // --- TRANSLATOR ---
+        function swapLanguages() {
+            const s=document.getElementById('trans-source'); const t=document.getElementById('trans-target');
+            const tmp=s.value; s.value=t.value; t.value=tmp;
+        }
+        async function translateTextManual() {
+            const i=document.getElementById('trans-input').value;
+            const o=document.getElementById('trans-output');
+            const l=document.getElementById('trans-loading');
+            if(!i) return;
+            l.classList.remove('hidden');
+            try {
+                const s=document.getElementById('trans-source').value; const t=document.getElementById('trans-target').value;
+                const data=await safeJsonFetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(i)}&langpair=${s}|${t}`);
+                o.innerText = data.responseData.translatedText || i;
+            } catch(e) { o.innerText="Error"; } finally { l.classList.add('hidden'); }
+        }
+        function speakTranslation() {
+            const t=document.getElementById('trans-output').innerText;
+            if(!t || t==="...") return;
+            const u=new SpeechSynthesisUtterance(t);
+            u.lang=document.getElementById('trans-target').value;
+            window.speechSynthesis.speak(u);
+        }
+        function initSpeech() {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if(SR) {
+                recognition = new SR(); recognition.continuous=false; recognition.interimResults=true;
+                recognition.onstart = () => { document.getElementById('mic-pulse').classList.remove('hidden'); document.getElementById('mic-status').innerText="LISTENING..."; };
+                recognition.onend = () => { document.getElementById('mic-pulse').classList.add('hidden'); document.getElementById('mic-status').innerText=""; if(document.getElementById('trans-input').value) translateTextManual(); isListening=false; };
+                recognition.onresult = (e) => document.getElementById('trans-input').value = Array.from(e.results).map(r=>r[0].transcript).join('');
+            }
+        }
+        function toggleVoiceInput() {
+            if(!recognition) return alert("Not Supported");
+            if(isListening) recognition.stop();
+            else {
+                const langMap = {'en':'en-US','hi':'hi-IN','kn':'kn-IN','ta':'ta-IN','te':'te-IN','ml':'ml-IN'};
+                recognition.lang = langMap[document.getElementById('trans-source').value];
+                recognition.start();
+            }
+        }
+
+        // --- AR/OCR ---
+        async function startCamera() {
+            const v=document.getElementById('ar-video'); const s=document.getElementById('ar-static-img');
+            s.classList.add('hidden'); v.classList.remove('hidden'); isCameraOn=true;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+                v.srcObject=stream; v.play();
+                document.getElementById('camera-error').classList.add('hidden');
+                requestAnimationFrame(processVideoFrame);
+            } catch(e) { document.getElementById('camera-error').classList.remove('hidden'); }
+        }
+        function startDemoMode() {
+            const v=document.getElementById('ar-video');
+            v.srcObject=null; v.src="https://videos.pexels.com/video-files/3195652/3195652-sd_640_360_25fps.mp4"; v.play();
+            isCameraOn=true; document.getElementById('camera-error').classList.add('hidden');
+            requestAnimationFrame(processVideoFrame);
+        }
+        function stopCamera() {
+            const v=document.getElementById('ar-video');
+            if(v.srcObject) v.srcObject.getTracks().forEach(t=>t.stop());
+            v.pause(); isCameraOn=false;
+        }
+        function switchVision(m) {
+            visionMode=m;
+            const ocr = document.getElementById('ocr-controls'); const lang = document.getElementById('ocr-lang-panel'); const res = document.getElementById('ocr-result');
+            const objBtn = document.getElementById('btn-vis-obj'); const ocrBtn = document.getElementById('btn-vis-ocr');
+            const focus = document.getElementById('ar-focus'); const objRes = document.getElementById('obj-result');
+            
+            if(m==='object') {
+                ocr.classList.add('hidden'); lang.classList.add('hidden'); res.classList.add('hidden');
+                objBtn.classList.replace('bg-white', 'bg-indigo-600'); objBtn.classList.replace('text-black', 'text-white');
+                ocrBtn.classList.replace('bg-indigo-600', 'bg-white'); ocrBtn.classList.replace('text-white', 'text-black');
+                if(focus) focus.classList.remove('hidden');
+                if(objRes) objRes.classList.remove('hidden');
+            } else {
+                ocr.classList.remove('hidden'); lang.classList.remove('hidden'); res.classList.remove('hidden');
+                ocrBtn.classList.replace('bg-white', 'bg-indigo-600'); ocrBtn.classList.replace('text-black', 'text-white');
+                objBtn.classList.replace('bg-indigo-600', 'bg-white'); objBtn.classList.replace('text-white', 'text-black');
+                if(focus) focus.classList.add('hidden');
+                if(objRes) objRes.classList.add('hidden');
+            }
+        }
+        function closeOcr() { document.getElementById('ocr-result').classList.add('hidden'); }
+        function triggerUpload() { document.getElementById('img-upload').click(); }
+        function handleFileUpload(inp) {
+            if(inp.files[0]) {
+                const r = new FileReader();
+                r.onload = function(e) {
+                    const v=document.getElementById('ar-video'); const s=document.getElementById('ar-static-img');
+                    isCameraOn=false; v.pause(); v.classList.add('hidden'); s.src=e.target.result; s.classList.remove('hidden');
+                    setTimeout(()=>runOCR(s), 500);
+                }
+                r.readAsDataURL(inp.files[0]);
+            }
+        }
+        async function processVideoFrame() {
+            if(!isCameraOn) return;
+            const v=document.getElementById('ar-video'); const c=document.getElementById('ar-canvas'); const ctx=c.getContext('2d');
+            if(v.readyState>=2) {
+                c.width=v.videoWidth; c.height=v.videoHeight; ctx.clearRect(0,0,c.width,c.height);
+                if(visionMode==='object' && objectModel) {
+                    try {
+                        // COCO-SSD uses .detect()
+                        const predictions = await objectModel.detect(v);
+                        predictions.forEach(p=>{
+                            ctx.strokeStyle='#4f46e5'; ctx.lineWidth=4; ctx.strokeRect(p.bbox[0],p.bbox[1],p.bbox[2],p.bbox[3]);
+                            ctx.font='18px Inter'; ctx.fillStyle='#4f46e5'; ctx.fillText(p.class, p.bbox[0], p.bbox[1]>20?p.bbox[1]-10:20);
+                        });
+                    } catch(e){}
+                } else if(visionMode==='ocr' && !processingOCR && Date.now()%3000<100) runOCR(v);
+            }
+            requestAnimationFrame(processVideoFrame);
+        }
+        async function updateArTranslation() {
+            if(!lastOcrText) return;
+            const resEl = document.getElementById('ocr-trans-text');
+            resEl.innerText = "Translating...";
+            const s3 = document.getElementById('ocr-source-lang').value;
+            const t = document.getElementById('target-lang').value;
+            const map3to2 = {'eng':'en','hin':'hi','kan':'kn','tam':'ta','tel':'te','mal':'ml'};
+            try {
+                const data = await safeJsonFetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(lastOcrText)}&langpair=${map3to2[s3]}|${t}`);
+                resEl.innerText = data.responseData.translatedText || lastOcrText;
+            } catch(e) { resEl.innerText = "Error"; }
+        }
+        async function runOCR(src) {
+            if(processingOCR) return; processingOCR=true;
+            const txtEl = document.getElementById('ocr-text'); const transEl = document.getElementById('ocr-trans-text');
+            txtEl.innerText="Scanning...";
+            const cvs = document.createElement('canvas');
+            if(src.tagName==='VIDEO') { cvs.width=src.videoWidth; cvs.height=src.videoHeight; } else { cvs.width=src.naturalWidth; cvs.height=src.naturalHeight; }
+            cvs.getContext('2d').drawImage(src,0,0);
+            
+            try {
+                // Initialize Tesseract Worker ONCE
+                if(!ocrWorker && typeof Tesseract !== 'undefined') {
+                    ocrWorker = await Tesseract.createWorker(document.getElementById('ocr-source-lang').value);
+                }
+
+                const res = await ocrWorker.recognize(cvs);
+                const txt = res.data.text.replace(/\n/g,' ').trim();
+                if(txt.length>2) { lastOcrText=txt; txtEl.innerText=txt; await updateArTranslation(); }
+                else { txtEl.innerText="No Text"; transEl.innerText="..."; }
+            } catch(e){ txtEl.innerText="Scan Error"; } finally { processingOCR=false; cvs.remove(); }
+        }
+
+        // --- CHAT ---
+        function toggleNoteMode(m) {
+            document.getElementById('ai-chat-container').classList.toggle('hidden', m!=='chat');
+            document.getElementById('notepad-container').classList.toggle('hidden', m!=='notes');
+            const c=document.getElementById('tab-chat'); const n=document.getElementById('tab-notes');
+            if(m==='chat') { c.className="flex-1 py-2 rounded text-xs font-bold text-white bg-indigo-600 shadow-sm transition"; n.className="flex-1 py-2 rounded text-xs font-bold text-slate-500 hover:bg-slate-50 transition"; }
+            else { n.className="flex-1 py-2 rounded text-xs font-bold text-white bg-indigo-600 shadow-sm transition"; c.className="flex-1 py-2 rounded text-xs font-bold text-slate-500 hover:bg-slate-50 transition"; }
+        }
+        function handleChatKey(e) { if(e.key==='Enter') sendChat(); }
+        async function sendChat() {
+            const i=document.getElementById('chat-input'); const t=i.value.trim(); if(!t) return;
+            addMsg(t, 'user'); i.value=''; addMsg("Processing...", 'ai', 'thinking');
+            try {
+                let act=null; let p="You are TravelGPT. Be concise.";
+                if(t.toLowerCase().includes('hotel')) act='hotel';
+                const r=await safeJsonFetch(`https://text.pollinations.ai/${encodeURIComponent(p+t)}`);
+                document.getElementById('thinking').remove();
+                addMsg(await r.text(), 'ai');
+                if(act) { switchTab('home'); document.getElementById('osm-query').value=act; queryOverpass(); }
+            } catch(e){ document.getElementById('thinking').remove(); addMsg("System Offline.", 'ai'); }
+        }
+        function addMsg(t, s, id) {
+            const h=document.getElementById('chat-history'); const d=document.createElement('div');
+            if(id) d.id=id;
+            d.className = s==='user' ? "p-4 text-sm font-medium msg-user max-w-[85%] mb-3 ml-auto animate-fade-in" : "flex gap-4 max-w-[90%] msg-ai p-4 mb-3 animate-fade-in";
+            if(s==='ai') d.innerHTML=`<div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100"><i class="ph-fill ph-robot text-indigo-600"></i></div><p class="text-sm font-medium leading-relaxed text-slate-700">${t}</p>`;
+            else d.innerText=t;
+            h.appendChild(d); h.scrollTop=h.scrollHeight;
+        }
+
+        // --- APP SHELL ---
+        function switchTab(t) {
+            document.querySelectorAll('.view-section').forEach(el=>{el.classList.add('hidden'); el.classList.remove('opacity-100'); el.classList.add('opacity-0');});
+            const v = document.getElementById(`view-${t}`);
+            v.classList.remove('hidden'); 
+            setTimeout(()=>v.classList.remove('opacity-0'), 50);
+            
+            if(t==='ar') startCamera(); else stopCamera();
+            if(t==='map' && map) setTimeout(()=>map.invalidateSize(), 200);
+
+            document.querySelectorAll('.nav-link').forEach(b=>{ b.classList.remove('active'); });
+            const btn = document.getElementById(`nav-${t}`);
+            if(btn) btn.classList.add('active');
+        }
+
+        // Run Init
+        window.onload = initAuth;
+    </script>
+</body>
+</html>
