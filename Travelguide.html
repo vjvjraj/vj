@@ -19,7 +19,7 @@
 
     <!-- === OPEN SOURCE LIBRARIES === -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <!-- TensorFlow & COCO-SSD (Fixed) -->
+    <!-- TensorFlow & COCO-SSD -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
     <!-- Tesseract OCR -->
@@ -90,7 +90,7 @@
         
         /* LOGIN STYLES */
         #auth-overlay {
-            background-image: linear-gradient(rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.7)), url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop');
+            background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.8)), url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
             z-index: 9999;
@@ -358,6 +358,7 @@
         let lastOcrText = ""; let recognition = null; let isListening = false;
         let searchCount = 0;
         let ocrWorker = null;
+        let currentOcrLang = "eng";
 
         // --- COMPREHENSIVE DATA (All 28 States + 8 UTs) ---
         const indiaStates = {
@@ -791,18 +792,18 @@
         }
         function switchVision(m) {
             visionMode=m;
-            const ocr = document.getElementById('ocr-controls'); const lang = document.getElementById('ocr-lang-panel'); const res = document.getElementById('ocr-result');
+            const ocr = document.getElementById('ocr-controls'); const res = document.getElementById('ocr-result');
             const objBtn = document.getElementById('btn-vis-obj'); const ocrBtn = document.getElementById('btn-vis-ocr');
             const focus = document.getElementById('ar-focus'); const objRes = document.getElementById('obj-result');
             
             if(m==='object') {
-                ocr.classList.add('hidden'); lang.classList.add('hidden'); res.classList.add('hidden');
+                ocr.classList.add('hidden'); res.classList.add('hidden');
                 objBtn.classList.replace('bg-white', 'bg-indigo-600'); objBtn.classList.replace('text-black', 'text-white');
                 ocrBtn.classList.replace('bg-indigo-600', 'bg-white'); ocrBtn.classList.replace('text-white', 'text-black');
                 if(focus) focus.classList.remove('hidden');
                 if(objRes) objRes.classList.remove('hidden');
             } else {
-                ocr.classList.remove('hidden'); lang.classList.remove('hidden'); res.classList.remove('hidden');
+                ocr.classList.remove('hidden'); res.classList.remove('hidden');
                 ocrBtn.classList.replace('bg-white', 'bg-indigo-600'); ocrBtn.classList.replace('text-black', 'text-white');
                 objBtn.classList.replace('bg-indigo-600', 'bg-white'); objBtn.classList.replace('text-white', 'text-black');
                 if(focus) focus.classList.add('hidden');
@@ -817,7 +818,24 @@
                 r.onload = function(e) {
                     const v=document.getElementById('ar-video'); const s=document.getElementById('ar-static-img');
                     isCameraOn=false; v.pause(); v.classList.add('hidden'); s.src=e.target.result; s.classList.remove('hidden');
-                    setTimeout(()=>runOCR(s), 500);
+                    
+                    // Trigger appropriate scan based on current mode
+                    if(visionMode === 'ocr') {
+                         setTimeout(()=>runOCR(s), 500);
+                    } else if(visionMode === 'object') {
+                         // For static image object detection
+                         setTimeout(async () => {
+                             if(objectModel) {
+                                try {
+                                    const predictions = await objectModel.detect(s);
+                                    if(predictions.length > 0) {
+                                        document.getElementById('obj-name').innerText = `${predictions[0].class} (${Math.round(predictions[0].score*100)}%)`;
+                                        document.getElementById('obj-result').classList.remove('hidden');
+                                    }
+                                } catch(e){}
+                             }
+                         }, 500);
+                    }
                 }
                 r.readAsDataURL(inp.files[0]);
             }
@@ -829,7 +847,6 @@
                 c.width=v.videoWidth; c.height=v.videoHeight; ctx.clearRect(0,0,c.width,c.height);
                 if(visionMode==='object' && objectModel) {
                     try {
-                        // COCO-SSD uses .detect()
                         const predictions = await objectModel.detect(v);
                         predictions.forEach(p=>{
                             ctx.strokeStyle='#4f46e5'; ctx.lineWidth=4; ctx.strokeRect(p.bbox[0],p.bbox[1],p.bbox[2],p.bbox[3]);
@@ -861,16 +878,18 @@
             cvs.getContext('2d').drawImage(src,0,0);
             
             try {
-                // Initialize Tesseract Worker ONCE
-                if(!ocrWorker && typeof Tesseract !== 'undefined') {
-                    ocrWorker = await Tesseract.createWorker(document.getElementById('ocr-source-lang').value);
+                const selectedLang = document.getElementById('ocr-source-lang').value;
+                if(!ocrWorker || currentOcrLang !== selectedLang) {
+                    if(ocrWorker) await ocrWorker.terminate();
+                    ocrWorker = await Tesseract.createWorker(selectedLang);
+                    currentOcrLang = selectedLang;
                 }
 
                 const res = await ocrWorker.recognize(cvs);
                 const txt = res.data.text.replace(/\n/g,' ').trim();
                 if(txt.length>2) { lastOcrText=txt; txtEl.innerText=txt; await updateArTranslation(); }
                 else { txtEl.innerText="No Text"; transEl.innerText="..."; }
-            } catch(e){ txtEl.innerText="Scan Error"; } finally { processingOCR=false; cvs.remove(); }
+            } catch(e){ console.error(e); txtEl.innerText="Scan Error"; } finally { processingOCR=false; cvs.remove(); }
         }
 
         // --- CHAT ---
