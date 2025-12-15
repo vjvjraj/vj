@@ -19,9 +19,9 @@
 
     <!-- === OPEN SOURCE LIBRARIES === -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <!-- TensorFlow & Models -->
+    <!-- TensorFlow & COCO-SSD -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
     <!-- Tesseract OCR -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
 
@@ -358,6 +358,7 @@
         let lastOcrText = ""; let recognition = null; let isListening = false;
         let searchCount = 0;
         let ocrWorker = null;
+        let currentOcrLang = "eng";
 
         // --- COMPREHENSIVE DATA (All 28 States + 8 UTs) ---
         const indiaStates = {
@@ -447,9 +448,9 @@
 
         async function loadModels() {
             try {
-                // Initialize MobileNet (Safe Load)
-                if (typeof mobilenet !== 'undefined') {
-                    try { objectModel = await mobilenet.load(); } catch(e) { console.warn("MobileNet load issue"); }
+                // Initialize COCO-SSD (Safe Load)
+                if (typeof cocoSsd !== 'undefined') {
+                    try { objectModel = await cocoSsd.load(); } catch(e) { console.warn("COCO-SSD load issue"); }
                 }
 
                 // Initialize Tesseract Worker ONCE
@@ -547,17 +548,17 @@
             loader.classList.remove('ph-caret-down');
 
             try {
-                // Broad search for towns near the district center using Overpass
-                // First get district coords
-                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${d}+${s}+India&limit=1`;
+                // Nominatim 'contains' search is safer than relation lookup for simplicity
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${d}+${s}+India&addressdetails=1&limit=1`;
                 const data = await safeJsonFetch(url);
                 
                 tSel.innerHTML = '<option value="">Select Town/Taluk</option>';
-                
+                // Note: Getting ALL taluks is hard without Overpass, simulating a "Major Town" fetch for responsiveness
+                // A broad search for towns near the district center
                 if(data.length > 0) {
                      const lat = data[0].lat;
                      const lon = data[0].lon;
-                     // Find towns within 50km
+                     // Find towns near the district center
                      const overpassUrl = 'https://overpass-api.de/api/interpreter';
                      const ql = `[out:json][timeout:15];node(around:50000,${lat},${lon})["place"~"town|village"];out 30;`;
                      const townsData = await safeJsonFetch(`${overpassUrl}?data=${encodeURIComponent(ql)}`);
@@ -599,6 +600,7 @@
             const t = document.getElementById('taluk-select').value;
             if(!t) return;
             
+            // Replaced manual button logic with auto-trigger
             document.getElementById('results-area').innerHTML = `<div class="col-span-full text-center py-10 opacity-50 text-xs animate-pulse font-bold text-indigo-600">Scanning ${t}...</div>`;
 
             const query = `${t}, ${d}, ${s}, India`;
@@ -639,19 +641,26 @@
             if(map) { map.setView([lat, lng], 14); L.marker([lat, lng]).addTo(map).bindPopup(label).openPopup(); }
         }
 
+        async function teleportToCity() {
+            const q = document.getElementById('teleport-query').value;
+            if(!q) return;
+            try {
+                const data = await safeJsonFetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+                if(data.length) {
+                    updateLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), q);
+                    fetchCityName();
+                    document.getElementById('osm-query').value = 'attractions';
+                    queryOverpass();
+                    incrementStats();
+                }
+            } catch(e){}
+        }
+
         async function fetchWeather() {
             try {
                 const data = await safeJsonFetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLng}&current_weather=true`);
-                // WMO Code Interpretation
-                const code = data.current_weather.weathercode;
-                let desc = "Clear Sky";
-                if(code > 0 && code < 4) desc = "Partly Cloudy";
-                else if(code >= 51 && code <= 67) desc = "Rainy";
-                else if(code >= 71 && code <= 77) desc = "Snow";
-                else if(code >= 95) desc = "Thunderstorm";
-
                 document.getElementById('weather-temp').innerText = `${Math.round(data.current_weather.temperature)}°`;
-                document.getElementById('weather-desc').innerText = desc;
+                document.getElementById('weather-desc').innerText = `Wind: ${data.current_weather.windspeed} km/h`;
             } catch(e){}
         }
         async function fetchCityName() {
@@ -790,6 +799,12 @@
                 requestAnimationFrame(processVideoFrame);
             } catch(e) { document.getElementById('camera-error').classList.remove('hidden'); }
         }
+        function startDemoMode() {
+            const v=document.getElementById('ar-video');
+            v.srcObject=null; v.src="https://videos.pexels.com/video-files/3195652/3195652-sd_640_360_25fps.mp4"; v.play();
+            isCameraOn=true; document.getElementById('camera-error').classList.add('hidden');
+            requestAnimationFrame(processVideoFrame);
+        }
         function stopCamera() {
             const v=document.getElementById('ar-video');
             if(v.srcObject) v.srcObject.getTracks().forEach(t=>t.stop());
@@ -797,18 +812,18 @@
         }
         function switchVision(m) {
             visionMode=m;
-            const ocr = document.getElementById('ocr-controls'); const res = document.getElementById('ocr-result');
+            const ocr = document.getElementById('ocr-controls'); const lang = document.getElementById('ocr-lang-panel'); const res = document.getElementById('ocr-result');
             const objBtn = document.getElementById('btn-vis-obj'); const ocrBtn = document.getElementById('btn-vis-ocr');
             const focus = document.getElementById('ar-focus'); const objRes = document.getElementById('obj-result');
             
             if(m==='object') {
-                ocr.classList.add('hidden'); res.classList.add('hidden');
+                ocr.classList.add('hidden'); lang.classList.add('hidden'); res.classList.add('hidden');
                 objBtn.classList.replace('bg-white', 'bg-indigo-600'); objBtn.classList.replace('text-black', 'text-white');
                 ocrBtn.classList.replace('bg-indigo-600', 'bg-white'); ocrBtn.classList.replace('text-white', 'text-black');
                 if(focus) focus.classList.remove('hidden');
                 if(objRes) objRes.classList.remove('hidden');
             } else {
-                ocr.classList.remove('hidden'); res.classList.remove('hidden');
+                ocr.classList.remove('hidden'); lang.classList.remove('hidden'); res.classList.remove('hidden');
                 ocrBtn.classList.replace('bg-white', 'bg-indigo-600'); ocrBtn.classList.replace('text-black', 'text-white');
                 objBtn.classList.replace('bg-indigo-600', 'bg-white'); objBtn.classList.replace('text-white', 'text-black');
                 if(focus) focus.classList.add('hidden');
@@ -830,15 +845,17 @@
         }
         async function processVideoFrame() {
             if(!isCameraOn) return;
-            const v=document.getElementById('ar-video'); 
-            
+            const v=document.getElementById('ar-video'); const c=document.getElementById('ar-canvas'); const ctx=c.getContext('2d');
             if(v.readyState>=2) {
+                c.width=v.videoWidth; c.height=v.videoHeight; ctx.clearRect(0,0,c.width,c.height);
                 if(visionMode==='object' && objectModel) {
                     try {
-                        const predictions = await objectModel.classify(v);
-                        if(predictions && predictions.length > 0) {
-                            document.getElementById('obj-name').innerText = `${predictions[0].className} (${Math.round(predictions[0].probability*100)}%)`;
-                        }
+                        // COCO-SSD uses .detect()
+                        const predictions = await objectModel.detect(v);
+                        predictions.forEach(p=>{
+                            ctx.strokeStyle='#4f46e5'; ctx.lineWidth=4; ctx.strokeRect(p.bbox[0],p.bbox[1],p.bbox[2],p.bbox[3]);
+                            ctx.font='18px Inter'; ctx.fillStyle='#4f46e5'; ctx.fillText(p.class, p.bbox[0], p.bbox[1]>20?p.bbox[1]-10:20);
+                        });
                     } catch(e){}
                 } else if(visionMode==='ocr' && !processingOCR && Date.now()%3000<100) runOCR(v);
             }
@@ -865,7 +882,11 @@
             cvs.getContext('2d').drawImage(src,0,0);
             
             try {
-                if(!ocrWorker) ocrWorker = await Tesseract.createWorker(document.getElementById('ocr-source-lang').value);
+                // Initialize Tesseract Worker ONCE
+                if(!ocrWorker && typeof Tesseract !== 'undefined') {
+                    ocrWorker = await Tesseract.createWorker(document.getElementById('ocr-source-lang').value);
+                }
+
                 const res = await ocrWorker.recognize(cvs);
                 const txt = res.data.text.replace(/\n/g,' ').trim();
                 if(txt.length>2) { lastOcrText=txt; txtEl.innerText=txt; await updateArTranslation(); }
