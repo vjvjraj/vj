@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TravelGPT | Professional Edition</title>
+    <title>Travel Guide | Professional Edition</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,20 +19,22 @@
 
     <!-- === OPEN SOURCE LIBRARIES === -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- TensorFlow & Models -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
+    <!-- Tesseract OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
 
     <style>
         /* === PROFESSIONAL THEME === */
         :root {
-            --primary: #4f46e5; /* Indigo 600 */
-            --primary-soft: #e0e7ff; /* Indigo 100 */
+            --primary: #4f46e5;
+            --primary-soft: #e0e7ff;
             --surface: #ffffff;
-            --bg-body: #f8fafc; /* Slate 50 */
-            --text-main: #0f172a; /* Slate 900 */
-            --text-muted: #64748b; /* Slate 500 */
-            --border: #e2e8f0; /* Slate 200 */
+            --bg-body: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
         }
 
         body { 
@@ -44,16 +46,14 @@
             width: 100vw;
         }
 
-        /* === RESPONSIVE LAYOUT UTILS === */
         .app-shell { display: flex; height: 100%; width: 100%; flex-direction: column; }
         @media (min-width: 768px) { .app-shell { flex-direction: row; } }
 
-        /* === UI COMPONENTS === */
         .pro-card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 12px;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
             transition: box-shadow 0.2s ease, transform 0.2s ease;
         }
         .pro-card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
@@ -65,18 +65,15 @@
             background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft);
         }
 
-        /* === ANIMATIONS === */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
 
         .scan-line { width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 8px var(--primary); animation: scan 2s linear infinite; }
         @keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
-        /* === UTILS === */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         select { -webkit-appearance: none; background: transparent; }
 
-        /* Navigation Styles */
         .nav-link {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: var(--text-muted); transition: all 0.2s; border-radius: 8px;
@@ -90,46 +87,65 @@
         #ar-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
         .msg-user { background-color: var(--primary); color: white; border-radius: 12px 12px 2px 12px; }
         .msg-ai { background-color: white; border: 1px solid var(--border); border-radius: 12px 12px 12px 2px; }
-
-        /* AUTH SCREEN STYLES */
+        
+        /* LOGIN STYLES */
         #auth-overlay {
-            background-image: radial-gradient(circle at 50% 0%, #e0e7ff 0%, #f8fafc 100%);
+            background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.8)), url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            z-index: 9999;
         }
     </style>
 </head>
 <body>
 
     <!-- === AUTH OVERLAY === -->
-    <div id="auth-overlay" class="absolute inset-0 z-[100] flex flex-col items-center justify-center p-6 transition-all duration-500">
-        <div class="w-full max-w-sm bg-white p-8 rounded-2xl shadow-2xl border border-slate-100 animate-fade-in">
+    <div id="auth-overlay" class="absolute inset-0 z-[100] flex flex-col items-center justify-center p-6 transition-all duration-500 backdrop-blur-sm">
+        <div class="w-full max-w-sm bg-white p-8 rounded-2xl shadow-2xl border-none animate-fade-in">
             <div class="flex flex-col items-center mb-6">
-                <div class="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white mb-3 shadow-lg shadow-indigo-200">
-                    <i class="ph-bold ph-planet text-2xl"></i>
+                <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white mb-3 shadow-lg shadow-indigo-200">
+                    <i class="ph-bold ph-airplane-tilt text-3xl"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">TravelGPT</h1>
-                <p class="text-sm text-slate-500">Professional Edition</p>
+                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Travel Guide</h1>
+                <p class="text-sm font-medium text-slate-500">Your Journey Starts Here</p>
             </div>
-            <form id="form-login" class="space-y-4" onsubmit="handleLogin(event)">
+            
+            <form id="form-login" class="space-y-5" onsubmit="handleLogin(event)">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
-                    <input type="email" id="login-email" required class="w-full p-3 rounded-lg border border-slate-200 focus:border-indigo-500 outline-none text-sm" placeholder="user@example.com">
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Email Address</label>
+                    <div class="relative">
+                        <i class="ph-bold ph-envelope absolute left-3 top-3.5 text-slate-400"></i>
+                        <input type="email" id="login-email" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 outline-none text-sm font-semibold text-slate-800 bg-slate-50 focus:bg-white transition-all" placeholder="name@example.com">
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
-                    <input type="password" id="login-pass" required class="w-full p-3 rounded-lg border border-slate-200 focus:border-indigo-500 outline-none text-sm" placeholder="••••••••">
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Password</label>
+                    <div class="relative">
+                        <i class="ph-bold ph-lock-key absolute left-3 top-3.5 text-slate-400"></i>
+                        <input type="password" id="login-pass" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 outline-none text-sm font-semibold text-slate-800 bg-slate-50 focus:bg-white transition-all" placeholder="••••••••">
+                    </div>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex justify-center items-center gap-2">
-                    <span>Log In</span> <i class="ph-bold ph-arrow-right"></i>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-indigo-200 active:scale-95 flex justify-center items-center gap-2">
+                    <span>Sign In</span> <i class="ph-bold ph-arrow-right"></i>
+                </button>
+                <button type="button" onclick="guestLogin()" class="w-full text-indigo-600 text-xs font-bold hover:underline">
+                    Try Guest Mode
                 </button>
             </form>
-            <form id="form-signup" class="space-y-4 hidden" onsubmit="handleSignup(event)">
-                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label><input type="text" id="signup-name" required class="w-full p-3 rounded-lg border border-slate-200 outline-none text-sm" placeholder="John Doe"></div>
-                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label><input type="email" id="signup-email" required class="w-full p-3 rounded-lg border border-slate-200 outline-none text-sm" placeholder="user@example.com"></div>
-                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label><input type="password" id="signup-pass" required class="w-full p-3 rounded-lg border border-slate-200 outline-none text-sm" placeholder="••••••••"></div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex justify-center items-center gap-2"><span>Create Account</span></button>
+
+            <form id="form-signup" class="space-y-5 hidden" onsubmit="handleSignup(event)">
+                <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Name</label><input type="text" id="signup-name" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="John Doe"></div>
+                <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Email</label><input type="email" id="signup-email" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="user@example.com"></div>
+                <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Password</label><input type="password" id="signup-pass" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="••••••••"></div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2"><span>Create Account</span></button>
             </form>
-            <div class="mt-6 text-center"><button id="toggle-auth" onclick="toggleAuthMode()" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition">Don't have an account? Sign Up</button></div>
-            <p id="auth-error" class="text-red-500 text-xs text-center mt-3 h-4 font-bold"></p>
+
+            <div class="mt-6 text-center pt-4 border-t border-slate-100">
+                <button id="toggle-auth" onclick="toggleAuthMode()" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition py-2 px-4 rounded-lg hover:bg-indigo-50">
+                    Create new account
+                </button>
+            </div>
+            <p id="auth-error" class="text-red-500 text-xs text-center mt-2 h-4 font-bold"></p>
         </div>
     </div>
 
@@ -138,30 +154,34 @@
         <!-- Sidebar Navigation -->
         <nav class="bg-white border-r border-slate-200 z-50 flex md:flex-col justify-between items-center md:items-start px-2 py-2 md:p-4 h-16 md:h-full md:w-64 shrink-0 shadow-sm md:shadow-none order-2 md:order-1">
             <div class="hidden md:flex items-center gap-3 mb-8 px-2">
-                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white"><i class="ph-bold ph-planet text-xl"></i></div>
-                <h1 class="font-bold text-lg text-slate-900 tracking-tight">TravelGPT</h1>
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white"><i class="ph-bold ph-airplane-tilt text-xl"></i></div>
+                <h1 class="font-bold text-lg text-slate-900 tracking-tight">Travel Guide</h1>
             </div>
+
             <div class="flex md:flex-col justify-around w-full gap-1 md:gap-2">
                 <button onclick="switchTab('home')" id="nav-home" class="nav-link active flex-1 md:flex-none"><i class="ph-fill ph-house text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Home</span></button>
                 <button onclick="switchTab('map')" id="nav-map" class="nav-link flex-1 md:flex-none"><i class="ph-bold ph-map-trifold text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Explore</span></button>
-                <button onclick="switchTab('ar')" id="nav-ar" class="nav-link flex-1 md:flex-none"><i class="ph-bold ph-camera text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Scanner</span></button>
+                <button onclick="switchTab('ar')" id="nav-ar" class="nav-link flex-1 md:flex-none relative">
+                    <div class="md:hidden -mt-8 bg-indigo-600 rounded-full w-12 h-12 flex items-center justify-center text-white shadow-lg shadow-indigo-200 border-4 border-slate-50"><i class="ph-bold ph-camera text-xl"></i></div>
+                    <div class="hidden md:flex items-center gap-3"><i class="ph-bold ph-camera text-lg"></i><span class="text-sm font-medium">AR Scanner</span></div>
+                    <span class="md:hidden text-[10px] font-medium mt-1">Scan</span>
+                </button>
                 <button onclick="switchTab('translate')" id="nav-translate" class="nav-link flex-1 md:flex-none"><i class="ph-bold ph-translate text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Voice</span></button>
                 <button onclick="switchTab('notebook')" id="nav-notebook" class="nav-link flex-1 md:flex-none"><i class="ph-bold ph-chat-circle-dots text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Assistant</span></button>
             </div>
             <!-- Profile Link -->
             <div onclick="switchTab('profile')" class="hidden md:flex mt-auto w-full pt-4 border-t border-slate-100 items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition">
-                <img id="user-avatar-desktop" src="" class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200">
+                <img id="user-avatar-desktop" src="" alt="User" class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200">
                 <div class="flex flex-col text-left"><span id="user-name-desktop" class="text-xs font-bold text-slate-700">User</span><span class="text-[10px] text-emerald-600 font-medium">● Online</span></div>
             </div>
         </nav>
 
         <!-- Main Content -->
         <main class="flex-1 relative order-1 md:order-2 h-[calc(100%-64px)] md:h-full overflow-hidden">
-            <!-- Mobile Header -->
             <header class="md:hidden absolute top-0 w-full z-40 px-4 py-3 flex justify-between items-center bg-white/80 backdrop-blur-md border-b border-slate-200">
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white"><i class="ph-bold ph-planet"></i></div>
-                    <h1 class="font-bold text-lg text-slate-900">TravelGPT</h1>
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white"><i class="ph-bold ph-airplane-tilt"></i></div>
+                    <h1 class="font-bold text-lg text-slate-900">Travel Guide</h1>
                 </div>
                 <div onclick="switchTab('profile')" class="w-8 h-8 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
                     <img id="user-avatar-mobile" src="" alt="User" />
@@ -177,13 +197,12 @@
                                 <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wide">Select Location</h2>
                                 <button onclick="detectLiveLocation()" class="text-indigo-600 text-xs font-bold hover:bg-indigo-50 px-2 py-1 rounded transition flex items-center gap-1"><i class="ph-bold ph-crosshair"></i> Auto-Detect</button>
                             </div>
-                            <!-- 3-Level Selector (State -> District -> Dynamic Taluk) -->
+                            <!-- 3-Level Selector -->
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                                <div class="pro-input relative h-10"><select id="state-select" onchange="populateDistricts()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none"><option value="">Select State</option></select><i class="ph-bold ph-caret-down absolute right-3 top-3 text-slate-400 pointer-events-none"></i></div>
-                                <div class="pro-input relative h-10"><select id="district-select" onchange="fetchDynamicTaluks()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none disabled:opacity-50" disabled><option value="">Select District</option></select><i class="ph-bold ph-caret-down absolute right-3 top-3 text-slate-400 pointer-events-none"></i></div>
-                                <div class="pro-input relative h-10"><select id="taluk-select" onchange="teleportToTaluk()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none disabled:opacity-50" disabled><option value="">Select Taluk</option></select><i id="taluk-loader" class="ph-bold ph-caret-down absolute right-3 top-3 text-slate-400 pointer-events-none"></i></div>
+                                <div class="pro-input relative h-12"><select id="state-select" onchange="populateDistricts()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none"><option value="">Select State</option></select><i class="ph-bold ph-caret-down absolute right-3 top-4 text-slate-400 pointer-events-none"></i></div>
+                                <div class="pro-input relative h-12"><select id="district-select" onchange="fetchDynamicTaluks()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none disabled:opacity-50" disabled><option value="">Select District</option></select><i class="ph-bold ph-caret-down absolute right-3 top-4 text-slate-400 pointer-events-none"></i></div>
+                                <div class="pro-input relative h-12"><select id="taluk-select" onchange="teleportToTaluk()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none disabled:opacity-50" disabled><option value="">Select Taluk</option></select><i id="taluk-loader" class="ph-bold ph-caret-down absolute right-3 top-4 text-slate-400 pointer-events-none"></i></div>
                             </div>
-                            <div class="pro-input relative flex items-center"><i class="ph-bold ph-magnifying-glass text-slate-400 ml-3"></i><input type="text" id="teleport-query" placeholder="Or search specific village/town..." class="w-full bg-transparent text-sm text-slate-800 py-2.5 px-2 outline-none placeholder-slate-400"><button onclick="teleportToCity()" id="btn-teleport" class="mr-1 p-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"><i class="ph-bold ph-paper-plane-right"></i></button></div>
                         </div>
                         <div class="w-full lg:w-72 pro-card bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-5 flex flex-col justify-between relative overflow-hidden">
                             <div class="absolute top-0 right-0 p-4 opacity-20"><i id="weather-icon" class="ph-duotone ph-cloud-sun text-6xl"></i></div>
@@ -221,8 +240,30 @@
                         <button onclick="switchVision('object')" id="btn-vis-obj" class="px-3 py-1.5 rounded-md text-xs font-bold bg-white text-black transition">Object</button>
                         <button onclick="switchVision('ocr')" id="btn-vis-ocr" class="px-3 py-1.5 rounded-md text-xs font-bold text-white transition hover:bg-white/10">Text</button>
                     </div>
+                    <!-- Gallery Upload Button -->
                     <button onclick="triggerUpload()" class="bg-indigo-600 text-white w-9 h-9 rounded-lg flex items-center justify-center shadow-lg hover:bg-indigo-500 transition"><i class="ph-bold ph-image text-lg"></i></button>
                 </div>
+                
+                <div id="ai-loading" class="hidden absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <i class="ph-bold ph-spinner animate-spin text-4xl text-white mb-2"></i>
+                    <p class="text-white font-bold text-sm">Loading AI Models...</p>
+                </div>
+
+                <!-- Center Focus for Object Detection -->
+                <div id="ar-focus" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-white/30 rounded-2xl pointer-events-none hidden">
+                    <div class="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-xl"></div>
+                    <div class="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-xl"></div>
+                    <div class="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-xl"></div>
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-xl"></div>
+                </div>
+
+                <!-- Object Detection Result -->
+                <div id="obj-result" class="absolute bottom-28 left-0 w-full p-4 text-center hidden">
+                     <div class="inline-block bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+                         <p id="obj-name" class="text-white font-bold text-sm">Detecting...</p>
+                     </div>
+                </div>
+
                 <div id="ocr-controls" class="hidden absolute bottom-0 left-0 w-full bg-slate-900/90 backdrop-blur-xl border-t border-white/10 p-4 z-30 rounded-t-2xl">
                     <div class="flex gap-4 mb-4">
                          <div class="flex-1"><label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Reading</label><select id="ocr-source-lang" class="w-full bg-white/10 text-white text-xs font-bold p-2 rounded border border-white/20 focus:outline-none"><option value="eng">English</option><option value="hin">Hindi</option><option value="kan">Kannada</option><option value="tam">Tamil</option><option value="tel">Telugu</option><option value="mal">Malayalam</option></select></div>
@@ -230,7 +271,15 @@
                     </div>
                     <div id="ocr-result" class="bg-black/50 rounded-lg p-3 border border-white/10 hidden"><p id="ocr-text" class="text-xs text-slate-400 font-mono mb-2 border-b border-white/10 pb-2">Scanning...</p><p class="text-[9px] text-indigo-400 font-bold uppercase">Result</p><p id="ocr-trans-text" class="text-sm text-white font-bold">...</p></div>
                 </div>
-                <div id="camera-error" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 p-6 text-center"><i class="ph-duotone ph-camera-slash text-4xl text-slate-500 mb-3"></i><h3 class="text-white font-bold mb-1">Camera Off</h3><p class="text-slate-400 text-xs mb-4">Permission denied or unavailable.</p><button onclick="startDemoMode()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Launch Demo</button></div>
+                <div id="camera-error" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 p-6 text-center">
+                    <i class="ph-duotone ph-camera-slash text-4xl text-slate-500 mb-3"></i>
+                    <h3 class="text-white font-bold mb-1">Camera Permission Needed</h3>
+                    <p class="text-slate-400 text-xs mb-4">Please allow camera access in browser settings, or upload an image.</p>
+                    <div class="flex gap-2">
+                        <button onclick="startCamera()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Retry Access</button>
+                        <button onclick="triggerUpload()" class="bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-bold border border-white/20">Upload Image</button>
+                    </div>
+                </div>
             </section>
 
             <!-- 4. TRANSLATE -->
@@ -255,6 +304,7 @@
                         <button onclick="translateTextManual()" class="flex-1 bg-indigo-600 text-white h-14 rounded-xl font-bold shadow-md hover:bg-indigo-700 transition active:scale-95 flex items-center justify-center gap-2">TRANSLATE</button>
                         <button id="btn-trans-mic" onmousedown="toggleVoiceInput()" ontouchstart="toggleVoiceInput()" class="w-14 h-14 bg-white text-slate-900 border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 transition active:scale-95 flex items-center justify-center relative overflow-hidden"><div id="mic-pulse" class="absolute inset-0 bg-red-500/10 hidden animate-pulse"></div><i class="ph-fill ph-microphone text-xl text-indigo-600"></i></button>
                     </div>
+                     <p id="mic-status" class="text-center text-[10px] text-slate-400 mt-2 h-4"></p>
                 </div>
             </section>
 
@@ -269,7 +319,14 @@
                         <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-4"><div class="flex gap-3 max-w-[90%] chat-ai p-4 animate-fade-in"><div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100"><i class="ph-fill ph-robot text-indigo-600"></i></div><p class="text-sm text-slate-700 leading-relaxed">Hello! I'm TravelGPT. 🌍<br>Ask me "Hotels in Mumbai" or "Places to visit in Kerala".</p></div></div>
                         <div class="p-3 bg-slate-50 border-t border-slate-100 flex gap-2"><input type="text" id="chat-input" placeholder="Ask anything..." class="flex-1 bg-white border border-slate-200 rounded-xl px-4 text-sm focus:outline-none focus:border-indigo-500 transition" onkeypress="handleChatKey(event)"><button onclick="sendChat()" class="bg-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-indigo-700 transition"><i class="ph-bold ph-paper-plane-right"></i></button></div>
                     </div>
-                    <div id="notepad-container" class="hidden flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm relative"><textarea id="user-notes" class="w-full h-full p-6 text-sm text-slate-800 placeholder-slate-400 focus:outline-none leading-loose resize-none" placeholder="Type your travel notes here..." oninput="saveNote()"></textarea><div class="absolute bottom-4 right-4 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">Autosaved</div></div>
+                    <div id="notepad-container" class="hidden flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm relative">
+                        <textarea id="user-notes" class="w-full h-full p-6 text-sm text-slate-800 placeholder-slate-400 focus:outline-none leading-loose resize-none" placeholder="Type your travel notes here..." oninput="saveNote()"></textarea>
+                        <!-- Save to Device Button -->
+                        <div class="absolute bottom-4 right-4 flex gap-2">
+                             <button onclick="downloadNote()" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded border border-slate-200 hover:bg-slate-200 flex items-center gap-1"><i class="ph-bold ph-download-simple"></i> Save to Device</button>
+                             <div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-100">Auto-Saved</div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -300,6 +357,7 @@
         let isCameraOn = false; let visionMode = 'object'; let processingOCR = false;
         let lastOcrText = ""; let recognition = null; let isListening = false;
         let searchCount = 0;
+        let ocrWorker = null;
 
         // --- COMPREHENSIVE DATA (All 28 States + 8 UTs) ---
         const indiaStates = {
@@ -352,11 +410,13 @@
             }
         }
         function showAuth() {
-            document.getElementById('auth-overlay').classList.remove('hidden');
+            document.getElementById('auth-overlay').style.display = 'flex';
             document.getElementById('app-container').classList.add('hidden');
         }
         function showApp() {
-            document.getElementById('auth-overlay').classList.add('hidden');
+            // FORCE HIDE AUTH OVERLAY
+            document.getElementById('auth-overlay').style.display = 'none';
+            
             const app = document.getElementById('app-container');
             app.classList.remove('hidden');
             setTimeout(() => app.classList.add('opacity-100'), 50);
@@ -374,7 +434,33 @@
             loadUserData();
             populateStates();
             if(!map) setTimeout(initMap, 200);
+            
+            // Pre-load Models Silently
+            loadModels();
         }
+        
+        function guestLogin() {
+             currentUser = { name: "Guest User", email: "guest@travelgpt.com" };
+             localStorage.setItem('currentUser', JSON.stringify(currentUser));
+             showApp();
+        }
+
+        async function loadModels() {
+            try {
+                // Initialize MobileNet (Safe Load)
+                if (typeof mobilenet !== 'undefined') {
+                    try { objectModel = await mobilenet.load(); } catch(e) { console.warn("MobileNet load issue"); }
+                }
+
+                // Initialize Tesseract Worker ONCE
+                if(!ocrWorker && typeof Tesseract !== 'undefined') {
+                    ocrWorker = await Tesseract.createWorker();
+                    await ocrWorker.loadLanguage('eng');
+                    await ocrWorker.initialize('eng');
+                }
+            } catch(e) { console.error("Model Error", e); }
+        }
+
         function toggleAuthMode() {
             const l = document.getElementById('form-login'); const s = document.getElementById('form-signup');
             const b = document.getElementById('toggle-auth');
@@ -416,6 +502,14 @@
             if(lat) { currentLat=parseFloat(lat); currentLng=parseFloat(localStorage.getItem(`lng_${currentUser.email}`)); fetchCityName(); fetchWeather(); }
         }
         function saveNote() { if(!currentUser) return; localStorage.setItem(`notes_${currentUser.email}`, document.getElementById('user-notes').value); }
+        function downloadNote() {
+            const text = document.getElementById('user-notes').value;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `TravelGuide_Notes_${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+        }
         function incrementStats() {
             if(!currentUser) return;
             let count = parseInt(localStorage.getItem(`searches_${currentUser.email}`) || 0) + 1;
@@ -452,46 +546,37 @@
             loader.classList.add('animate-spin', 'ph-spinner');
             loader.classList.remove('ph-caret-down');
 
-            // Nominatim query for towns/suburbs in the district
-            // Using a clever search for administrative boundaries level 8-10
             try {
-                const query = `[out:json][timeout:15];
-                    area["name"="${d}"]["admin_level"="5"]->.searchArea;
-                    (
-                      relation["admin_level"~"6|7|8"](area.searchArea);
-                    );
-                    out tags;`;
-                // Note: Overpass is complex for hierarchical. Falling back to Nominatim "Address Lookup" for simplicity or just general search.
-                // Alternative: Just search for "Towns in District"
-                // Using simple Nominatim structured query which is faster
-                
-                const url = `https://nominatim.openstreetmap.org/search?format=json&city=${d}&state=${s}&country=India&featuretype=settlement&limit=50`;
+                // Broad search for towns near the district center using Overpass
+                // First get district coords
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${d}+${s}+India&limit=1`;
                 const data = await safeJsonFetch(url);
                 
                 tSel.innerHTML = '<option value="">Select Town/Taluk</option>';
                 
-                // Add unique towns
-                const towns = [...new Set(data.map(item => item.name.split(',')[0]))].sort();
-                
-                if(towns.length === 0) {
-                     // Fallback if strict city search fails, search broader
-                     const url2 = `https://nominatim.openstreetmap.org/search?format=json&q=${d}+${s}&limit=1`;
-                     const data2 = await safeJsonFetch(url2);
-                     // If we found the district itself, just enable it
-                     tSel.innerHTML = '<option value="">Main District Area</option>';
+                if(data.length > 0) {
+                     const lat = data[0].lat;
+                     const lon = data[0].lon;
+                     // Find towns within 50km
+                     const overpassUrl = 'https://overpass-api.de/api/interpreter';
+                     const ql = `[out:json][timeout:15];node(around:50000,${lat},${lon})["place"~"town|village"];out 30;`;
+                     const townsData = await safeJsonFetch(`${overpassUrl}?data=${encodeURIComponent(ql)}`);
+                     
+                     if(townsData && townsData.elements) {
+                        const towns = [...new Set(townsData.elements.map(i => i.tags.name).filter(n => n))].sort();
+                        towns.forEach(t => {
+                            let o = document.createElement('option'); o.value = t; o.text = t; tSel.appendChild(o);
+                        });
+                        tSel.disabled = false;
+                     } else {
+                        tSel.innerHTML = '<option value="">Main District Area</option>';
+                     }
                 } else {
-                    towns.forEach(t => {
-                        let o = document.createElement('option');
-                        o.value = t;
-                        o.text = t;
-                        tSel.appendChild(o);
-                    });
+                     tSel.innerHTML = '<option value="">Use Search</option>';
                 }
-                
-                tSel.disabled = false;
             } catch(e) {
                 console.warn(e);
-                tSel.innerHTML = '<option value="">Enter Manually Below</option>';
+                tSel.innerHTML = '<option value="">Use Manual Search</option>';
             } finally {
                 loader.classList.remove('animate-spin', 'ph-spinner');
                 loader.classList.add('ph-caret-down');
@@ -501,9 +586,9 @@
         /* === CORE APP LOGIC === */
         async function safeJsonFetch(url) {
             try {
-                const res = await fetch(url);
-                if (!res.ok) throw new Error(res.status);
-                const txt = await res.text();
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(res.status);
+                const txt = await response.text();
                 return JSON.parse(txt);
             } catch (e) { console.warn(e); throw e; }
         }
@@ -514,8 +599,6 @@
             const t = document.getElementById('taluk-select').value;
             if(!t) return;
             
-            const btn = document.getElementById('btn-teleport');
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>';
             document.getElementById('results-area').innerHTML = `<div class="col-span-full text-center py-10 opacity-50 text-xs animate-pulse font-bold text-indigo-600">Scanning ${t}...</div>`;
 
             const query = `${t}, ${d}, ${s}, India`;
@@ -523,13 +606,11 @@
                 const data = await safeJsonFetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
                 if(data.length) {
                     updateLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), t);
-                    // NEW: Expanded query for multiple types of top places
                     document.getElementById('osm-query').value = 'attractions';
                     queryOverpass();
                     incrementStats();
                 }
             } catch(e){}
-            btn.innerHTML = '<i class="ph-bold ph-paper-plane-right"></i>';
         }
 
         async function detectLiveLocation() {
@@ -558,26 +639,19 @@
             if(map) { map.setView([lat, lng], 14); L.marker([lat, lng]).addTo(map).bindPopup(label).openPopup(); }
         }
 
-        async function teleportToCity() {
-            const q = document.getElementById('teleport-query').value;
-            if(!q) return;
-            try {
-                const data = await safeJsonFetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
-                if(data.length) {
-                    updateLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), q);
-                    fetchCityName();
-                    document.getElementById('osm-query').value = 'attractions';
-                    queryOverpass();
-                    incrementStats();
-                }
-            } catch(e){}
-        }
-
         async function fetchWeather() {
             try {
                 const data = await safeJsonFetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLng}&current_weather=true`);
+                // WMO Code Interpretation
+                const code = data.current_weather.weathercode;
+                let desc = "Clear Sky";
+                if(code > 0 && code < 4) desc = "Partly Cloudy";
+                else if(code >= 51 && code <= 67) desc = "Rainy";
+                else if(code >= 71 && code <= 77) desc = "Snow";
+                else if(code >= 95) desc = "Thunderstorm";
+
                 document.getElementById('weather-temp').innerText = `${Math.round(data.current_weather.temperature)}°`;
-                document.getElementById('weather-desc').innerText = `Wind: ${data.current_weather.windspeed} km/h`;
+                document.getElementById('weather-desc').innerText = desc;
             } catch(e){}
         }
         async function fetchCityName() {
@@ -606,10 +680,8 @@
             resArea.innerHTML = '<div class="col-span-full text-center py-10 opacity-50 text-xs animate-pulse font-bold text-indigo-600">Scouting Sector...</div>';
             
             let ql = '';
-            // EXPANDED RADIUS AND TYPES FOR "TOP PLACES"
-            const r = 15000; // Increased to 15km
+            const r = 15000;
             if(q==='attractions') {
-                // Query Nodes, Ways, Relations (NWR) for comprehensive results
                 ql = `[out:json][timeout:25];
                     (
                       nwr["tourism"~"attraction|viewpoint|museum|zoo|theme_park"](around:${r},${currentLat},${currentLng});
@@ -617,7 +689,7 @@
                       nwr["natural"~"water|beach|peak|waterfall"](around:${r},${currentLat},${currentLng});
                       nwr["religion"~"hindu|christian|muslim|buddhist|sikh|jain"](around:${r},${currentLat},${currentLng});
                     );
-                    out center 25;`; // Get center of polygons
+                    out center 25;`; 
             }
             else if(q==='temple') ql = `[out:json][timeout:25];nwr["amenity"="place_of_worship"](around:${r},${currentLat},${currentLng});out center 25;`;
             else if(q==='park') ql = `[out:json][timeout:25];nwr["leisure"~"park|garden|nature_reserve"](around:${r},${currentLat},${currentLng});out center 25;`;
@@ -634,11 +706,9 @@
             else {
                 data.elements.forEach((p, i) => {
                     const name = p.tags.name; if(!name) return;
-                    
-                    // Handle Center for Ways/Relations
                     let lat = p.lat; let lon = p.lon;
                     if (!lat && p.center) { lat = p.center.lat; lon = p.center.lon; }
-                    if (!lat) return; // Skip if no geometry
+                    if (!lat) return;
 
                     const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
                     let icon = 'ph-map-pin';
@@ -720,12 +790,6 @@
                 requestAnimationFrame(processVideoFrame);
             } catch(e) { document.getElementById('camera-error').classList.remove('hidden'); }
         }
-        function startDemoMode() {
-            const v=document.getElementById('ar-video');
-            v.srcObject=null; v.src="https://videos.pexels.com/video-files/3195652/3195652-sd_640_360_25fps.mp4"; v.play();
-            isCameraOn=true; document.getElementById('camera-error').classList.add('hidden');
-            requestAnimationFrame(processVideoFrame);
-        }
         function stopCamera() {
             const v=document.getElementById('ar-video');
             if(v.srcObject) v.srcObject.getTracks().forEach(t=>t.stop());
@@ -733,17 +797,22 @@
         }
         function switchVision(m) {
             visionMode=m;
-            const ocr = document.getElementById('ocr-controls'); const lang = document.getElementById('ocr-lang-panel'); const res = document.getElementById('ocr-result');
+            const ocr = document.getElementById('ocr-controls'); const res = document.getElementById('ocr-result');
             const objBtn = document.getElementById('btn-vis-obj'); const ocrBtn = document.getElementById('btn-vis-ocr');
+            const focus = document.getElementById('ar-focus'); const objRes = document.getElementById('obj-result');
             
             if(m==='object') {
-                ocr.classList.add('hidden'); lang.classList.add('hidden'); res.classList.add('hidden');
+                ocr.classList.add('hidden'); res.classList.add('hidden');
                 objBtn.classList.replace('bg-white', 'bg-indigo-600'); objBtn.classList.replace('text-black', 'text-white');
                 ocrBtn.classList.replace('bg-indigo-600', 'bg-white'); ocrBtn.classList.replace('text-white', 'text-black');
+                if(focus) focus.classList.remove('hidden');
+                if(objRes) objRes.classList.remove('hidden');
             } else {
-                ocr.classList.remove('hidden'); lang.classList.remove('hidden'); res.classList.remove('hidden');
+                ocr.classList.remove('hidden'); res.classList.remove('hidden');
                 ocrBtn.classList.replace('bg-white', 'bg-indigo-600'); ocrBtn.classList.replace('text-black', 'text-white');
                 objBtn.classList.replace('bg-indigo-600', 'bg-white'); objBtn.classList.replace('text-white', 'text-black');
+                if(focus) focus.classList.add('hidden');
+                if(objRes) objRes.classList.add('hidden');
             }
         }
         function closeOcr() { document.getElementById('ocr-result').classList.add('hidden'); }
@@ -761,16 +830,15 @@
         }
         async function processVideoFrame() {
             if(!isCameraOn) return;
-            const v=document.getElementById('ar-video'); const c=document.getElementById('ar-canvas'); const ctx=c.getContext('2d');
+            const v=document.getElementById('ar-video'); 
+            
             if(v.readyState>=2) {
-                c.width=v.videoWidth; c.height=v.videoHeight; ctx.clearRect(0,0,c.width,c.height);
                 if(visionMode==='object' && objectModel) {
                     try {
-                        const ps = await objectModel.detect(v);
-                        ps.forEach(p=>{
-                            ctx.strokeStyle='#4f46e5'; ctx.lineWidth=4; ctx.strokeRect(p.bbox[0],p.bbox[1],p.bbox[2],p.bbox[3]);
-                            ctx.font='18px Inter'; ctx.fillStyle='#4f46e5'; ctx.fillText(p.class, p.bbox[0], p.bbox[1]>20?p.bbox[1]-10:20);
-                        });
+                        const predictions = await objectModel.classify(v);
+                        if(predictions && predictions.length > 0) {
+                            document.getElementById('obj-name').innerText = `${predictions[0].className} (${Math.round(predictions[0].probability*100)}%)`;
+                        }
                     } catch(e){}
                 } else if(visionMode==='ocr' && !processingOCR && Date.now()%3000<100) runOCR(v);
             }
@@ -797,10 +865,8 @@
             cvs.getContext('2d').drawImage(src,0,0);
             
             try {
-                const res = await Tesseract.recognize(cvs, document.getElementById('ocr-source-lang').value, {
-                    workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
-                    corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core.wasm.js'
-                });
+                if(!ocrWorker) ocrWorker = await Tesseract.createWorker(document.getElementById('ocr-source-lang').value);
+                const res = await ocrWorker.recognize(cvs);
                 const txt = res.data.text.replace(/\n/g,' ').trim();
                 if(txt.length>2) { lastOcrText=txt; txtEl.innerText=txt; await updateArTranslation(); }
                 else { txtEl.innerText="No Text"; transEl.innerText="..."; }
