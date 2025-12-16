@@ -19,7 +19,7 @@
 
     <!-- === OPEN SOURCE LIBRARIES === -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <!-- TensorFlow & COCO-SSD (Fixed) -->
+    <!-- TensorFlow & COCO-SSD -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
     <!-- Tesseract OCR -->
@@ -39,15 +39,40 @@
 
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-body);
+            background-color: #0f172a; /* Dark background for desktop context */
             color: var(--text-main);
             overflow: hidden; 
             height: 100dvh; 
             width: 100vw;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .app-shell { display: flex; height: 100%; width: 100%; flex-direction: column; }
-        @media (min-width: 768px) { .app-shell { flex-direction: row; } }
+        /* Responsive Wrapper */
+        .app-wrapper {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-body);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Desktop specific styling */
+        @media (min-width: 768px) {
+            .app-wrapper {
+                max-width: 400px;
+                height: 90vh;
+                border-radius: 40px;
+                border: 8px solid #1e293b;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        .app-shell { display: flex; height: 100%; width: 100%; flex-direction: column; position: relative; }
 
         .pro-card {
             background: var(--surface);
@@ -78,11 +103,8 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: var(--text-muted); transition: all 0.2s; border-radius: 8px;
         }
-        @media (min-width: 768px) {
-            .nav-link { flex-direction: row; justify-content: flex-start; padding: 12px 16px; gap: 12px; width: 100%; }
-        }
-        .nav-link:hover { background-color: var(--primary-soft); color: var(--primary); }
-        .nav-link.active { color: var(--primary); background-color: var(--primary-soft); font-weight: 600; }
+        .nav-link:hover { color: var(--primary); }
+        .nav-link.active { color: var(--primary); font-weight: 600; }
 
         #ar-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
         .msg-user { background-color: var(--primary); color: white; border-radius: 12px 12px 2px 12px; }
@@ -90,7 +112,7 @@
         
         /* LOGIN STYLES */
         #auth-overlay {
-            background-image: linear-gradient(rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.7)), url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop');
+            background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.8)), url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
             z-index: 9999;
@@ -99,257 +121,281 @@
 </head>
 <body>
 
-    <!-- === AUTH OVERLAY === -->
-    <div id="auth-overlay" class="absolute inset-0 z-[100] flex flex-col items-center justify-center p-6 transition-all duration-500 backdrop-blur-sm">
-        <div class="w-full max-w-sm bg-white p-8 rounded-2xl shadow-2xl border-none animate-fade-in">
-            <div class="flex flex-col items-center mb-6">
-                <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white mb-3 shadow-lg shadow-indigo-200">
-                    <i class="ph-bold ph-airplane-tilt text-3xl"></i>
-                </div>
-                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Travel Guide</h1>
-                <p class="text-sm font-medium text-slate-500">Your Journey Starts Here</p>
-            </div>
-            
-            <form id="form-login" class="space-y-5" onsubmit="handleLogin(event)">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Email Address</label>
-                    <div class="relative">
-                        <i class="ph-bold ph-envelope absolute left-3 top-3.5 text-slate-400"></i>
-                        <input type="email" id="login-email" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 outline-none text-sm font-semibold text-slate-800 bg-slate-50 focus:bg-white transition-all" placeholder="name@example.com">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Password</label>
-                    <div class="relative">
-                        <i class="ph-bold ph-lock-key absolute left-3 top-3.5 text-slate-400"></i>
-                        <input type="password" id="login-pass" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 outline-none text-sm font-semibold text-slate-800 bg-slate-50 focus:bg-white transition-all" placeholder="••••••••">
-                    </div>
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-indigo-200 active:scale-95 flex justify-center items-center gap-2">
-                    <span>Sign In</span> <i class="ph-bold ph-arrow-right"></i>
-                </button>
-                <button type="button" onclick="guestLogin()" class="w-full text-indigo-600 text-xs font-bold hover:underline">
-                    Try Guest Mode
-                </button>
-            </form>
+    <div class="app-wrapper">
 
-            <form id="form-signup" class="space-y-5 hidden" onsubmit="handleSignup(event)">
-                <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Name</label><input type="text" id="signup-name" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="John Doe"></div>
-                <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Email</label><input type="email" id="signup-email" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="user@example.com"></div>
-                <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Password</label><input type="password" id="signup-pass" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="••••••••"></div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2"><span>Create Account</span></button>
-            </form>
+        <!-- === AUTH OVERLAY === -->
+        <div id="auth-overlay" class="absolute inset-0 z-[100] flex flex-col items-center justify-center p-6 transition-all duration-500 backdrop-blur-sm">
+            <div class="w-full max-w-sm bg-white p-8 rounded-2xl shadow-2xl border-none animate-fade-in">
+                <div class="flex flex-col items-center mb-6">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white mb-3 shadow-lg shadow-indigo-200">
+                        <i class="ph-bold ph-airplane-tilt text-3xl"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Travel Guide</h1>
+                    <p class="text-sm font-medium text-slate-500">Your Journey Starts Here</p>
+                </div>
+                
+                <form id="form-login" class="space-y-5" onsubmit="handleLogin(event)">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Email Address</label>
+                        <div class="relative">
+                            <i class="ph-bold ph-envelope absolute left-3 top-3.5 text-slate-400"></i>
+                            <input type="email" id="login-email" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 outline-none text-sm font-semibold text-slate-800 bg-slate-50 focus:bg-white transition-all" placeholder="name@example.com">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Password</label>
+                        <div class="relative">
+                            <i class="ph-bold ph-lock-key absolute left-3 top-3.5 text-slate-400"></i>
+                            <input type="password" id="login-pass" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 outline-none text-sm font-semibold text-slate-800 bg-slate-50 focus:bg-white transition-all" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-indigo-200 active:scale-95 flex justify-center items-center gap-2">
+                        <span>Sign In</span> <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                    <button type="button" onclick="guestLogin()" class="w-full text-indigo-600 text-xs font-bold hover:underline">
+                        Try Guest Mode
+                    </button>
+                </form>
 
-            <div class="mt-6 text-center pt-4 border-t border-slate-100">
-                <button id="toggle-auth" onclick="toggleAuthMode()" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition py-2 px-4 rounded-lg hover:bg-indigo-50">
-                    Create new account
-                </button>
+                <form id="form-signup" class="space-y-5 hidden" onsubmit="handleSignup(event)">
+                    <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Name</label><input type="text" id="signup-name" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="John Doe"></div>
+                    <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Email</label><input type="email" id="signup-email" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="user@example.com"></div>
+                    <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1 ml-1">Password</label><input type="password" id="signup-pass" required class="w-full p-3 rounded-xl border border-slate-300 outline-none text-sm font-semibold" placeholder="••••••••"></div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2"><span>Create Account</span></button>
+                </form>
+
+                <div class="mt-6 text-center pt-4 border-t border-slate-100">
+                    <button id="toggle-auth" onclick="toggleAuthMode()" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition py-2 px-4 rounded-lg hover:bg-indigo-50">
+                        Create new account
+                    </button>
+                </div>
+                <p id="auth-error" class="text-red-500 text-xs text-center mt-2 h-4 font-bold"></p>
             </div>
-            <p id="auth-error" class="text-red-500 text-xs text-center mt-2 h-4 font-bold"></p>
         </div>
-    </div>
 
-    <!-- === MAIN APP SHELL === -->
-    <div id="app-container" class="app-shell bg-slate-50 hidden opacity-0 transition-opacity duration-500">
-        <!-- Sidebar Navigation -->
-        <nav class="bg-white border-r border-slate-200 z-50 flex md:flex-col justify-between items-center md:items-start px-2 py-2 md:p-4 h-16 md:h-full md:w-64 shrink-0 shadow-sm md:shadow-none order-2 md:order-1">
-            <div class="hidden md:flex items-center gap-3 mb-8 px-2">
-                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white"><i class="ph-bold ph-airplane-tilt text-xl"></i></div>
-                <h1 class="font-bold text-lg text-slate-900 tracking-tight">Travel Guide</h1>
-            </div>
-
-            <div class="flex md:flex-col justify-around w-full gap-1 md:gap-2">
-                <button onclick="switchTab('home')" id="nav-home" class="nav-link active flex-1 md:flex-none"><i class="ph-fill ph-house text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Home</span></button>
-                <button onclick="switchTab('map')" id="nav-map" class="nav-link flex-1 md:flex-none"><i class="ph-bold ph-map-trifold text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Explore</span></button>
-                <button onclick="switchTab('ar')" id="nav-ar" class="nav-link flex-1 md:flex-none relative">
-                    <div class="md:hidden -mt-8 bg-indigo-600 rounded-full w-12 h-12 flex items-center justify-center text-white shadow-lg shadow-indigo-200 border-4 border-slate-50"><i class="ph-bold ph-camera text-xl"></i></div>
-                    <div class="hidden md:flex items-center gap-3"><i class="ph-bold ph-camera text-lg"></i><span class="text-sm font-medium">AR Scanner</span></div>
-                    <span class="md:hidden text-[10px] font-medium mt-1">Scan</span>
-                </button>
-                <button onclick="switchTab('translate')" id="nav-translate" class="nav-link flex-1 md:flex-none"><i class="ph-bold ph-translate text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Voice</span></button>
-                <button onclick="switchTab('notebook')" id="nav-notebook" class="nav-link flex-1 md:flex-none"><i class="ph-bold ph-chat-circle-dots text-xl md:text-lg"></i><span class="text-[10px] md:text-sm font-medium">Assistant</span></button>
-            </div>
-            <!-- Profile Link -->
-            <div onclick="switchTab('profile')" class="hidden md:flex mt-auto w-full pt-4 border-t border-slate-100 items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition">
-                <img id="user-avatar-desktop" src="" alt="User" class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200">
-                <div class="flex flex-col text-left"><span id="user-name-desktop" class="text-xs font-bold text-slate-700">User</span><span class="text-[10px] text-emerald-600 font-medium">● Online</span></div>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="flex-1 relative order-1 md:order-2 h-[calc(100%-64px)] md:h-full overflow-hidden">
-            <header class="md:hidden absolute top-0 w-full z-40 px-4 py-3 flex justify-between items-center bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <!-- === MAIN APP SHELL === -->
+        <div id="app-container" class="app-shell hidden opacity-0 transition-opacity duration-500">
+            
+            <!-- Header -->
+            <header class="absolute top-0 w-full z-40 px-4 py-3 flex justify-between items-center bg-white/80 backdrop-blur-md border-b border-slate-200">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white"><i class="ph-bold ph-airplane-tilt"></i></div>
                     <h1 class="font-bold text-lg text-slate-900">Travel Guide</h1>
                 </div>
-                <div onclick="switchTab('profile')" class="w-8 h-8 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
-                    <img id="user-avatar-mobile" src="" alt="User" />
+                <div onclick="switchTab('profile')" class="w-8 h-8 rounded-full bg-slate-100 overflow-hidden border border-slate-200 cursor-pointer">
+                    <img id="user-avatar-mobile" src="" alt="User" class="w-full h-full object-cover" />
                 </div>
             </header>
 
-            <!-- 1. HOME -->
-            <section id="view-home" class="view-section absolute inset-0 pt-16 md:pt-0 overflow-y-auto bg-slate-50">
-                <div class="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
-                    <div class="flex flex-col lg:flex-row gap-4">
-                        <div class="flex-1 pro-card bg-white p-5">
+            <!-- Main Content Area -->
+            <main class="flex-1 relative w-full h-full overflow-hidden bg-slate-50">
+
+                <!-- 1. HOME -->
+                <section id="view-home" class="view-section absolute inset-0 pt-16 pb-20 overflow-y-auto no-scrollbar">
+                    <div class="p-4 space-y-6">
+                        <div class="pro-card bg-white p-5">
                             <div class="flex justify-between items-center mb-4">
                                 <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wide">Select Location</h2>
                                 <button onclick="detectLiveLocation()" class="text-indigo-600 text-xs font-bold hover:bg-indigo-50 px-2 py-1 rounded transition flex items-center gap-1"><i class="ph-bold ph-crosshair"></i> Auto-Detect</button>
                             </div>
-                            <!-- 3-Level Selector -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                            <div class="grid grid-cols-1 gap-3 mb-3">
                                 <div class="pro-input relative h-12"><select id="state-select" onchange="populateDistricts()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none"><option value="">Select State</option></select><i class="ph-bold ph-caret-down absolute right-3 top-4 text-slate-400 pointer-events-none"></i></div>
                                 <div class="pro-input relative h-12"><select id="district-select" onchange="fetchDynamicTaluks()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none disabled:opacity-50" disabled><option value="">Select District</option></select><i class="ph-bold ph-caret-down absolute right-3 top-4 text-slate-400 pointer-events-none"></i></div>
                                 <div class="pro-input relative h-12"><select id="taluk-select" onchange="teleportToTaluk()" class="w-full h-full bg-transparent text-xs font-semibold text-slate-700 px-3 cursor-pointer outline-none disabled:opacity-50" disabled><option value="">Select Taluk</option></select><i id="taluk-loader" class="ph-bold ph-caret-down absolute right-3 top-4 text-slate-400 pointer-events-none"></i></div>
                             </div>
                         </div>
-                        <div class="w-full lg:w-72 pro-card bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-5 flex flex-col justify-between relative overflow-hidden">
+
+                        <div class="w-full pro-card bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-5 flex flex-col justify-between relative overflow-hidden h-40">
                             <div class="absolute top-0 right-0 p-4 opacity-20"><i id="weather-icon" class="ph-duotone ph-cloud-sun text-6xl"></i></div>
                             <div class="z-10"><div class="inline-flex items-center gap-1 bg-white/20 backdrop-blur px-2 py-0.5 rounded-full text-[10px] font-bold mb-2 border border-white/10"><i class="ph-fill ph-map-pin"></i> <span id="weather-loc">India</span></div><h3 id="weather-temp" class="text-4xl font-bold">--°</h3><p id="weather-desc" class="text-sm text-indigo-100 opacity-90">Live Weather</p></div>
                         </div>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-800 mb-3">Find Nearby</h3>
-                        <div class="grid grid-cols-3 md:grid-cols-6 gap-3">
-                            <button onclick="quickSearch('attractions')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-amber-600 bg-amber-50/50 border-amber-100"><i class="ph-duotone ph-star text-2xl"></i> <span class="text-xs font-bold">Top 20</span></button>
-                            <button onclick="quickSearch('temple')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-purple-600 hover:bg-purple-50"><i class="ph-duotone ph-mosque text-2xl"></i> <span class="text-xs font-bold">Temples</span></button>
-                            <button onclick="quickSearch('park')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-green-600 hover:bg-green-50"><i class="ph-duotone ph-tree text-2xl"></i> <span class="text-xs font-bold">Parks</span></button>
-                            <button onclick="quickSearch('restaurant')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-orange-600 hover:bg-orange-50"><i class="ph-duotone ph-hamburger text-2xl"></i> <span class="text-xs font-bold">Food</span></button>
-                            <button onclick="quickSearch('shopping')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-pink-600 hover:bg-pink-50"><i class="ph-duotone ph-shopping-bag text-2xl"></i> <span class="text-xs font-bold">Shop</span></button>
-                            <button onclick="quickSearch('hotel')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-blue-600 hover:bg-blue-50"><i class="ph-duotone ph-bed text-2xl"></i> <span class="text-xs font-bold">Hotels</span></button>
+
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 mb-3 px-1">Find Nearby</h3>
+                            <div class="grid grid-cols-3 gap-3">
+                                <button onclick="quickSearch('attractions')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-amber-600 bg-amber-50/50 border-amber-100 active:scale-95"><i class="ph-duotone ph-star text-2xl"></i> <span class="text-xs font-bold">Top 20</span></button>
+                                <button onclick="quickSearch('temple')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-purple-600 hover:bg-purple-50 active:scale-95"><i class="ph-duotone ph-mosque text-2xl"></i> <span class="text-xs font-bold">Temples</span></button>
+                                <button onclick="quickSearch('park')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-green-600 hover:bg-green-50 active:scale-95"><i class="ph-duotone ph-tree text-2xl"></i> <span class="text-xs font-bold">Parks</span></button>
+                                <button onclick="quickSearch('restaurant')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-orange-600 hover:bg-orange-50 active:scale-95"><i class="ph-duotone ph-hamburger text-2xl"></i> <span class="text-xs font-bold">Food</span></button>
+                                <button onclick="quickSearch('shopping')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-pink-600 hover:bg-pink-50 active:scale-95"><i class="ph-duotone ph-shopping-bag text-2xl"></i> <span class="text-xs font-bold">Shop</span></button>
+                                <button onclick="quickSearch('hotel')" class="pro-card p-3 flex flex-col items-center gap-2 hover:-translate-y-1 transition text-blue-600 hover:bg-blue-50 active:scale-95"><i class="ph-duotone ph-bed text-2xl"></i> <span class="text-xs font-bold">Hotels</span></button>
+                            </div>
+                            <input type="hidden" id="osm-query">
                         </div>
-                        <input type="hidden" id="osm-query">
-                    </div>
-                    <div class="pro-card bg-white min-h-[300px] p-4"><div id="results-area" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"><div class="col-span-full flex flex-col items-center justify-center py-12 text-slate-400"><i class="ph-duotone ph-magnifying-glass text-4xl mb-2"></i><p class="text-sm font-medium">Select a category to start scanning</p></div></div></div>
-                </div>
-            </section>
 
-            <!-- 2. MAP -->
-            <section id="view-map" class="view-section absolute inset-0 hidden"><div id="map" class="w-full h-full bg-slate-100 z-0"></div><button onclick="locateUser()" class="absolute bottom-6 right-6 z-[400] bg-white text-slate-800 p-3 rounded-xl shadow-lg border border-slate-200 hover:bg-slate-50 transition active:scale-95"><i class="ph-bold ph-crosshair text-2xl"></i></button></section>
-
-            <!-- 3. AR -->
-            <section id="view-ar" class="view-section absolute inset-0 hidden bg-black">
-                <video id="ar-video" autoplay playsinline muted loop class="absolute inset-0 w-full h-full object-cover opacity-90"></video>
-                <img id="ar-static-img" class="absolute inset-0 w-full h-full object-contain bg-black hidden z-10">
-                <canvas id="ar-canvas" class="relative z-10"></canvas>
-                <input type="file" id="img-upload" accept="image/*" class="hidden" onchange="handleFileUpload(this)">
-
-                <div class="absolute top-0 left-0 w-full p-4 flex justify-between z-20 bg-gradient-to-b from-black/80 to-transparent">
-                     <div class="bg-black/40 backdrop-blur-md rounded-lg p-1 flex gap-1 border border-white/10">
-                        <button onclick="switchVision('object')" id="btn-vis-obj" class="px-3 py-1.5 rounded-md text-xs font-bold bg-white text-black transition">Object</button>
-                        <button onclick="switchVision('ocr')" id="btn-vis-ocr" class="px-3 py-1.5 rounded-md text-xs font-bold text-white transition hover:bg-white/10">Text</button>
-                    </div>
-                    <!-- Gallery Upload Button -->
-                    <button onclick="triggerUpload()" class="bg-indigo-600 text-white w-9 h-9 rounded-lg flex items-center justify-center shadow-lg hover:bg-indigo-500 transition"><i class="ph-bold ph-image text-lg"></i></button>
-                </div>
-                
-                <div id="ai-loading" class="hidden absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <i class="ph-bold ph-spinner animate-spin text-4xl text-white mb-2"></i>
-                    <p class="text-white font-bold text-sm">Loading AI Models...</p>
-                </div>
-
-                <!-- Center Focus for Object Detection -->
-                <div id="ar-focus" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-white/30 rounded-2xl pointer-events-none hidden">
-                    <div class="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-xl"></div>
-                    <div class="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-xl"></div>
-                    <div class="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-xl"></div>
-                    <div class="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-xl"></div>
-                </div>
-
-                <!-- Object Detection Result -->
-                <div id="obj-result" class="absolute bottom-28 left-0 w-full p-4 text-center hidden">
-                     <div class="inline-block bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
-                         <p id="obj-name" class="text-white font-bold text-sm">Detecting...</p>
-                     </div>
-                </div>
-
-                <div id="ocr-controls" class="hidden absolute bottom-0 left-0 w-full bg-slate-900/90 backdrop-blur-xl border-t border-white/10 p-4 z-30 rounded-t-2xl">
-                    <div class="flex gap-4 mb-4">
-                         <div class="flex-1"><label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Reading</label><select id="ocr-source-lang" class="w-full bg-white/10 text-white text-xs font-bold p-2 rounded border border-white/20 focus:outline-none"><option value="eng">English</option><option value="hin">Hindi</option><option value="kan">Kannada</option><option value="tam">Tamil</option><option value="tel">Telugu</option><option value="mal">Malayalam</option></select></div>
-                         <div class="flex-1"><label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Translate To</label><select id="target-lang" onchange="updateArTranslation()" class="w-full bg-white/10 text-white text-xs font-bold p-2 rounded border border-white/20 focus:outline-none"><option value="en">English</option><option value="hi">Hindi</option><option value="kn">Kannada</option><option value="ta">Tamil</option><option value="te">Telugu</option><option value="ml">Malayalam</option></select></div>
-                    </div>
-                    <div id="ocr-result" class="bg-black/50 rounded-lg p-3 border border-white/10 hidden"><p id="ocr-text" class="text-xs text-slate-400 font-mono mb-2 border-b border-white/10 pb-2">Scanning...</p><p class="text-[9px] text-indigo-400 font-bold uppercase">Result</p><p id="ocr-trans-text" class="text-sm text-white font-bold">...</p></div>
-                </div>
-                <div id="camera-error" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 p-6 text-center">
-                    <i class="ph-duotone ph-camera-slash text-4xl text-slate-500 mb-3"></i>
-                    <h3 class="text-white font-bold mb-1">Camera Permission Needed</h3>
-                    <p class="text-slate-400 text-xs mb-4">Please allow camera access in browser settings, or upload an image.</p>
-                    <div class="flex gap-2">
-                        <button onclick="startCamera()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Retry Access</button>
-                        <button onclick="triggerUpload()" class="bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-bold border border-white/20">Upload Image</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 4. TRANSLATE -->
-            <section id="view-translate" class="view-section absolute inset-0 hidden pt-16 md:pt-0 overflow-y-auto bg-slate-50">
-                <div class="max-w-3xl mx-auto p-4 md:p-8 h-full flex flex-col">
-                    <h2 class="text-xl font-bold text-slate-900 mb-4 hidden md:block">Voice Translator</h2>
-                    <div class="pro-card bg-white p-2 mb-4 flex items-center justify-between">
-                        <select id="trans-source" class="bg-transparent text-indigo-600 font-bold text-sm p-2 outline-none cursor-pointer"><option value="en">English</option><option value="hi">Hindi</option><option value="kn">Kannada</option><option value="ta">Tamil</option><option value="te">Telugu</option><option value="ml">Malayalam</option></select>
-                        <button onclick="swapLanguages()" class="p-2 hover:bg-slate-100 rounded-full transition text-slate-400"><i class="ph-bold ph-arrows-left-right"></i></button>
-                        <select id="trans-target" class="bg-transparent text-slate-900 font-bold text-sm p-2 outline-none cursor-pointer text-right" dir="rtl"><option value="hi">Hindi</option><option value="en">English</option><option value="kn">Kannada</option><option value="ta">Tamil</option><option value="te">Telugu</option><option value="ml">Malayalam</option></select>
-                    </div>
-                    <div class="pro-card bg-white flex-1 p-6 flex flex-col relative mb-4">
-                        <textarea id="trans-input" class="w-full h-1/2 bg-transparent text-2xl text-slate-800 placeholder-slate-300 border-none focus:outline-none resize-none font-medium" placeholder="Type or Speak..."></textarea>
-                        <div class="h-px bg-slate-100 w-full my-6"></div>
-                        <div class="flex-1 relative">
-                             <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-indigo-500 uppercase">Translation</span><button onclick="speakTranslation()" class="text-slate-400 hover:text-indigo-600"><i class="ph-fill ph-speaker-high text-xl"></i></button></div>
-                            <p id="trans-output" class="text-xl text-slate-700 font-medium">...</p>
-                            <div id="trans-loading" class="absolute inset-0 flex items-center justify-center bg-white/90 hidden"><i class="ph-bold ph-spinner animate-spin text-3xl text-indigo-600"></i></div>
+                        <div class="pro-card bg-white min-h-[300px] p-4 mb-8">
+                            <div id="results-area" class="grid grid-cols-1 gap-4">
+                                <div class="col-span-full flex flex-col items-center justify-center py-12 text-slate-400">
+                                    <i class="ph-duotone ph-magnifying-glass text-4xl mb-2"></i><p class="text-sm font-medium">Select a category</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex gap-3">
-                        <button onclick="translateTextManual()" class="flex-1 bg-indigo-600 text-white h-14 rounded-xl font-bold shadow-md hover:bg-indigo-700 transition active:scale-95 flex items-center justify-center gap-2">TRANSLATE</button>
-                        <button id="btn-trans-mic" onmousedown="toggleVoiceInput()" ontouchstart="toggleVoiceInput()" class="w-14 h-14 bg-white text-slate-900 border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 transition active:scale-95 flex items-center justify-center relative overflow-hidden"><div id="mic-pulse" class="absolute inset-0 bg-red-500/10 hidden animate-pulse"></div><i class="ph-fill ph-microphone text-xl text-indigo-600"></i></button>
-                    </div>
-                     <p id="mic-status" class="text-center text-[10px] text-slate-400 mt-2 h-4"></p>
-                </div>
-            </section>
+                </section>
 
-            <!-- 5. AI ASSISTANT -->
-            <section id="view-notebook" class="view-section absolute inset-0 hidden pt-16 md:pt-0 overflow-y-auto bg-slate-50">
-                <div class="max-w-3xl mx-auto p-4 md:p-8 h-full flex flex-col">
-                    <div class="flex bg-white p-1 rounded-lg border border-slate-200 mb-4 shrink-0">
-                        <button onclick="toggleNoteMode('chat')" id="tab-chat" class="flex-1 py-2 rounded text-xs font-bold text-white bg-indigo-600 shadow-sm transition">AI Chat</button>
-                        <button onclick="toggleNoteMode('notes')" id="tab-notes" class="flex-1 py-2 rounded text-xs font-bold text-slate-500 hover:bg-slate-50 transition">My Notes</button>
+                <!-- 2. MAP -->
+                <section id="view-map" class="view-section absolute inset-0 hidden"><div id="map" class="w-full h-full bg-slate-100 z-0"></div><button onclick="locateUser()" class="absolute bottom-24 right-6 z-[400] bg-white text-slate-800 p-3 rounded-xl shadow-lg border border-slate-200 hover:bg-slate-50 transition active:scale-95"><i class="ph-bold ph-crosshair text-2xl"></i></button></section>
+
+                <!-- 3. AR (UPDATED LAYOUT FOR MOBILE) -->
+                <section id="view-ar" class="view-section absolute inset-0 hidden bg-black">
+                    <video id="ar-video" autoplay playsinline muted loop class="absolute inset-0 w-full h-full object-cover opacity-90"></video>
+                    <img id="ar-static-img" class="absolute inset-0 w-full h-full object-contain bg-black hidden z-10">
+                    <canvas id="ar-canvas" class="relative z-10"></canvas>
+                    <input type="file" id="img-upload" accept="image/*" class="hidden" onchange="handleFileUpload(this)">
+
+                    <!-- Top Bar Controls -->
+                    <div class="absolute top-0 left-0 w-full p-4 pt-14 flex flex-col gap-3 z-30 bg-gradient-to-b from-black/80 to-transparent">
+                         <!-- Switcher -->
+                         <div class="bg-black/40 backdrop-blur-md rounded-lg p-1 flex gap-1 border border-white/10 w-full">
+                            <button onclick="switchVision('object')" id="btn-vis-obj" class="flex-1 px-3 py-2 rounded-md text-xs font-bold bg-white text-black transition">Object</button>
+                            <button onclick="switchVision('ocr')" id="btn-vis-ocr" class="flex-1 px-3 py-2 rounded-md text-xs font-bold text-white transition hover:bg-white/10">Text Scanner</button>
+                        </div>
+                        
+                        <!-- Upload Button -->
+                         <div class="flex justify-end">
+                            <button onclick="triggerUpload()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg text-xs font-bold active:scale-95 transition border border-white/20">
+                                <i class="ph-bold ph-image text-base"></i> Upload Image
+                            </button>
+                         </div>
                     </div>
-                    <div id="ai-chat-container" class="flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                        <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-4"><div class="flex gap-3 max-w-[90%] chat-ai p-4 animate-fade-in"><div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100"><i class="ph-fill ph-robot text-indigo-600"></i></div><p class="text-sm text-slate-700 leading-relaxed">Hello! I'm TravelGPT. 🌍<br>Ask me "Hotels in Mumbai" or "Places to visit in Kerala".</p></div></div>
-                        <div class="p-3 bg-slate-50 border-t border-slate-100 flex gap-2"><input type="text" id="chat-input" placeholder="Ask anything..." class="flex-1 bg-white border border-slate-200 rounded-xl px-4 text-sm focus:outline-none focus:border-indigo-500 transition" onkeypress="handleChatKey(event)"><button onclick="sendChat()" class="bg-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-indigo-700 transition"><i class="ph-bold ph-paper-plane-right"></i></button></div>
+                    
+                    <div id="ai-loading" class="hidden absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm">
+                        <i class="ph-bold ph-spinner animate-spin text-4xl text-white mb-2"></i>
+                        <p class="text-white font-bold text-sm">Loading AI Models...</p>
                     </div>
-                    <div id="notepad-container" class="hidden flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm relative">
-                        <textarea id="user-notes" class="w-full h-full p-6 text-sm text-slate-800 placeholder-slate-400 focus:outline-none leading-loose resize-none" placeholder="Type your travel notes here..." oninput="saveNote()"></textarea>
-                        <!-- Save to Device Button -->
-                        <div class="absolute bottom-4 right-4 flex gap-2">
-                             <button onclick="downloadNote()" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded border border-slate-200 hover:bg-slate-200 flex items-center gap-1"><i class="ph-bold ph-download-simple"></i> Save to Device</button>
-                             <div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-100">Auto-Saved</div>
+
+                    <!-- Object Detection Result -->
+                    <div id="obj-result" class="absolute bottom-28 left-4 right-4 text-center hidden z-30">
+                         <div class="inline-block bg-black/60 backdrop-blur-md px-6 py-3 rounded-full border border-white/10">
+                             <p id="obj-name" class="text-white font-bold text-sm tracking-wide">Detecting...</p>
+                         </div>
+                    </div>
+
+                    <!-- OCR Controls Panel (Fixed above Nav) -->
+                    <div id="ocr-controls" class="hidden absolute bottom-20 left-0 w-full bg-slate-900/90 backdrop-blur-xl border-t border-white/10 p-4 z-30 rounded-t-2xl pb-6">
+                        <div class="flex gap-3 mb-4">
+                             <div class="flex-1">
+                                 <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Reading Language</label>
+                                 <select id="ocr-source-lang" class="w-full bg-white/10 text-white text-xs font-bold p-2.5 rounded-lg border border-white/20 focus:outline-none"><option value="eng">English</option><option value="hin">Hindi</option><option value="kan">Kannada</option><option value="tam">Tamil</option><option value="tel">Telugu</option><option value="mal">Malayalam</option></select>
+                             </div>
+                             <div class="flex-1">
+                                 <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Translate To</label>
+                                 <select id="target-lang" onchange="updateArTranslation()" class="w-full bg-white/10 text-white text-xs font-bold p-2.5 rounded-lg border border-white/20 focus:outline-none"><option value="en">English</option><option value="hi">Hindi</option><option value="kn">Kannada</option><option value="ta">Tamil</option><option value="te">Telugu</option><option value="ml">Malayalam</option></select>
+                             </div>
+                        </div>
+                        
+                        <!-- OCR Result Box -->
+                        <div id="ocr-result" class="bg-black/50 rounded-lg p-3 border border-white/10 hidden">
+                            <p class="text-[9px] text-slate-500 uppercase font-bold mb-1">Scanned</p>
+                            <p id="ocr-text" class="text-xs text-slate-300 font-mono mb-2 line-clamp-2">...</p>
+                            <div class="h-px bg-white/10 w-full mb-2"></div>
+                            <p class="text-[9px] text-indigo-400 uppercase font-bold mb-1">Translation</p>
+                            <p id="ocr-trans-text" class="text-sm text-white font-bold">...</p>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            <!-- 6. NEW: PROFILE VIEW (Robust Implementation) -->
-            <section id="view-profile" class="view-section absolute inset-0 hidden pt-16 md:pt-0 overflow-y-auto bg-slate-50">
-                <div class="max-w-xl mx-auto p-6 md:p-12">
-                    <div class="pro-card bg-white p-8 text-center mb-6">
-                        <img id="profile-avatar" src="" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-indigo-50 shadow-md">
-                        <h2 id="profile-name" class="text-2xl font-bold text-slate-900">Guest User</h2>
-                        <p id="profile-email" class="text-sm text-slate-500 mb-6 font-medium">--</p>
-                        <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-6">
-                            <div class="bg-slate-50 p-3 rounded-xl"><p id="stat-trips" class="text-xl font-bold text-indigo-600">0</p><p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Searches</p></div>
-                            <div class="bg-slate-50 p-3 rounded-xl"><p class="text-xl font-bold text-indigo-600">Pro</p><p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Plan</p></div>
+                    <div id="camera-error" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 p-6 text-center">
+                        <i class="ph-duotone ph-camera-slash text-4xl text-slate-500 mb-3"></i>
+                        <h3 class="text-white font-bold mb-1">Camera Permission Needed</h3>
+                        <p class="text-slate-400 text-xs mb-4 max-w-[250px]">Please allow camera access in browser settings, or upload an image from gallery.</p>
+                        <div class="flex gap-2">
+                            <button onclick="startCamera()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Retry Access</button>
+                            <button onclick="triggerUpload()" class="bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-bold border border-white/20">Upload Image</button>
                         </div>
                     </div>
-                    <button onclick="logout()" class="w-full bg-white text-red-600 font-bold py-4 rounded-xl hover:bg-red-50 transition border border-red-100 shadow-sm">Sign Out</button>
-                </div>
-            </section>
+                </section>
 
-        </main>
+                <!-- 4. TRANSLATE -->
+                <section id="view-translate" class="view-section absolute inset-0 hidden pt-16 md:pt-0 overflow-y-auto bg-slate-50">
+                    <div class="max-w-3xl mx-auto p-4 md:p-8 h-full flex flex-col">
+                        <h2 class="text-xl font-bold text-slate-900 mb-4 hidden md:block">Voice Translator</h2>
+                        <div class="pro-card bg-white p-2 mb-4 flex items-center justify-between">
+                            <select id="trans-source" class="bg-transparent text-indigo-600 font-bold text-sm p-2 outline-none cursor-pointer"><option value="en">English</option><option value="hi">Hindi</option><option value="kn">Kannada</option><option value="ta">Tamil</option><option value="te">Telugu</option><option value="ml">Malayalam</option></select>
+                            <button onclick="swapLanguages()" class="p-2 hover:bg-slate-100 rounded-full transition text-slate-400"><i class="ph-bold ph-arrows-left-right"></i></button>
+                            <select id="trans-target" class="bg-transparent text-slate-900 font-bold text-sm p-2 outline-none cursor-pointer text-right" dir="rtl"><option value="hi">Hindi</option><option value="en">English</option><option value="kn">Kannada</option><option value="ta">Tamil</option><option value="te">Telugu</option><option value="ml">Malayalam</option></select>
+                        </div>
+                        <div class="pro-card bg-white flex-1 p-6 flex flex-col relative mb-4">
+                            <textarea id="trans-input" class="w-full h-1/2 bg-transparent text-2xl text-slate-800 placeholder-slate-300 border-none focus:outline-none resize-none font-medium" placeholder="Type or Speak..."></textarea>
+                            <div class="h-px bg-slate-100 w-full my-6"></div>
+                            <div class="flex-1 relative">
+                                 <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-indigo-500 uppercase">Translation</span><button onclick="speakTranslation()" class="text-slate-400 hover:text-indigo-600"><i class="ph-fill ph-speaker-high text-xl"></i></button></div>
+                                <p id="trans-output" class="text-xl text-slate-700 font-medium">...</p>
+                                <div id="trans-loading" class="absolute inset-0 flex items-center justify-center bg-white/90 hidden"><i class="ph-bold ph-spinner animate-spin text-3xl text-indigo-600"></i></div>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 pb-24">
+                            <button onclick="translateTextManual()" class="flex-1 bg-indigo-600 text-white h-14 rounded-xl font-bold shadow-md hover:bg-indigo-700 transition active:scale-95 flex items-center justify-center gap-2">TRANSLATE</button>
+                            <button id="btn-trans-mic" onmousedown="toggleVoiceInput()" ontouchstart="toggleVoiceInput()" class="w-14 h-14 bg-white text-slate-900 border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 transition active:scale-95 flex items-center justify-center relative overflow-hidden"><div id="mic-pulse" class="absolute inset-0 bg-red-500/10 hidden animate-pulse"></div><i class="ph-fill ph-microphone text-xl text-indigo-600"></i></button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. AI ASSISTANT -->
+                <section id="view-notebook" class="view-section absolute inset-0 hidden pt-16 md:pt-0 overflow-y-auto bg-slate-50">
+                    <div class="max-w-3xl mx-auto p-4 md:p-8 h-full flex flex-col pb-24">
+                        <div class="flex bg-white p-1 rounded-lg border border-slate-200 mb-4 shrink-0">
+                            <button onclick="toggleNoteMode('chat')" id="tab-chat" class="flex-1 py-2 rounded text-xs font-bold text-white bg-indigo-600 shadow-sm transition">AI Chat</button>
+                            <button onclick="toggleNoteMode('notes')" id="tab-notes" class="flex-1 py-2 rounded text-xs font-bold text-slate-500 hover:bg-slate-50 transition">My Notes</button>
+                        </div>
+                        <div id="ai-chat-container" class="flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                            <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-4"><div class="flex gap-3 max-w-[90%] chat-ai p-4 animate-fade-in"><div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100"><i class="ph-fill ph-robot text-indigo-600"></i></div><p class="text-sm text-slate-700 leading-relaxed">Hello! I'm TravelGPT. 🌍<br>Ask me "Hotels in Mumbai" or "Places to visit in Kerala".</p></div></div>
+                            <div class="p-3 bg-slate-50 border-t border-slate-100 flex gap-2"><input type="text" id="chat-input" placeholder="Ask anything..." class="flex-1 bg-white border border-slate-200 rounded-xl px-4 text-sm focus:outline-none focus:border-indigo-500 transition" onkeypress="handleChatKey(event)"><button onclick="sendChat()" class="bg-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-indigo-700 transition"><i class="ph-bold ph-paper-plane-right"></i></button></div>
+                        </div>
+                        <div id="notepad-container" class="hidden flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm relative">
+                            <textarea id="user-notes" class="w-full h-full p-6 text-sm text-slate-800 placeholder-slate-400 focus:outline-none leading-loose resize-none" placeholder="Type your travel notes here..." oninput="saveNote()"></textarea>
+                            <!-- Save to Device Button -->
+                            <div class="absolute bottom-4 right-4 flex gap-2">
+                                 <button onclick="downloadNote()" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded border border-slate-200 hover:bg-slate-200 flex items-center gap-1"><i class="ph-bold ph-download-simple"></i> Save to Device</button>
+                                 <div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-100">Auto-Saved</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. PROFILE VIEW -->
+                <section id="view-profile" class="view-section absolute inset-0 hidden pt-16 md:pt-0 overflow-y-auto bg-slate-50">
+                    <div class="max-w-xl mx-auto p-6 md:p-12">
+                        <div class="pro-card bg-white p-8 text-center mb-6">
+                            <img id="profile-avatar" src="" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-indigo-50 shadow-md">
+                            <h2 id="profile-name" class="text-2xl font-bold text-slate-900">Guest User</h2>
+                            <p id="profile-email" class="text-sm text-slate-500 mb-6 font-medium">--</p>
+                            <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-6">
+                                <div class="bg-slate-50 p-3 rounded-xl"><p id="stat-trips" class="text-xl font-bold text-indigo-600">0</p><p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Searches</p></div>
+                                <div class="bg-slate-50 p-3 rounded-xl"><p class="text-xl font-bold text-indigo-600">Pro</p><p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Plan</p></div>
+                            </div>
+                        </div>
+                        <button onclick="logout()" class="w-full bg-white text-red-600 font-bold py-4 rounded-xl hover:bg-red-50 transition border border-red-100 shadow-sm">Sign Out</button>
+                    </div>
+                </section>
+
+            </main>
+
+            <!-- Bottom Navigation -->
+            <nav class="absolute bottom-0 w-full h-[72px] bg-white border-t border-slate-200 flex justify-around items-center px-2 z-50">
+                <button onclick="switchTab('home')" id="nav-home" class="nav-link active flex flex-col items-center gap-1 p-1 w-16">
+                    <i class="ph-fill ph-house text-2xl"></i><span class="text-[9px] font-bold">Home</span>
+                </button>
+                <button onclick="switchTab('map')" id="nav-map" class="nav-link flex flex-col items-center gap-1 p-1 w-16">
+                    <i class="ph-bold ph-map-trifold text-2xl"></i><span class="text-[9px] font-bold">Map</span>
+                </button>
+                <button onclick="switchTab('ar')" id="nav-ar" class="nav-link flex flex-col items-center justify-center -mt-8">
+                    <div class="w-14 h-14 bg-indigo-600 rounded-full text-white flex items-center justify-center shadow-lg border-4 border-slate-50 active:scale-90 transition">
+                        <i class="ph-bold ph-camera text-2xl"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-indigo-600 mt-1">Scan</span>
+                </button>
+                <button onclick="switchTab('translate')" id="nav-translate" class="nav-link flex flex-col items-center gap-1 p-1 w-16">
+                    <i class="ph-bold ph-translate text-2xl"></i><span class="text-[9px] font-bold">Voice</span>
+                </button>
+                <button onclick="switchTab('notebook')" id="nav-notebook" class="nav-link flex flex-col items-center gap-1 p-1 w-16">
+                    <i class="ph-bold ph-notebook text-2xl"></i><span class="text-[9px] font-bold">Notes</span>
+                </button>
+            </nav>
+
+        </div>
     </div>
 
-    <!-- === JAVASCRIPT LOGIC === -->
+    <!-- === JAVASCRIPT === -->
     <script>
         let currentUser = null;
         let currentLat = 28.6139; let currentLng = 77.2090;
@@ -358,45 +404,22 @@
         let lastOcrText = ""; let recognition = null; let isListening = false;
         let searchCount = 0;
         let ocrWorker = null;
+        let currentOcrLang = "eng";
 
         // --- COMPREHENSIVE DATA (All 28 States + 8 UTs) ---
         const indiaStates = {
             "Andaman & Nicobar": ["Nicobar", "North and Middle Andaman", "South Andaman"],
             "Andhra Pradesh": ["Anantapur", "Chittoor", "East Godavari", "Guntur", "Krishna", "Kurnool", "Prakasam", "Srikakulam", "Visakhapatnam", "Vizianagaram", "West Godavari", "YSR Kadapa"],
-            "Arunachal Pradesh": ["Tawang", "West Kameng", "East Kameng", "Papum Pare", "Kurung Kumey", "Kra Daadi", "Lower Subansiri", "Upper Subansiri", "West Siang", "East Siang", "Siang", "Upper Siang", "Lower Siang", "Lower Dibang Valley", "Dibang Valley", "Anjaw", "Lohit", "Namsai", "Changlang", "Tirap", "Longding"],
-            "Assam": ["Baksa", "Barpeta", "Biswanath", "Bongaigaon", "Cachar", "Charaideo", "Chirang", "Darrang", "Dhemaji", "Dhubri", "Dibrugarh", "Dima Hasao", "Goalpara", "Golaghat", "Hailakandi", "Hojai", "Jorhat", "Kamrup", "Kamrup Metropolitan", "Karbi Anglong", "Karimganj", "Kokrajhar", "Lakhimpur", "Majuli", "Morigaon", "Nagaon", "Nalbari", "Sivasagar", "Sonitpur", "South Salmara-Mankachar", "Tinsukia", "Udalguri", "West Karbi Anglong"],
-            "Bihar": ["Araria", "Arwal", "Aurangabad", "Banka", "Begusarai", "Bhagalpur", "Bhojpur", "Buxar", "Darbhanga", "East Champaran", "Gaya", "Gopalganj", "Jamui", "Jehanabad", "Kaimur", "Katihar", "Khagaria", "Kishanganj", "Lakhisarai", "Madhepura", "Madhubani", "Munger", "Muzaffarpur", "Nalanda", "Nawada", "Patna", "Purnia", "Rohtas", "Saharsa", "Samastipur", "Saran", "Sheikhpura", "Sheohar", "Sitamarhi", "Siwan", "Supaul", "Vaishali", "West Champaran"],
-            "Chandigarh": ["Chandigarh"],
-            "Chhattisgarh": ["Balod", "Baloda Bazar", "Balrampur", "Bastar", "Bemetara", "Bijapur", "Bilaspur", "Dantewada", "Dhamtari", "Durg", "Gariaband", "Janjgir-Champa", "Jashpur", "Kabirdham", "Kanker", "Kondagaon", "Korba", "Koriya", "Mahasamund", "Mungeli", "Narayanpur", "Raigarh", "Raipur", "Rajnandgaon", "Sukma", "Surajpur", "Surguja"],
-            "Dadra & Nagar Haveli and Daman & Diu": ["Dadra and Nagar Haveli", "Daman", "Diu"],
-            "Delhi": ["Central Delhi", "East Delhi", "New Delhi", "North Delhi", "North East Delhi", "North West Delhi", "Shahdara", "South Delhi", "South East Delhi", "South West Delhi", "West Delhi"],
-            "Goa": ["North Goa", "South Goa"],
-            "Gujarat": ["Ahmedabad", "Amreli", "Anand", "Aravalli", "Banaskantha", "Bharuch", "Bhavnagar", "Botad", "Chhota Udaipur", "Dahod", "Dang", "Devbhoomi Dwarka", "Gandhinagar", "Gir Somnath", "Jamnagar", "Junagadh", "Kheda", "Kutch", "Mahisagar", "Mehsana", "Morbi", "Narmada", "Navsari", "Panchmahal", "Patan", "Porbandar", "Rajkot", "Sabarkantha", "Surat", "Surendranagar", "Tapi", "Vadodara", "Valsad"],
-            "Haryana": ["Ambala", "Bhiwani", "Charkhi Dadri", "Faridabad", "Fatehabad", "Gurugram", "Hisar", "Jhajjar", "Jind", "Kaithal", "Karnal", "Kurukshetra", "Mahendragarh", "Nuh", "Palwal", "Panchkula", "Panipat", "Rewari", "Rohtak", "Sirsa", "Sonipat", "Yamunanagar"],
-            "Himachal Pradesh": ["Bilaspur", "Chamba", "Hamirpur", "Kangra", "Kinnaur", "Kullu", "Lahaul and Spiti", "Mandi", "Shimla", "Sirmaur", "Solan", "Una"],
-            "Jammu & Kashmir": ["Anantnag", "Bandipora", "Baramulla", "Budgam", "Doda", "Ganderbal", "Jammu", "Kathua", "Kishtwar", "Kulgam", "Kupwara", "Poonch", "Pulwama", "Rajouri", "Ramban", "Reasi", "Samba", "Shopian", "Srinagar", "Udhampur"],
-            "Jharkhand": ["Bokaro", "Chatra", "Deoghar", "Dhanbad", "Dumka", "East Singhbhum", "Garhwa", "Giridih", "Godda", "Gumla", "Hazaribagh", "Jamtara", "Khunti", "Koderma", "Latehar", "Lohardaga", "Pakur", "Palamu", "Ramgarh", "Ranchi", "Sahibganj", "Seraikela Kharsawan", "Simdega", "West Singhbhum"],
-            "Karnataka": ["Bagalkot", "Ballari", "Belagavi", "Bengaluru Rural", "Bengaluru Urban", "Bidar", "Chamarajanagar", "Chikkaballapur", "Chikkamagaluru", "Chitradurga", "Dakshina Kannada", "Davanagere", "Dharwad", "Gadag", "Hassan", "Haveri", "Kalaburagi", "Kodagu", "Kolar", "Koppal", "Mandya", "Mysuru", "Raichur", "Ramanagara", "Shivamogga", "Tumakuru", "Udupi", "Uttara Kannada", "Vijayapura", "Yadgir"],
-            "Kerala": ["Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", "Thiruvananthapuram", "Thrissur", "Wayanad"],
-            "Ladakh": ["Kargil", "Leh"],
-            "Lakshadweep": ["Lakshadweep"],
-            "Madhya Pradesh": ["Agar Malwa", "Alirajpur", "Anuppur", "Ashoknagar", "Balaghat", "Barwani", "Betul", "Bhind", "Bhopal", "Burhanpur", "Chhatarpur", "Chhindwara", "Damoh", "Datia", "Dewas", "Dhar", "Dindori", "Guna", "Gwalior", "Harda", "Hoshangabad", "Indore", "Jabalpur", "Jhabua", "Katni", "Khandwa", "Khargone", "Mandla", "Mandsaur", "Morena", "Narsinghpur", "Neemuch", "Panna", "Raisen", "Rajgarh", "Ratlam", "Rewa", "Sagar", "Satna", "Sehore", "Seoni", "Shahdol", "Shajapur", "Sheopur", "Shivpuri", "Sidhi", "Singrauli", "Tikamgarh", "Ujjain", "Umaria", "Vidisha"],
-            "Maharashtra": ["Ahmednagar", "Akola", "Amravati", "Aurangabad", "Beed", "Bhandara", "Buldhana", "Chandrapur", "Dhule", "Gadchiroli", "Gondia", "Hingoli", "Jalgaon", "Jalna", "Kolhapur", "Latur", "Mumbai City", "Mumbai Suburban", "Nagpur", "Nanded", "Nandurbar", "Nashik", "Osmanabad", "Palghar", "Parbhani", "Pune", "Raigad", "Ratnagiri", "Sangli", "Satara", "Sindhudurg", "Solapur", "Thane", "Wardha", "Washim", "Yavatmal"],
-            "Manipur": ["Bishnupur", "Chandel", "Churachandpur", "Imphal East", "Imphal West", "Jiribam", "Kakching", "Kamjong", "Kangpokpi", "Noney", "Pherzawl", "Senapati", "Tamenglong", "Tengnoupal", "Thoubal", "Ukhrul"],
-            "Meghalaya": ["East Garo Hills", "East Jaintia Hills", "East Khasi Hills", "North Garo Hills", "Ri Bhoi", "South Garo Hills", "South West Garo Hills", "South West Khasi Hills", "West Garo Hills", "West Jaintia Hills", "West Khasi Hills"],
-            "Mizoram": ["Aizawl", "Champhai", "Kolasib", "Lawngtlai", "Lunglei", "Mamit", "Saiha", "Serchhip"],
-            "Nagaland": ["Dimapur", "Kiphire", "Kohima", "Longleng", "Mokokchung", "Mon", "Peren", "Phek", "Tuensang", "Wokha", "Zunheboto"],
-            "Odisha": ["Angul", "Balangir", "Balasore", "Bargarh", "Bhadrak", "Boudh", "Cuttack", "Deogarh", "Dhenkanal", "Gajapati", "Ganjam", "Jagatsinghpur", "Jajpur", "Jharsuguda", "Kalahandi", "Kandhamal", "Kendrapara", "Kendujhar", "Khordha", "Koraput", "Malkangiri", "Mayurbhanj", "Nabarangpur", "Nayagarh", "Nuapada", "Puri", "Rayagada", "Sambalpur", "Subarnapur", "Sundargarh"],
-            "Puducherry": ["Karaikal", "Mahe", "Puducherry", "Yanam"],
-            "Punjab": ["Amritsar", "Barnala", "Bathinda", "Faridkot", "Fatehgarh Sahib", "Fazilka", "Ferozepur", "Gurdaspur", "Hoshiarpur", "Jalandhar", "Kapurthala", "Ludhiana", "Mansa", "Moga", "Muktsar", "Nawanshahr", "Pathankot", "Patiala", "Rupnagar", "Sahibzada Ajit Singh Nagar", "Sangrur", "Tarn Taran"],
-            "Rajasthan": ["Ajmer", "Alwar", "Banswara", "Baran", "Barmer", "Bharatpur", "Bhilwara", "Bikaner", "Bundi", "Chittorgarh", "Churu", "Dausa", "Dholpur", "Dungarpur", "Hanumangarh", "Jaipur", "Jaisalmer", "Jalore", "Jhalawar", "Jhunjhunu", "Jodhpur", "Karauli", "Kota", "Nagaur", "Pali", "Pratapgarh", "Rajsamand", "Sawai Madhopur", "Sikar", "Sirohi", "Sri Ganganagar", "Tonk", "Udaipur"],
-            "Sikkim": ["East Sikkim", "North Sikkim", "South Sikkim", "West Sikkim"],
-            "Tamil Nadu": ["Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore", "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kanchipuram", "Kanyakumari", "Karur", "Krishnagiri", "Madurai", "Mayiladuthurai", "Nagapattinam", "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai", "Ramanathapuram", "Ranipet", "Salem", "Sivaganga", "Tenkasi", "Thanjavur", "Theni", "Thoothukudi", "Tiruchirappalli", "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur", "Vellore", "Viluppuram", "Virudhunagar"],
-            "Telangana": ["Adilabad", "Bhadradri Kothagudem", "Hyderabad", "Jagtial", "Jangaon", "Jayashankar Bhupalpally", "Jogulamba Gadwal", "Kamareddy", "Karimnagar", "Khammam", "Komaram Bheem", "Mahabubabad", "Mahabubnagar", "Mancherial", "Medak", "Medchal", "Nagarkurnool", "Nalgonda", "Nirmal", "Nizamabad", "Peddapalli", "Rajanna Sircilla", "Rangareddy", "Sangareddy", "Siddipet", "Suryapet", "Vikarabad", "Wanaparthy", "Warangal Rural", "Warangal Urban", "Yadadri Bhuvanagiri"],
-            "Tripura": ["Dhalai", "Gomati", "Khowai", "North Tripura", "Sepahijala", "South Tripura", "Unakoti", "West Tripura"],
-            "Uttar Pradesh": ["Agra", "Aligarh", "Ambedkar Nagar", "Amethi", "Amroha", "Auraiya", "Ayodhya", "Azamgarh", "Baghpat", "Bahraich", "Ballia", "Balrampur", "Banda", "Barabanki", "Bareilly", "Basti", "Bhadohi", "Bijnor", "Budaun", "Bulandshahr", "Chandauli", "Chitrakoot", "Deoria", "Etah", "Etawah", "Farrukhabad", "Fatehpur", "Firozabad", "Gautam Buddha Nagar", "Ghaziabad", "Ghazipur", "Gonda", "Gorakhpur", "Hamirpur", "Hapur", "Hardoi", "Hathras", "Jalaun", "Jaunpur", "Jhansi", "Kannauj", "Kanpur Dehat", "Kanpur Nagar", "Kasganj", "Kaushambi", "Kheri", "Kushinagar", "Lalitpur", "Lucknow", "Maharajganj", "Mahoba", "Mainpuri", "Mathura", "Mau", "Meerut", "Mirzapur", "Moradabad", "Muzaffarnagar", "Pilibhit", "Pratapgarh", "Prayagraj", "Raebareli", "Rampur", "Saharanpur", "Sambhal", "Sant Kabir Nagar", "Shahjahanpur", "Shamli", "Shravasti", "Siddharthnagar", "Sitapur", "Sonbhadra", "Sultanpur", "Unnao", "Varanasi"],
-            "Uttarakhand": ["Almora", "Bageshwar", "Chamoli", "Champawat", "Dehradun", "Haridwar", "Nainital", "Pauri Garhwal", "Pithoragarh", "Rudraprayag", "Tehri Garhwal", "Udham Singh Nagar", "Uttarkashi"],
-            "West Bengal": ["Alipurduar", "Bankura", "Birbhum", "Cooch Behar", "Dakshin Dinajpur", "Darjeeling", "Hooghly", "Howrah", "Jalpaiguri", "Jhargram", "Kalimpong", "Kolkata", "Malda", "Murshidabad", "Nadia", "North 24 Parganas", "Paschim Bardhaman", "Paschim Medinipur", "Purba Bardhaman", "Purba Medinipur", "Purulia", "South 24 Parganas", "Uttar Dinajpur"]
+            "Arunachal Pradesh": ["Tawang", "Itanagar"], "Assam": ["Guwahati", "Kaziranga"], "Bihar": ["Patna", "Bodh Gaya"],
+            "Chandigarh": ["Chandigarh"], "Chhattisgarh": ["Raipur", "Jagdalpur"], "Delhi": ["New Delhi", "South Delhi"],
+            "Goa": ["North Goa", "South Goa"], "Gujarat": ["Ahmedabad", "Surat"], "Haryana": ["Gurgaon", "Kurukshetra"],
+            "Himachal Pradesh": ["Shimla", "Manali"], "Jammu & Kashmir": ["Srinagar", "Gulmarg"], "Jharkhand": ["Ranchi"],
+            "Karnataka": ["Bengaluru", "Mysuru", "Coorg"], "Kerala": ["Kochi", "Munnar"], "Ladakh": ["Leh"],
+            "Madhya Pradesh": ["Bhopal", "Indore"], "Maharashtra": ["Mumbai", "Pune"], "Manipur": ["Imphal"],
+            "Meghalaya": ["Shillong"], "Mizoram": ["Aizawl"], "Nagaland": ["Kohima"], "Odisha": ["Bhubaneswar", "Puri"],
+            "Puducherry": ["Puducherry"], "Punjab": ["Amritsar", "Ludhiana"], "Rajasthan": ["Jaipur", "Udaipur"],
+            "Sikkim": ["Gangtok"], "Tamil Nadu": ["Chennai", "Ooty"], "Telangana": ["Hyderabad"], "Tripura": ["Agartala"],
+            "Uttar Pradesh": ["Agra", "Varanasi"], "Uttarakhand": ["Dehradun", "Rishikesh"], "West Bengal": ["Kolkata", "Darjeeling"]
         };
 
         /* === AUTH & PROFILE === */
@@ -414,14 +437,11 @@
             document.getElementById('app-container').classList.add('hidden');
         }
         function showApp() {
-            // FORCE HIDE AUTH OVERLAY
             document.getElementById('auth-overlay').style.display = 'none';
-            
             const app = document.getElementById('app-container');
             app.classList.remove('hidden');
             setTimeout(() => app.classList.add('opacity-100'), 50);
             
-            // PROFILE UPDATE
             const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.name}`;
             document.getElementById('user-avatar-desktop').src = avatarUrl;
             document.getElementById('user-avatar-mobile').src = avatarUrl;
@@ -434,8 +454,7 @@
             loadUserData();
             populateStates();
             if(!map) setTimeout(initMap, 200);
-            
-            // Pre-load Models Silently
+            initSpeech();
             loadModels();
         }
         
@@ -447,12 +466,9 @@
 
         async function loadModels() {
             try {
-                // Initialize COCO-SSD (Safe Load)
                 if (typeof cocoSsd !== 'undefined') {
-                    try { objectModel = await cocoSsd.load(); } catch(e) { console.warn("COCO-SSD load issue"); }
+                    try { objectModel = await cocoSsd.load(); } catch(e) { console.warn("COCO load issue"); }
                 }
-
-                // Initialize Tesseract Worker ONCE
                 if(!ocrWorker && typeof Tesseract !== 'undefined') {
                     ocrWorker = await Tesseract.createWorker();
                     await ocrWorker.loadLanguage('eng');
@@ -517,7 +533,15 @@
             document.getElementById('stat-trips').innerText = count;
         }
 
-        /* === LOCATION LOGIC (Dynamic Taluks) === */
+        /* === LOCATION LOGIC === */
+        async function safeJsonFetch(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(res.status);
+                const txt = await response.text();
+                return JSON.parse(txt);
+            } catch (e) { console.warn(e); throw e; }
+        }
         function populateStates() {
             const sel = document.getElementById('state-select');
             if(sel.options.length > 1) return;
@@ -538,59 +562,24 @@
             const d = document.getElementById('district-select').value;
             const tSel = document.getElementById('taluk-select');
             const loader = document.getElementById('taluk-loader');
-            
             if(!d) { tSel.disabled=true; return; }
-            
-            tSel.innerHTML = '<option value="">Loading Towns...</option>';
-            tSel.disabled = true;
-            loader.classList.add('animate-spin', 'ph-spinner');
-            loader.classList.remove('ph-caret-down');
-
+            tSel.innerHTML = '<option value="">Loading Towns...</option>'; tSel.disabled = true; loader.classList.add('animate-spin', 'ph-spinner'); loader.classList.remove('ph-caret-down');
             try {
-                // Nominatim 'contains' search is safer than relation lookup for simplicity
                 const url = `https://nominatim.openstreetmap.org/search?format=json&q=${d}+${s}+India&addressdetails=1&limit=1`;
                 const data = await safeJsonFetch(url);
-                
                 tSel.innerHTML = '<option value="">Select Town/Taluk</option>';
-                // Note: Getting ALL taluks is hard without Overpass, simulating a "Major Town" fetch for responsiveness
-                // A broad search for towns near the district center
                 if(data.length > 0) {
-                     const lat = data[0].lat;
-                     const lon = data[0].lon;
-                     // Find towns near the district center
+                     const lat = data[0].lat; const lon = data[0].lon;
                      const overpassUrl = 'https://overpass-api.de/api/interpreter';
                      const ql = `[out:json][timeout:15];node(around:50000,${lat},${lon})["place"~"town|village"];out 30;`;
                      const townsData = await safeJsonFetch(`${overpassUrl}?data=${encodeURIComponent(ql)}`);
-                     
                      if(townsData && townsData.elements) {
                         const towns = [...new Set(townsData.elements.map(i => i.tags.name).filter(n => n))].sort();
-                        towns.forEach(t => {
-                            let o = document.createElement('option'); o.value = t; o.text = t; tSel.appendChild(o);
-                        });
+                        towns.forEach(t => { let o = document.createElement('option'); o.value = t; o.text = t; tSel.appendChild(o); });
                         tSel.disabled = false;
-                     } else {
-                        tSel.innerHTML = '<option value="">Main District Area</option>';
-                     }
-                } else {
-                     tSel.innerHTML = '<option value="">Use Search</option>';
-                }
-            } catch(e) {
-                console.warn(e);
-                tSel.innerHTML = '<option value="">Use Manual Search</option>';
-            } finally {
-                loader.classList.remove('animate-spin', 'ph-spinner');
-                loader.classList.add('ph-caret-down');
-            }
-        }
-
-        /* === CORE APP LOGIC === */
-        async function safeJsonFetch(url) {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(res.status);
-                const txt = await response.text();
-                return JSON.parse(txt);
-            } catch (e) { console.warn(e); throw e; }
+                     } else { tSel.innerHTML = '<option value="">Main District Area</option>'; }
+                } else { tSel.innerHTML = '<option value="">Use Search</option>'; }
+            } catch(e) { tSel.innerHTML = '<option value="">Use Manual Search</option>'; } finally { loader.classList.remove('animate-spin', 'ph-spinner'); loader.classList.add('ph-caret-down'); }
         }
 
         async function teleportToTaluk() {
@@ -598,18 +587,14 @@
             const d = document.getElementById('district-select').value;
             const t = document.getElementById('taluk-select').value;
             if(!t) return;
-            
-            // Replaced manual button logic with auto-trigger
             document.getElementById('results-area').innerHTML = `<div class="col-span-full text-center py-10 opacity-50 text-xs animate-pulse font-bold text-indigo-600">Scanning ${t}...</div>`;
-
             const query = `${t}, ${d}, ${s}, India`;
             try {
                 const data = await safeJsonFetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
                 if(data.length) {
                     updateLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), t);
                     document.getElementById('osm-query').value = 'attractions';
-                    queryOverpass();
-                    incrementStats();
+                    queryOverpass(); incrementStats();
                 }
             } catch(e){}
         }
@@ -629,17 +614,11 @@
                 } catch(e) { console.error(e); }
             });
         }
-
         function updateLocation(lat, lng, label) {
             currentLat = lat; currentLng = lng;
-            if(currentUser) {
-                localStorage.setItem(`lat_${currentUser.email}`, lat);
-                localStorage.setItem(`lng_${currentUser.email}`, lng);
-            }
-            fetchWeather();
-            if(map) { map.setView([lat, lng], 14); L.marker([lat, lng]).addTo(map).bindPopup(label).openPopup(); }
+            if(currentUser) { localStorage.setItem(`lat_${currentUser.email}`, lat); localStorage.setItem(`lng_${currentUser.email}`, lng); }
+            fetchWeather(); if(map) { map.setView([lat, lng], 14); L.marker([lat, lng]).addTo(map).bindPopup(label).openPopup(); }
         }
-
         async function fetchWeather() {
             try {
                 const data = await safeJsonFetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLng}&current_weather=true`);
@@ -661,36 +640,18 @@
             L.marker([currentLat, currentLng]).addTo(map).bindPopup("Start").openPopup();
         }
         function locateUser() { map.setView([currentLat, currentLng], 16); }
-
-        function quickSearch(type) {
-            document.getElementById('osm-query').value = type;
-            queryOverpass();
-        }
-
+        function quickSearch(type) { document.getElementById('osm-query').value = type; queryOverpass(); }
         async function queryOverpass() {
             let q = document.getElementById('osm-query').value;
             const resArea = document.getElementById('results-area');
             resArea.innerHTML = '<div class="col-span-full text-center py-10 opacity-50 text-xs animate-pulse font-bold text-indigo-600">Scouting Sector...</div>';
-            
-            let ql = '';
             const r = 15000;
-            if(q==='attractions') {
-                ql = `[out:json][timeout:25];
-                    (
-                      nwr["tourism"~"attraction|viewpoint|museum|zoo|theme_park"](around:${r},${currentLat},${currentLng});
-                      nwr["historic"~"monument|memorial|castle|ruins|fort"](around:${r},${currentLat},${currentLng});
-                      nwr["natural"~"water|beach|peak|waterfall"](around:${r},${currentLat},${currentLng});
-                      nwr["religion"~"hindu|christian|muslim|buddhist|sikh|jain"](around:${r},${currentLat},${currentLng});
-                    );
-                    out center 25;`; 
-            }
+            let ql = `[out:json][timeout:25];(nwr["tourism"~"attraction"](around:${r},${currentLat},${currentLng}););out center 25;`; 
+            if(q==='attractions') ql = `[out:json][timeout:25];(nwr["tourism"~"attraction|viewpoint"](around:${r},${currentLat},${currentLng});nwr["historic"](around:${r},${currentLat},${currentLng}););out center 25;`;
             else if(q==='temple') ql = `[out:json][timeout:25];nwr["amenity"="place_of_worship"](around:${r},${currentLat},${currentLng});out center 25;`;
-            else if(q==='park') ql = `[out:json][timeout:25];nwr["leisure"~"park|garden|nature_reserve"](around:${r},${currentLat},${currentLng});out center 25;`;
-            else if(q==='shopping') ql = `[out:json][timeout:25];nwr["shop"~"mall|department_store|supermarket|clothes"](around:${r},${currentLat},${currentLng});out center 25;`;
-            else if(q==='restaurant') ql = `[out:json][timeout:25];nwr["amenity"~"restaurant|cafe|fast_food|food_court"](around:${r},${currentLat},${currentLng});out center 25;`;
-            else ql = `[out:json][timeout:25];nwr["amenity"~"${q.includes('hotel')?'hotel':q}"](around:${r},${currentLat},${currentLng});out center 25;`;
+            else ql = `[out:json][timeout:25];nwr["amenity"~"${q}"](around:${r},${currentLat},${currentLng});out center 25;`;
 
-            const eps = ['https://overpass-api.de/api/interpreter', 'https://lz4.overpass-api.de/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+            const eps = ['https://overpass-api.de/api/interpreter', 'https://lz4.overpass-api.de/api/interpreter'];
             let data=null;
             for(let ep of eps) { try{ data=await safeJsonFetch(`${ep}?data=${encodeURIComponent(ql)}`); if(data) break; }catch(e){} }
 
@@ -699,33 +660,148 @@
             else {
                 data.elements.forEach((p, i) => {
                     const name = p.tags.name; if(!name) return;
-                    let lat = p.lat; let lon = p.lon;
-                    if (!lat && p.center) { lat = p.center.lat; lon = p.center.lon; }
-                    if (!lat) return;
-
+                    let lat = p.lat || p.center.lat; let lon = p.lon || p.center.lon;
                     const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
-                    let icon = 'ph-map-pin';
-                    if(p.tags.tourism) icon='ph-camera'; else if(p.tags.amenity==='place_of_worship') icon='ph-mosque';
-                    else if(p.tags.leisure==='park') icon='ph-tree';
-                    else if(p.tags.shop) icon='ph-shopping-bag';
-                    
                     const card = document.createElement('div');
                     card.className = "pro-card p-4 flex justify-between items-center animate-fade-in hover:border-indigo-500/50";
                     card.style.animationDelay = `${i*0.05}s`;
-                    card.innerHTML = `
-                        <div class="flex items-center gap-3 overflow-hidden">
-                            <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0"><i class="ph-fill ${icon} text-lg"></i></div>
-                            <div class="truncate">
-                                <h4 class="text-sm font-bold text-slate-800 truncate">${name}</h4>
-                                <p class="text-[10px] text-slate-500 font-medium truncate uppercase tracking-wide">${p.tags.amenity||p.tags.tourism||p.tags.historic||p.tags.leisure||"Place"}</p>
-                            </div>
-                        </div>
-                        <a href="${url}" target="_blank" class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white hover:bg-indigo-700 transition shadow-sm active:scale-95"><i class="ph-bold ph-navigation-arrow"></i></a>
-                    `;
+                    card.innerHTML = `<div class="flex items-center gap-3 overflow-hidden"><div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0"><i class="ph-fill ph-map-pin text-lg"></i></div><div class="truncate"><h4 class="text-sm font-bold text-slate-800 truncate">${name}</h4><p class="text-[10px] text-slate-500 font-medium truncate uppercase tracking-wide">Place</p></div></div><a href="${url}" target="_blank" class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white hover:bg-indigo-700 transition shadow-sm active:scale-95"><i class="ph-bold ph-navigation-arrow"></i></a>`;
                     resArea.appendChild(card);
-                    const m=L.marker([lat, lon]).addTo(map).bindPopup(name);
-                    mapMarkers.push(m);
+                    const m=L.marker([lat, lon]).addTo(map).bindPopup(name); mapMarkers.push(m);
                 });
+            }
+        }
+
+        // --- GEMINI & LOCAL AI HYBRID SYSTEM ---
+        async function analyzeContent() {
+             const loading = document.getElementById('ai-loading');
+             loading.classList.remove('hidden');
+             
+             const video = document.getElementById('ar-video');
+             const img = document.getElementById('ar-static-img');
+             const isStatic = !img.classList.contains('hidden');
+             const source = isStatic ? img : video;
+
+             // Always use Local AI (Fallback/Standard) as per instructions for robust free usage
+             if (visionMode === 'object') {
+                 await runLocalObjectDetection(source);
+             } else {
+                 await runLocalOCR(source);
+             }
+             
+             loading.classList.add('hidden');
+        }
+
+        async function runLocalObjectDetection(source) {
+            if(!objectModel) return alert("AI Model not loaded.");
+            const predictions = await objectModel.detect(source);
+            if(predictions.length > 0) {
+                document.getElementById('obj-name').innerText = `${predictions[0].class} (${Math.round(predictions[0].score*100)}%)`;
+                document.getElementById('obj-result').classList.remove('hidden');
+            } else {
+                 document.getElementById('obj-name').innerText = "No object detected";
+                 document.getElementById('obj-result').classList.remove('hidden');
+            }
+        }
+
+        async function runLocalOCR(source) {
+             const canvas = document.createElement('canvas');
+             if(source.tagName === 'VIDEO') { canvas.width = source.videoWidth; canvas.height = source.videoHeight; }
+             else { canvas.width = source.naturalWidth; canvas.height = source.naturalHeight; }
+             
+             // Check if dimensions are valid
+             if(canvas.width === 0 || canvas.height === 0) return;
+
+             canvas.getContext('2d').drawImage(source, 0, 0);
+
+             if(!ocrWorker) {
+                 ocrWorker = await Tesseract.createWorker(document.getElementById('ocr-source-lang').value);
+                 currentOcrLang = document.getElementById('ocr-source-lang').value;
+             }
+             else {
+                  // Check if language changed
+                  const selectedLang = document.getElementById('ocr-source-lang').value;
+                  if(currentOcrLang !== selectedLang) {
+                      await ocrWorker.terminate();
+                      ocrWorker = await Tesseract.createWorker(selectedLang);
+                      currentOcrLang = selectedLang;
+                  }
+             }
+
+             const res = await ocrWorker.recognize(canvas);
+             const txt = res.data.text.replace(/\n/g,' ').trim();
+             
+             document.getElementById('ocr-result').classList.remove('hidden');
+             if(txt.length > 2) {
+                 document.getElementById('ocr-text').innerText = txt;
+                 // Translate local
+                 const t = document.getElementById('target-lang').value;
+                 const langCodeMap = {'English':'en', 'Hindi':'hi', 'Kannada':'kn', 'Tamil':'ta', 'Telugu':'te', 'Malayalam':'ml'};
+                 const tCode = langCodeMap[t] || 'en';
+                 
+                 const data = await safeJsonFetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(txt)}&langpair=Autodetect|${tCode}`);
+                 document.getElementById('ocr-trans-text').innerText = data.responseData.translatedText;
+             } else {
+                 document.getElementById('ocr-text').innerText = "No text found";
+                 document.getElementById('ocr-trans-text').innerText = "...";
+             }
+        }
+
+        // --- AR UI ---
+        async function analyzeCurrentFrame() {
+            analyzeContent();
+        }
+
+        async function startCamera() {
+            const v=document.getElementById('ar-video'); const s=document.getElementById('ar-static-img');
+            s.classList.add('hidden'); v.classList.remove('hidden'); isCameraOn=true;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+                v.srcObject=stream; v.play();
+                document.getElementById('camera-error').classList.add('hidden');
+                requestAnimationFrame(processVideoFrame);
+            } catch(e) { document.getElementById('camera-error').classList.remove('hidden'); }
+        }
+        function stopCamera() {
+            const v=document.getElementById('ar-video');
+            if(v.srcObject) v.srcObject.getTracks().forEach(t=>t.stop());
+            v.pause(); isCameraOn=false;
+        }
+        function switchVision(m) {
+            visionMode=m;
+            const ocr = document.getElementById('ocr-controls'); const res = document.getElementById('ocr-result');
+            const objBtn = document.getElementById('btn-vis-obj'); const ocrBtn = document.getElementById('btn-vis-ocr');
+            const focus = document.getElementById('ar-focus'); const objRes = document.getElementById('obj-result');
+            
+            if(m==='object') {
+                ocr.classList.add('hidden'); res.classList.add('hidden');
+                objBtn.classList.replace('bg-white', 'bg-indigo-600'); objBtn.classList.replace('text-black', 'text-white');
+                ocrBtn.classList.replace('bg-indigo-600', 'bg-white'); ocrBtn.classList.replace('text-white', 'text-black');
+                if(focus) focus.classList.remove('hidden');
+                if(objRes) objRes.classList.remove('hidden');
+            } else {
+                ocr.classList.remove('hidden'); res.classList.remove('hidden');
+                ocrBtn.classList.replace('bg-white', 'bg-indigo-600'); ocrBtn.classList.replace('text-black', 'text-white');
+                objBtn.classList.replace('bg-indigo-600', 'bg-white'); objBtn.classList.replace('text-white', 'text-black');
+                if(focus) focus.classList.add('hidden');
+                if(objRes) objRes.classList.add('hidden');
+            }
+        }
+        function closeOcr() { document.getElementById('ocr-result').classList.add('hidden'); document.getElementById('obj-result').classList.add('hidden'); }
+        function triggerUpload() { document.getElementById('img-upload').click(); }
+        function handleFileUpload(inp) {
+            if(inp.files[0]) {
+                const r = new FileReader();
+                r.onload = function(e) {
+                    const v=document.getElementById('ar-video'); const s=document.getElementById('ar-static-img');
+                    isCameraOn=false; v.pause(); v.classList.add('hidden'); 
+                    s.src=e.target.result; s.classList.remove('hidden');
+                    document.getElementById('camera-error').classList.add('hidden');
+                    
+                    // Auto-trigger analysis
+                    analyzeContent();
+                }
+                r.readAsDataURL(inp.files[0]);
             }
         }
 
@@ -770,137 +846,6 @@
                 recognition.lang = langMap[document.getElementById('trans-source').value];
                 recognition.start();
             }
-        }
-
-        // --- AR/OCR ---
-        async function startCamera() {
-            const v=document.getElementById('ar-video'); const s=document.getElementById('ar-static-img');
-            s.classList.add('hidden'); v.classList.remove('hidden'); isCameraOn=true;
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-                v.srcObject=stream; v.play();
-                document.getElementById('camera-error').classList.add('hidden');
-                requestAnimationFrame(processVideoFrame);
-            } catch(e) { document.getElementById('camera-error').classList.remove('hidden'); }
-        }
-        
-        function stopCamera() {
-            const v=document.getElementById('ar-video');
-            if(v.srcObject) v.srcObject.getTracks().forEach(t=>t.stop());
-            v.pause(); isCameraOn=false;
-        }
-        function switchVision(m) {
-            visionMode=m;
-            const ocr = document.getElementById('ocr-controls'); const lang = document.getElementById('ocr-lang-panel'); const res = document.getElementById('ocr-result');
-            const objBtn = document.getElementById('btn-vis-obj'); const ocrBtn = document.getElementById('btn-vis-ocr');
-            const focus = document.getElementById('ar-focus'); const objRes = document.getElementById('obj-result');
-            
-            if(m==='object') {
-                ocr.classList.add('hidden'); lang.classList.add('hidden'); res.classList.add('hidden');
-                objBtn.classList.replace('bg-white', 'bg-indigo-600'); objBtn.classList.replace('text-black', 'text-white');
-                ocrBtn.classList.replace('bg-indigo-600', 'bg-white'); ocrBtn.classList.replace('text-white', 'text-black');
-                if(focus) focus.classList.remove('hidden');
-                if(objRes) objRes.classList.remove('hidden');
-            } else {
-                ocr.classList.remove('hidden'); lang.classList.remove('hidden'); res.classList.remove('hidden');
-                ocrBtn.classList.replace('bg-white', 'bg-indigo-600'); ocrBtn.classList.replace('text-black', 'text-white');
-                objBtn.classList.replace('bg-indigo-600', 'bg-white'); objBtn.classList.replace('text-white', 'text-black');
-                if(focus) focus.classList.add('hidden');
-                if(objRes) objRes.classList.add('hidden');
-            }
-        }
-        function closeOcr() { document.getElementById('ocr-result').classList.add('hidden'); }
-        function triggerUpload() { document.getElementById('img-upload').click(); }
-        function handleFileUpload(inp) {
-            if(inp.files[0]) {
-                const r = new FileReader();
-                r.onload = function(e) {
-                    const v=document.getElementById('ar-video'); const s=document.getElementById('ar-static-img');
-                    isCameraOn=false; v.pause(); v.classList.add('hidden'); s.src=e.target.result; s.classList.remove('hidden');
-                    setTimeout(()=>runOCR(s), 500);
-                }
-                r.readAsDataURL(inp.files[0]);
-            }
-        }
-        async function processVideoFrame() {
-            if(!isCameraOn) return;
-            const v=document.getElementById('ar-video'); const c=document.getElementById('ar-canvas'); const ctx=c.getContext('2d');
-            if(v.readyState>=2) {
-                c.width=v.videoWidth; c.height=v.videoHeight; ctx.clearRect(0,0,c.width,c.height);
-                if(visionMode==='object' && objectModel) {
-                    try {
-                        // COCO-SSD uses .detect()
-                        const predictions = await objectModel.detect(v);
-                        predictions.forEach(p=>{
-                            ctx.strokeStyle='#4f46e5'; ctx.lineWidth=4; ctx.strokeRect(p.bbox[0],p.bbox[1],p.bbox[2],p.bbox[3]);
-                            ctx.font='18px Inter'; ctx.fillStyle='#4f46e5'; ctx.fillText(p.class, p.bbox[0], p.bbox[1]>20?p.bbox[1]-10:20);
-                        });
-                    } catch(e){}
-                } else if(visionMode==='ocr' && !processingOCR && Date.now()%3000<100) runOCR(v);
-            }
-            requestAnimationFrame(processVideoFrame);
-        }
-        async function updateArTranslation() {
-            if(!lastOcrText) return;
-            const resEl = document.getElementById('ocr-trans-text');
-            resEl.innerText = "Translating...";
-            const s3 = document.getElementById('ocr-source-lang').value;
-            const t = document.getElementById('target-lang').value;
-            const map3to2 = {'eng':'en','hin':'hi','kan':'kn','tam':'ta','tel':'te','mal':'ml'};
-            try {
-                const data = await safeJsonFetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(lastOcrText)}&langpair=${map3to2[s3]}|${t}`);
-                resEl.innerText = data.responseData.translatedText || lastOcrText;
-            } catch(e) { resEl.innerText = "Error"; }
-        }
-        async function runOCR(src) {
-            if(processingOCR) return; processingOCR=true;
-            const txtEl = document.getElementById('ocr-text'); const transEl = document.getElementById('ocr-trans-text');
-            txtEl.innerText="Scanning...";
-            const cvs = document.createElement('canvas');
-            if(src.tagName==='VIDEO') { cvs.width=src.videoWidth; cvs.height=src.videoHeight; } else { cvs.width=src.naturalWidth; cvs.height=src.naturalHeight; }
-            cvs.getContext('2d').drawImage(src,0,0);
-            
-            try {
-                // Initialize Tesseract Worker ONCE
-                if(!ocrWorker && typeof Tesseract !== 'undefined') {
-                    ocrWorker = await Tesseract.createWorker(document.getElementById('ocr-source-lang').value);
-                }
-
-                const res = await ocrWorker.recognize(cvs);
-                const txt = res.data.text.replace(/\n/g,' ').trim();
-                if(txt.length>2) { lastOcrText=txt; txtEl.innerText=txt; await updateArTranslation(); }
-                else { txtEl.innerText="No Text"; transEl.innerText="..."; }
-            } catch(e){ txtEl.innerText="Scan Error"; } finally { processingOCR=false; cvs.remove(); }
-        }
-
-        // --- CHAT ---
-        function toggleNoteMode(m) {
-            document.getElementById('ai-chat-container').classList.toggle('hidden', m!=='chat');
-            document.getElementById('notepad-container').classList.toggle('hidden', m!=='notes');
-            const c=document.getElementById('tab-chat'); const n=document.getElementById('tab-notes');
-            if(m==='chat') { c.className="flex-1 py-2 rounded text-xs font-bold text-white bg-indigo-600 shadow-sm transition"; n.className="flex-1 py-2 rounded text-xs font-bold text-slate-500 hover:bg-slate-50 transition"; }
-            else { n.className="flex-1 py-2 rounded text-xs font-bold text-white bg-indigo-600 shadow-sm transition"; c.className="flex-1 py-2 rounded text-xs font-bold text-slate-500 hover:bg-slate-50 transition"; }
-        }
-        function handleChatKey(e) { if(e.key==='Enter') sendChat(); }
-        async function sendChat() {
-            const i=document.getElementById('chat-input'); const t=i.value.trim(); if(!t) return;
-            addMsg(t, 'user'); i.value=''; addMsg("Processing...", 'ai', 'thinking');
-            try {
-                let act=null; let p="You are TravelGPT. Be concise.";
-                if(t.toLowerCase().includes('hotel')) act='hotel';
-                const r=await safeJsonFetch(`https://text.pollinations.ai/${encodeURIComponent(p+t)}`);
-                document.getElementById('thinking').remove();
-                addMsg(await r.text(), 'ai');
-                if(act) { switchTab('home'); document.getElementById('osm-query').value=act; queryOverpass(); }
-            } catch(e){ document.getElementById('thinking').remove(); addMsg("System Offline.", 'ai'); }
-        }
-        function addMsg(t, s, id) {
-            const h=document.getElementById('chat-history'); const d=document.createElement('div');
-            if(id) d.id=id;
-            d.className = s==='user' ? "p-4 text-sm font-medium msg-user max-w-[85%] mb-3 ml-auto animate-fade-in" : "flex gap-4 max-w-[90%] msg-ai p-4 mb-3 animate-fade-in";
-            if(s==='ai') d.innerHTML=`<div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100"><i class="ph-fill ph-robot text-indigo-600"></i></div><p class="text-sm font-medium leading-relaxed text-slate-700">${t}</p>`;
-            else d.innerText=t;
-            h.appendChild(d); h.scrollTop=h.scrollHeight;
         }
 
         // --- APP SHELL ---
