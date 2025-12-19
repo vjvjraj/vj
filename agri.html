@@ -219,7 +219,6 @@
         }
         .modal-head { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); }
         .modal-head h3 { margin: 0; color: white; font-weight: 700; font-size: 1.2rem; }
-        .close-modal-btn { background: transparent; border: none; color: white; cursor: pointer; }
         .modal-body { padding: 1.5rem; overflow-y: auto; color: var(--text-main); }
 
         /* --- MARKET STYLES --- */
@@ -254,15 +253,6 @@
         .trend-down { background: rgba(248, 113, 113, 0.2); color: #f87171; }
         .trend-steady { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
 
-        /* Weather Module Styles */
-        .weather-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; text-align: center; }
-        .weather-stat { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
-        .forecast-row { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .action-card { background: rgba(255,255,255,0.05); border-left: 4px solid var(--primary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
-        .status-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 0.5rem; }
-        .status-good { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
-        .status-bad { background: rgba(248, 113, 113, 0.2); color: #f87171; }
-
         /* Chat */
         .chat-container { height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1rem; padding-right: 5px; }
         .msg { padding: 0.8rem; border-radius: 10px; max-width: 80%; font-size: 0.95rem; line-height: 1.5; }
@@ -294,7 +284,6 @@
                     <option value="kn" style="color:black">ಕನ್ನಡ</option>
                     <option value="ta" style="color:black">தமிழ்</option>
                     <option value="te" style="color:black">తెలుగు</option>
-                    <option value="ml" style="color:black">മലയാളം</option>
                 </select>
                 <div id="authStatus" title="Profile" style="padding: 6px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); color: var(--primary); cursor: pointer;">
                     <span data-lucide="user"></span>
@@ -307,48 +296,39 @@
         <nav class="sidebar">
             <div class="sidebar-nav">
                 <div class="nav-item active" onclick="nav('dashboard')"><span data-lucide="layout-dashboard"></span> <span data-i18n="nav_dash">Dashboard</span></div>
-                <div class="nav-item" onclick="nav('weather')"><span data-lucide="cloud-sun"></span> <span data-i18n="nav_weather">Weather</span></div>
                 <div class="nav-item" onclick="nav('soil')"><span data-lucide="flask-conical"></span> <span data-i18n="nav_soil">Soil</span></div>
+                <!-- Logbook Removed from Sidebar -->
                 <div class="nav-item" onclick="nav('ai-tools')"><span data-lucide="brain-circuit"></span> <span data-i18n="nav_ai">AI Tools</span></div>
                 <div class="nav-item" onclick="nav('market')"><span data-lucide="shopping-cart"></span> <span data-i18n="nav_market">Market</span></div>
                 <div class="nav-item" onclick="nav('community')"><span data-lucide="users"></span> <span data-i18n="nav_comm">Community</span></div>
                 <div class="nav-item" onclick="nav('settings')"><span data-lucide="settings"></span> <span data-i18n="nav_set">Settings</span></div>
             </div>
             <div class="sidebar-footer">
-                <div style="font-size:0.8rem; color:var(--text-muted); text-align:center;">v4.5 Pro</div>
+                <div style="font-size:0.8rem; color:var(--text-muted); text-align:center;">v4.2 Dark Mode</div>
             </div>
         </nav>
 
         <main class="main-content-area" id="mainScroll">
             
-            <!-- DASHBOARD -->
+            <!-- DASHBOARD (RE-FRAMED) -->
             <div id="page-dashboard" class="app-page active">
                 <h2 class="page-title" data-i18n="title_dash">Farm Dashboard</h2>
                 
-                <!-- 1. Top Section: Weather & MAP -->
+                <!-- 1. Top Section: Weather & MAP (Moved Map Here) -->
                 <div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(15, 23, 42, 0.8)); border: 1px solid rgba(16, 185, 129, 0.3);">
                       <div class="card-title" data-i18n="card_live">Live Field Status</div>
                       <div class="data-list" style="flex-direction:row; flex-wrap:wrap; align-items: stretch;">
                         <div class="data-item weather-card" style="flex:1; min-width:200px; display: flex; flex-direction: column; justify-content: center;">
-                            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <div style="display: flex; align-items: center; margin-bottom: 1rem;">
                                 <div class="data-icon"><span data-lucide="cloud-sun" style="color:var(--secondary)"></span></div>
                                 <div class="data-info">
                                     <h4 data-i18n="data_weather">Weather</h4>
                                     <span id="weatherData">Loading...</span>
                                 </div>
                             </div>
-                            <!-- 24H Prediction Added Here -->
-                            <div style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid rgba(255,255,255,0.1);">
-                                <h4 style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.2rem;" data-i18n="next_24h">Next 24 Hours</h4>
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <span id="dashForecast24" style="font-size:1rem; font-weight:600; color:white;">--° / --°</span>
-                                    <span id="dashRain24" style="font-size:0.9rem; color:var(--secondary);">Rain: --%</span>
-                                </div>
-                            </div>
-                            <button class="button secondary" onclick="nav('weather')" style="margin-top:1rem; font-size:0.8rem; padding:0.5rem;" data-i18n="btn_full_weather">See Full Details</button>
                         </div>
                         <!-- MAP Container in Dashboard -->
-                        <div style="flex: 2; min-width: 300px; height: 350px; margin-left: 1rem;">
+                        <div style="flex: 2; min-width: 300px; height: 300px; margin-left: 1rem;">
                              <div id="farmMap" style="height: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);"></div>
                         </div>
                       </div>
@@ -373,9 +353,9 @@
                                     <option value="Rice" data-i18n="opt_rice">Rice</option>
                                     <option value="Wheat" data-i18n="opt_wheat">Wheat</option>
                                     <option value="Cotton" selected data-i18n="opt_cotton">Cotton</option>
-                                    <option value="Tomato" data-i18n="opt_tomato">Tomato</option>
-                                    <option value="Potato" data-i18n="opt_potato">Potato</option>
-                                    <option value="Onion" data-i18n="opt_onion">Onion</option>
+                                    <option value="Tomato">Tomato</option>
+                                    <option value="Potato">Potato</option>
+                                    <option value="Onion">Onion</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -416,63 +396,15 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- DEDICATED WEATHER MODULE -->
-            <div id="page-weather" class="app-page">
-                <h2 class="page-title" data-i18n="nav_weather">Detailed Weather</h2>
-                
-                <div class="content-grid">
-                    <!-- Current Conditions -->
-                    <div class="card bg-gradient-to-br from-blue-900 to-slate-900">
-                        <div style="text-align:center; padding:1rem;">
-                            <span id="w-icon-main" style="font-size:4rem;">☀️</span>
-                            <h1 id="w-temp-main" style="font-size:3.5rem; font-weight:800; margin:0; color:white;">--°</h1>
-                            <p id="w-desc-main" style="font-size:1.2rem; color:var(--secondary); margin-bottom:1rem;">Clear Sky</p>
-                            <div class="weather-grid">
-                                <div class="weather-stat"><span data-lucide="wind"></span><br><span id="w-wind">--</span> km/h</div>
-                                <div class="weather-stat"><span data-lucide="droplets"></span><br><span id="w-humid">--</span> %</div>
-                                <div class="weather-stat"><span data-lucide="cloud-rain"></span><br><span id="w-rain">--</span> mm</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Agri-Action Planner (The section farmers want) -->
                     <div class="card">
-                        <div class="card-title" data-i18n="agri_planner">Agri-Action Planner</div>
-                        <div class="data-list">
-                            <div class="action-card">
-                                <h4 style="margin:0; color:white; font-weight:600;" data-i18n="task_spray">Spraying Conditions</h4>
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
-                                    <span id="spray-text" style="color:var(--text-muted); font-size:0.9rem;">Checking wind...</span>
-                                    <span id="spray-badge" class="status-badge">--</span>
-                                </div>
+                         <div class="card-title" data-i18n="widget_advisory">Advisory Alert</div>
+                         <div class="data-item">
+                            <div class="data-icon"><span data-lucide="bell" style="color:var(--danger)"></span></div>
+                            <div class="data-info">
+                                <h4>Next 24 Hours</h4>
+                                <span id="weatherAlertWidget" style="font-size:0.95rem; color:var(--accent);">Analyzing forecast...</span>
                             </div>
-                            <div class="action-card">
-                                <h4 style="margin:0; color:white; font-weight:600;" data-i18n="task_irrigation">Irrigation</h4>
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
-                                    <span id="irrig-text" style="color:var(--text-muted); font-size:0.9rem;">Checking moisture...</span>
-                                    <span id="irrig-badge" class="status-badge">--</span>
-                                </div>
-                            </div>
-                            <div class="action-card">
-                                <h4 style="margin:0; color:white; font-weight:600;" data-i18n="task_harvest">Harvest Window</h4>
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
-                                    <span id="harvest-text" style="color:var(--text-muted); font-size:0.9rem;">Checking forecast...</span>
-                                    <span id="harvest-badge" class="status-badge">--</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 5 Day Forecast -->
-                <div class="card" style="margin-top:1.5rem;">
-                    <div class="card-title" data-i18n="forecast_5d">5-Day Forecast</div>
-                    <div id="forecast-container" style="display:flex; flex-direction:column;">
-                        <!-- Populated by JS -->
-                        <p style="text-align:center; color:gray;">Loading forecast...</p>
+                         </div>
                     </div>
                 </div>
             </div>
@@ -489,12 +421,12 @@
                 <!-- LIVE PRICES -->
                 <div id="market-supplies" class="tab-content active">
                     <div class="card">
-                        <div class="card-title" data-i18n="market_realtime">Real-Time Market Rates (Mandi/APMC)</div>
+                        <div class="card-title">Real-Time Market Rates (Mandi/APMC)</div>
                         
                         <!-- Market Search -->
                         <div style="position:relative; margin-bottom: 1rem;">
                             <div class="gps-group">
-                                <input type="text" id="marketSearchInput" class="form-input" placeholder="Search District or Market..." style="padding-left:2.5rem;" data-i18n-ph="ph_market_search">
+                                <input type="text" id="marketSearchInput" class="form-input" placeholder="Search District or Market..." style="padding-left:2.5rem;">
                                 <span style="position:absolute; left:10px; top:12px; color:var(--text-muted);"><span data-lucide="search" style="width:18px;"></span></span>
                             </div>
                             <div id="marketSearchResults" class="market-dropdown" style="display:none;"></div>
@@ -509,7 +441,7 @@
 
                         <!-- Results Grid -->
                         <div id="marketPricesGrid" class="market-grid">
-                            <p style="grid-column: 1/-1; text-align:center; color:var(--text-muted); padding:2rem;" data-i18n="market_search_prompt">
+                            <p style="grid-column: 1/-1; text-align:center; color:var(--text-muted); padding:2rem;">
                                 Search for a location to see live prices.
                             </p>
                         </div>
@@ -571,26 +503,26 @@
 
                 <div id="soil-calc" class="tab-content active">
                     <div class="card">
-                        <div class="card-title" data-i18n="soil_enter_lab">Enter Lab Data</div>
+                        <div class="card-title">Enter Lab Data</div>
                         <div class="content-grid" style="gap: 1rem;">
-                            <div class="form-group"><label data-i18n="lbl_nitrogen">N (Nitrogen)</label><input type="number" id="soil-n" class="form-input" placeholder="e.g. 280"></div>
-                            <div class="form-group"><label data-i18n="lbl_phosphorus">P (Phosphorus)</label><input type="number" id="soil-p" class="form-input" placeholder="e.g. 15"></div>
-                            <div class="form-group"><label data-i18n="lbl_potassium">K (Potassium)</label><input type="number" id="soil-k" class="form-input" placeholder="e.g. 150"></div>
-                            <div class="form-group"><label data-i18n="lbl_ph">pH Level</label><input type="number" id="soil-ph" class="form-input" placeholder="e.g. 6.5" step="0.1"></div>
+                            <div class="form-group"><label>N (Nitrogen)</label><input type="number" id="soil-n" class="form-input" placeholder="e.g. 280"></div>
+                            <div class="form-group"><label>P (Phosphorus)</label><input type="number" id="soil-p" class="form-input" placeholder="e.g. 15"></div>
+                            <div class="form-group"><label>K (Potassium)</label><input type="number" id="soil-k" class="form-input" placeholder="e.g. 150"></div>
+                            <div class="form-group"><label>pH Level</label><input type="number" id="soil-ph" class="form-input" placeholder="e.g. 6.5" step="0.1"></div>
                         </div>
-                        <button class="button" id="calcSoilBtn" style="margin-top:1rem;" data-i18n="btn_gen_report">Generate Report</button>
+                        <button class="button" id="calcSoilBtn" style="margin-top:1rem;">Generate Report</button>
                     </div>
                 </div>
 
                 <div id="soil-visual" class="tab-content">
                     <div class="card">
-                        <div class="card-title" data-i18n="soil_visual_analysis">Visual Soil Analysis</div>
+                        <div class="card-title">Visual Soil Analysis</div>
                         <div style="text-align:center; padding:1rem;">
                             <div id="soilImagePreview" style="height:200px; background:rgba(0,0,0,0.3); border-radius:12px; margin-bottom:1rem; display:flex; align-items:center; justify-content:center;">
                                 <span data-lucide="image" style="width:48px; height:48px; opacity:0.5;"></span>
                             </div>
                             <input type="file" id="soilImageUpload" class="form-input" accept="image/*">
-                            <button class="button" id="analyzeSoilImgBtn" style="margin-top:1rem;" disabled data-i18n="btn_analyze">Analyze</button>
+                            <button class="button" id="analyzeSoilImgBtn" style="margin-top:1rem;" disabled>Analyze</button>
                         </div>
                         <div id="soilVisualResult" style="margin-top:1rem; display:none; padding:1rem; background:rgba(16,185,129,0.1); border-radius:10px;"></div>
                     </div>
@@ -599,7 +531,7 @@
                 <div id="soil-history" class="tab-content">
                     <div class="card">
                          <div class="data-list" id="soilHistoryList">
-                             <p style="text-align:center; color:var(--text-muted);" data-i18n="txt_no_tests">No past tests.</p>
+                             <p style="text-align:center; color:var(--text-muted);">No past tests.</p>
                          </div>
                     </div>
                 </div>
@@ -624,7 +556,7 @@
                 </div>
             </div>
 
-            <!-- COMMUNITY -->
+            <!-- COMMUNITY (Updated with Equipment) -->
             <div id="page-community" class="app-page">
                 <h2 class="page-title" data-i18n="title_comm">Community</h2>
                 <div class="tab-nav">
@@ -653,7 +585,7 @@
 
                 <div id="comm-news" class="tab-content">
                     <div class="card">
-                        <p style="text-align:center; color:var(--text-muted);" data-i18n="txt_no_news">Local agricultural news & events will appear here.</p>
+                        <p style="text-align:center; color:var(--text-muted);">Local agricultural news & events will appear here.</p>
                     </div>
                 </div>
             </div>
@@ -662,10 +594,10 @@
             <div id="page-settings" class="app-page">
                 <h2 class="page-title" data-i18n="title_settings">Settings</h2>
                 <div class="card">
-                      <div class="card-title" data-i18n="settings_profile">Profile</div>
+                      <div class="card-title">Profile</div>
                       <div class="form-space">
-                          <input type="text" id="setting-name" class="form-input" placeholder="Name" data-i18n-ph="ph_name">
-                          <button class="button" id="saveProfileBtn" style="margin-top:1rem;" data-i18n="btn_save">Save</button>
+                          <input type="text" id="setting-name" class="form-input" placeholder="Name">
+                          <button class="button" id="saveProfileBtn" style="margin-top:1rem;">Save</button>
                       </div>
                 </div>
             </div>
@@ -674,7 +606,7 @@
 
         <nav class="bottom-nav">
             <div class="b-nav-item active" onclick="nav('dashboard')"><span data-lucide="layout-dashboard"></span> <span data-i18n="nav_dash">Home</span></div>
-            <div class="b-nav-item" onclick="nav('weather')"><span data-lucide="cloud-sun"></span> <span data-i18n="nav_weather">Weather</span></div>
+            <div class="b-nav-item" onclick="nav('soil')"><span data-lucide="flask-conical"></span> <span data-i18n="nav_soil">Soil</span></div>
             <div class="b-nav-item" onclick="nav('ai-tools')"><span data-lucide="brain-circuit"></span> <span data-i18n="nav_ai">AI</span></div>
             <div class="b-nav-item" onclick="nav('market')"><span data-lucide="shopping-cart"></span> <span data-i18n="nav_market">Market</span></div>
             <div class="b-nav-item" onclick="nav('community')"><span data-lucide="map"></span> <span data-i18n="nav_comm">Map</span></div>
@@ -689,7 +621,7 @@
     <div id="listProduceModal" class="modal-overlay"><div class="modal-box"><div class="modal-head"><h3 data-i18n="modal_list">Sell Produce</h3><button class="close-modal-btn" onclick="closeModal('listProduceModal')"><span data-lucide="x"></span></button></div><div class="modal-body form-space"><input type="text" id="produce-name" class="form-input" placeholder="Crop Name" data-i18n-ph="ph_produce_name"><input type="text" id="produce-price" class="form-input" placeholder="Price" data-i18n-ph="ph_price"><button class="button" id="saveProduceBtn" data-i18n="btn_list">List</button></div></div></div>
     <div id="transportModal" class="modal-overlay"><div class="modal-box"><div class="modal-head"><h3 data-i18n="modal_trans">Add Transport</h3><button class="close-modal-btn" onclick="closeModal('transportModal')"><span data-lucide="x"></span></button></div><div class="modal-body form-space"><input type="text" id="trans-vehicle" class="form-input" placeholder="Vehicle No" data-i18n-ph="ph_vehicle"><button class="button" id="saveTransportBtn" data-i18n="btn_update">Update</button></div></div></div>
     <div id="receiverModal" class="modal-overlay"><div class="modal-box"><div class="modal-head"><h3 data-i18n="modal_recv">Receipt</h3><button class="close-modal-btn" onclick="closeModal('receiverModal')"><span data-lucide="x"></span></button></div><div class="modal-body form-space"><input type="text" id="recv-name" class="form-input" placeholder="Buyer Name" data-i18n-ph="ph_buyer"><button class="button" id="saveReceiverBtn" data-i18n="btn_update">Update</button></div></div></div>
-    <div id="soilReportModal" class="modal-overlay"><div class="modal-box"><div class="modal-head"><h3 data-i18n="soil_report_title">Soil Report</h3><button class="close-modal-btn" onclick="closeModal('soilReportModal')"><span data-lucide="x"></span></button></div><div id="soilReportContent" class="modal-body"></div></div></div>
+    <div id="soilReportModal" class="modal-overlay"><div class="modal-box"><div class="modal-head"><h3>Soil Report</h3><button class="close-modal-btn" onclick="closeModal('soilReportModal')"><span data-lucide="x"></span></button></div><div id="soilReportContent" class="modal-body"></div></div></div>
 
     <script type="module">
         // --- CONFIG ---
@@ -706,222 +638,55 @@
         let curLang = 'en';
         let marketState = { loc: {state:'', district:''}, cat: 'All' };
         let pestImgFile = null;
-        // New: Store raw weather data for re-rendering on language change
-        window.lastWeatherData = null;
 
-        // --- EXTENDED TRANSLATIONS ---
+        // --- TRANSLATIONS (Partial for Demo, Extensible) ---
         const translations = {
-            en: { 
-                nav_dash: "Dashboard", nav_weather: "Weather", nav_soil: "Soil", nav_ai: "AI Tools", nav_market: "Market", nav_comm: "Community", nav_set: "Settings",
-                title_dash: "Farm Dashboard", card_controls: "Farm Controls", lbl_location: "Location", lbl_crop: "Crop", lbl_issue: "Issue", btn_advice: "Get Advisory",
-                card_live: "Live Field Status", data_weather: "Weather", next_24h: "Next 24 Hours", btn_full_weather: "See Full Details",
-                title_log: "Logbook", btn_add: "New Entry", txt_no_entries: "No recent activity.",
-                title_ai: "AI Tools", tool_pest: "Pest Doctor", btn_scan: "Start Scan", tool_chat: "FarmChat", btn_chat: "Chat Now",
-                title_market: "Marketplace", btn_list_produce: "List Item", txt_no_listings: "No listings.",
-                title_comm: "Community", tab_forum: "Forum", tab_equip: "Equipment", tab_news: "News",
-                title_settings: "Settings", settings_profile: "Profile", btn_save: "Save",
-                title_soil: "Soil Testing Center", tab_calc: "Calculator", tab_visual: "Visual", tab_history: "History",
-                tab_supplies: "Live Prices", tab_produce: "My Produce", tab_trace: "Agri-Trace",
-                opt_rice: "Rice", opt_wheat: "Wheat", opt_cotton: "Cotton", opt_tomato: "Tomato", opt_potato: "Potato", opt_onion: "Onion",
-                opt_irrigation: "Irrigation", opt_fert: "Fertilizer", opt_harvest: "Harvest",
-                modal_advisory: "Advisory", modal_chat: "FarmChat", modal_log: "New Log", modal_pest: "Pest Doctor", modal_list: "Sell Produce",
-                btn_list: "List", btn_post: "Post", btn_gen_report: "Generate Report", btn_analyze: "Analyze",
-                ph_issue: "e.g. Yellow spots", ph_chat: "Type...", ph_log_notes: "Notes...", ph_produce_name: "Crop Name", ph_price: "Price", ph_share_tip: "Share a tip...", ph_name: "Name",
-                widget_price: "Market Price", widget_advisory: "Advisory Alert",
-                trace_start_title: "Batch Tracking", trace_start_desc: "Create verifiable identity", btn_gen_qr: "Create New Batch", trace_qr_title: "Batch QR", btn_sim_scan: "Simulate Scan", trace_ledger_title: "Ledger", btn_view_qr: "View QR", btn_add_trans: "Add Transport", btn_add_recv: "Add Receipt",
-                modal_trans: "Add Transport", modal_recv: "Receipt", btn_update: "Update", ph_vehicle: "Vehicle No", ph_buyer: "Buyer Name",
-                soil_enter_lab: "Enter Lab Data", lbl_nitrogen: "N (Nitrogen)", lbl_phosphorus: "P (Phosphorus)", lbl_potassium: "K (Potassium)", lbl_ph: "pH Level",
-                soil_visual_analysis: "Visual Soil Analysis", txt_no_tests: "No past tests.", soil_report_title: "Soil Report",
-                market_realtime: "Real-Time Market Rates", ph_market_search: "Search District or Market...", market_search_prompt: "Search for a location to see live prices.", updated: "Updated",
-                txt_no_news: "Local agricultural news & events will appear here.",
-                agri_planner: "Agri-Action Planner", task_spray: "Spraying Conditions", task_irrigation: "Irrigation", task_harvest: "Harvest Window", forecast_5d: "5-Day Forecast",
-                // Dynamic Content Keys
-                cond_0: "Clear Sky", cond_1: "Mainly Clear", cond_2: "Partly Cloudy", cond_3: "Overcast", cond_45: "Fog", cond_51: "Drizzle", cond_61: "Rain", cond_80: "Showers", cond_95: "Thunderstorm",
-                act_good: "GOOD", act_avoid: "AVOID", act_plan: "PLAN", act_skip: "SKIP", act_go: "GO", act_wait: "WAIT",
-                msg_spray_safe: "Low wind, no rain.", msg_spray_risk: "High wind/rain risk.",
-                msg_dry_forecast: "Dry forecast", msg_rain_expected: "Rain expected",
-                msg_harvest_dry: "Dry window ahead.", msg_harvest_wet: "Wet window ahead.",
-                cat_all: "All", cat_cereals: "Cereals", cat_pulses: "Pulses", cat_vegetables: "Vegetables", cat_fruits: "Fruits", cat_commercial: "Commercial"
+            en: { nav_dash: "Dashboard", nav_log: "Logbook", nav_ai: "AI Tools", nav_market: "Market", nav_comm: "Community", nav_set: "Settings", nav_soil: "Soil",
+                  title_dash: "Farm Dashboard", card_controls: "Farm Controls", lbl_location: "Location", lbl_crop: "Crop", lbl_issue: "Issue", btn_advice: "Get Advisory",
+                  card_live: "Live Data", data_weather: "Weather", data_soil: "Moisture", data_temp: "Soil Temp",
+                  title_log: "Logbook", btn_add: "New Entry", txt_no_entries: "No entries.",
+                  title_ai: "AI Tools", tool_pest: "Pest Doctor", desc_pest: "Scan crop for diagnosis", btn_scan: "Scan", tool_chat: "FarmChat", desc_chat: "Ask AI", btn_chat: "Chat",
+                  title_market: "Marketplace", btn_list_produce: "List Item", txt_no_listings: "No listings.",
+                  title_comm: "Community", title_settings: "Settings", lbl_name: "Name", btn_save_profile: "Save",
+                  title_soil: "Soil Center", tab_calc: "Calculator", tab_visual: "Visual", tab_supplies: "Live Prices", tab_produce: "My Produce", tab_trace: "Agri-Trace", tab_history: "History",
+                  opt_rice: "Rice", opt_wheat: "Wheat", opt_cotton: "Cotton", opt_irrigation: "Irrigation", opt_fert: "Fertilizer", opt_harvest: "Harvest",
+                  modal_advisory: "Advisory", modal_chat: "FarmChat", modal_log: "Log", modal_pest: "Pest Doctor", modal_list: "Sell",
+                  btn_save: "Save", btn_list: "List", btn_post: "Post",
+                  ph_issue: "e.g. Yellow spots", ph_chat: "Type...", ph_log_notes: "Notes...", ph_produce_name: "Crop", ph_price: "Price", ph_share_tip: "Tip...",
+                  widget_price: "Market Price", widget_advisory: "Advisory",
+                  trace_start_title: "Batch Tracking", trace_start_desc: "Create verifiable identity", btn_gen_qr: "Create New Batch", trace_qr_title: "Batch QR", btn_sim_scan: "Simulate Scan", trace_ledger_title: "Ledger", btn_view_qr: "View QR", btn_add_trans: "Add Transport", btn_add_recv: "Add Receipt", btn_close: "Close & Reset",
+                  modal_trans: "Transport", modal_recv: "Receipt", btn_update: "Update", ph_vehicle: "Vehicle No", ph_buyer: "Buyer",
+                  tab_equip: "Equipment", tab_news: "News"
             },
-            hi: {
-                nav_dash: "डैशबोर्ड", nav_weather: "मौसम", nav_soil: "मिट्टी", nav_ai: "एआई टूल्स", nav_market: "बाज़ार", nav_comm: "समुदाय", nav_set: "सेटिंग्स",
-                title_dash: "फार्म डैशबोर्ड", card_controls: "खेत नियंत्रण", lbl_location: "स्थान", lbl_crop: "फसल", lbl_issue: "समस्या", btn_advice: "सलाह लें",
-                card_live: "लाइव स्थिति", data_weather: "मौसम", next_24h: "अगले 24 घंटे", btn_full_weather: "पूरा विवरण देखें",
-                title_log: "लॉगबुक", btn_add: "नई प्रविष्टि", txt_no_entries: "कोई गतिविधि नहीं।",
-                title_ai: "एआई टूल्स", tool_pest: "कीट डॉक्टर", btn_scan: "स्कैन करें", tool_chat: "फार्म चैट", btn_chat: "चैट करें",
-                title_market: "बाज़ार", btn_list_produce: "बेचें", txt_no_listings: "कोई लिस्टिंग नहीं।",
-                title_comm: "समुदाय", tab_forum: "मंच", tab_equip: "उपकरण", tab_news: "समाचार",
-                title_settings: "सेटिंग्स", settings_profile: "प्रोफाइल", btn_save: "सहेजें",
-                title_soil: "मिट्टी परीक्षण केंद्र", tab_calc: "कैलक्यूलेटर", tab_visual: "दृश्य", tab_history: "इतिहास",
-                tab_supplies: "लाइव भाव", tab_produce: "मेरी उपज", tab_trace: "एग्री-ट्रेस",
-                opt_rice: "चावल", opt_wheat: "गेहूं", opt_cotton: "कपास", opt_tomato: "टमाटर", opt_potato: "आलू", opt_onion: "प्याज़",
-                opt_irrigation: "सिंचाई", opt_fert: "उर्वरक", opt_harvest: "कटाई",
-                modal_advisory: "सलाह", modal_chat: "फार्म चैट", modal_log: "नया लॉग", modal_pest: "कीट डॉक्टर", modal_list: "उपज बेचें",
-                btn_list: "सूचीबद्ध करें", btn_post: "पोस्ट", btn_gen_report: "रिपोर्ट बनाएं", btn_analyze: "विश्लेषण",
-                ph_issue: "उदा. पीला धब्बा", ph_chat: "लिखें...", ph_log_notes: "नोट्स...", ph_produce_name: "फसल का नाम", ph_price: "कीमत", ph_share_tip: "सुझाव साझा करें...", ph_name: "नाम",
-                widget_price: "बाज़ार भाव", widget_advisory: "सलाह चेतावनी",
-                trace_start_title: "बैच ट्रैकिंग", trace_start_desc: "फसल पहचान बनाएं", btn_gen_qr: "नया बैच बनाएं", trace_qr_title: "बैच क्यूआर", btn_sim_scan: "स्कैन अनुकरण", trace_ledger_title: "लेखा बही", btn_view_qr: "क्यूआर देखें", btn_add_trans: "परिवहन जोड़ें", btn_add_recv: "रसीद जोड़ें",
-                modal_trans: "परिवहन", modal_recv: "रसीद", btn_update: "अपडेट", ph_vehicle: "गाड़ी नंबर", ph_buyer: "खरीदार का नाम",
-                soil_enter_lab: "लैब डेटा दर्ज करें", lbl_nitrogen: "नाइट्रोजन (N)", lbl_phosphorus: "फास्फोरस (P)", lbl_potassium: "पोटेशियम (K)", lbl_ph: "pH स्तर",
-                soil_visual_analysis: "दृश्य मिट्टी विश्लेषण", txt_no_tests: "कोई पिछला परीक्षण नहीं।", soil_report_title: "मिट्टी रिपोर्ट",
-                market_realtime: "रीयल-टाइम मंडी दरें", ph_market_search: "जिला या मंडी खोजें...", market_search_prompt: "कीमतें देखने के लिए स्थान खोजें।", updated: "अपडेट किया गया",
-                txt_no_news: "स्थानीय कृषि समाचार यहां दिखाई देंगे।",
-                agri_planner: "कृषि कार्य योजना", task_spray: "छिड़काव की स्थिति", task_irrigation: "सिंचाई", task_harvest: "कटाई का समय", forecast_5d: "5-दिन का पूर्वानुमान",
-                cond_0: "साफ आसमान", cond_1: "मुख्य रूप से साफ", cond_2: "आंशिक रूप से बादल", cond_3: "बादल छाए रहेंगे", cond_45: "कोहरा", cond_51: "बूंदा बांदी", cond_61: "बारिश", cond_80: "बौछारें", cond_95: "आंधी",
-                act_good: "अच्छा", act_avoid: "बचें", act_plan: "योजना बनाएं", act_skip: "छोड़ें", act_go: "जाएं", act_wait: "रुकें",
-                msg_spray_safe: "हवा कम, बारिश नहीं।", msg_spray_risk: "तेज हवा/बारिश का जोखिम।",
-                msg_dry_forecast: "सूखा पूर्वानुमान", msg_rain_expected: "बारिश की उम्मीद",
-                msg_harvest_dry: "सूखा मौसम आगे है।", msg_harvest_wet: "गीला मौसम आगे है।",
-                cat_all: "सभी", cat_cereals: "अनाज", cat_pulses: "दालें", cat_vegetables: "सब्जियां", cat_fruits: "फल", cat_commercial: "वाणिज्यिक"
-            },
-            kn: {
-                nav_dash: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್", nav_weather: "ಹವಾಮಾನ", nav_soil: "ಮಣ್ಣು", nav_ai: "AI ಪರಿಕರಗಳು", nav_market: "ಮಾರುಕಟ್ಟೆ", nav_comm: "ಸಮುದಾಯ", nav_set: "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
-                title_dash: "ಫಾರ್ಮ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್", card_controls: "ನಿಯಂತ್ರಣಗಳು", lbl_location: "ಸ್ಥಳ", lbl_crop: "ಬೆಳೆ", lbl_issue: "ಸಮಸ್ಯೆ", btn_advice: "ಸಲಹೆ ಪಡೆಯಿರಿ",
-                card_live: "ನೇರ ಕ್ಷೇತ್ರ ಸ್ಥಿತಿ", data_weather: "ಹವಾಮಾನ", next_24h: "ಮುಂದಿನ 24 ಗಂಟೆ", btn_full_weather: "ಪೂರ್ಣ ವಿವರಗಳು",
-                title_log: "ಲಾಗ್‌ಬುಕ್", btn_add: "ಹೊಸ ನಮೂದು", txt_no_entries: "ಯಾವುದೇ ಚಟುವಟಿಕೆ ಇಲ್ಲ.",
-                title_ai: "AI ಪರಿಕರಗಳು", tool_pest: "ಕೀಟ ವೈದ್ಯ", btn_scan: "ಸ್ಕ್ಯಾನ್ ಮಾಡಿ", tool_chat: "ಫಾರ್ಮ್‌ಚಾಟ್", btn_chat: "ಚಾಟ್ ಮಾಡಿ",
-                title_market: "ಮಾರುಕಟ್ಟೆ", btn_list_produce: "ಮಾರಾಟ ಮಾಡಿ", txt_no_listings: "ಪಟ್ಟಿಗಳಿಲ್ಲ.",
-                title_comm: "ಸಮುದಾಯ", tab_forum: "ವೇದಿಕೆ", tab_equip: "ಉಪಕರಣ", tab_news: "ಸುದ್ದಿ",
-                title_settings: "ಸೆಟ್ಟಿಂಗ್‌ಗಳು", settings_profile: "ಪ್ರೊಫೈಲ್", btn_save: "ಉಳಿಸಿ",
-                title_soil: "ಮಣ್ಣು ಪರೀಕ್ಷಾ ಕೇಂದ್ರ", tab_calc: "ಕ್ಯಾಲ್ಕುಲೇಟರ್", tab_visual: "ದೃಶ್ಯ", tab_history: "ಇತಿಹಾಸ",
-                tab_supplies: "ದರಗಳು", tab_produce: "ನನ್ನ ಬೆಳೆ", tab_trace: "ಅಗ್ರಿ-ಟ್ರೇಸ್",
-                opt_rice: "ಅಕ್ಕಿ", opt_wheat: "ಗೋಧಿ", opt_cotton: "ಹತ್ತಿ", opt_tomato: "ಟೊಮ್ಯಾಟೊ", opt_potato: "ಆಲೂಗಡ್ಡೆ", opt_onion: "ಈರುಳ್ಳಿ",
-                opt_irrigation: "ನೀರಾವರಿ", opt_fert: "ಗೊಬ್ಬರ", opt_harvest: "ಕೊಯ್ಲು",
-                modal_advisory: "ಸಲಹೆ", modal_chat: "ಚಾಟ್", modal_log: "ಲಾಗ್", modal_pest: "ಕೀಟ ವೈದ್ಯ", modal_list: "ಮಾರಾಟ",
-                btn_list: "ಪಟ್ಟಿ ಮಾಡಿ", btn_post: "ಪೋಸ್ಟ್", btn_gen_report: "ವರದಿ ರಚಿಸಿ", btn_analyze: "ವಿಶ್ಲೇಷಿಸಿ",
-                ph_issue: "ಉದಾ. ಹಳದಿ ಚುಕ್ಕೆ", ph_chat: "ಬರೆಯಿರಿ...", ph_log_notes: "ಟಿಪ್ಪಣಿಗಳು...", ph_produce_name: "ಬೆಳೆ ಹೆಸರು", ph_price: "ಬೆಲೆ", ph_share_tip: "ಸಲಹೆ ಹಂಚಿಕೊಳ್ಳಿ...", ph_name: "ಹೆಸರು",
-                widget_price: "ಮಾರುಕಟ್ಟೆ ಬೆಲೆ", widget_advisory: "ಎಚ್ಚರಿಕೆ",
-                trace_start_title: "ಬ್ಯಾಚ್ ಟ್ರ್ಯಾಕಿಂಗ್", trace_start_desc: "ಗುರುತನ್ನು ರಚಿಸಿ", btn_gen_qr: "ಹೊಸ ಬ್ಯಾಚ್", trace_qr_title: "QR ಕೋಡ್", btn_sim_scan: "ಸ್ಕ್ಯಾನ್", trace_ledger_title: "ಲೆಡ್ಜರ್", btn_view_qr: "QR ವೀಕ್ಷಿಸಿ", btn_add_trans: "ಸಾರಿಗೆ ಸೇರಿಸಿ", btn_add_recv: "ರಶೀದಿ ಸೇರಿಸಿ",
-                modal_trans: "ಸಾರಿಗೆ", modal_recv: "ರಶೀದಿ", btn_update: "ನವೀಕರಿಸಿ", ph_vehicle: "ವಾಹನ ಸಂಖ್ಯೆ", ph_buyer: "ಖರೀದಿದಾರ",
-                soil_enter_lab: "ಲ್ಯಾಬ್ ಡೇಟಾ", lbl_nitrogen: "ಸಾರಜನಕ (N)", lbl_phosphorus: "ರಂಜಕ (P)", lbl_potassium: "ಪೊಟ್ಯಾಸಿಯಮ್ (K)", lbl_ph: "pH ಮಟ್ಟ",
-                soil_visual_analysis: "ಮಣ್ಣಿನ ದೃಶ್ಯ ವಿಶ್ಲೇಷಣೆ", txt_no_tests: "ಹಿಂದಿನ ಪರೀಕ್ಷೆಗಳಿಲ್ಲ.", soil_report_title: "ಮಣ್ಣಿನ ವರದಿ",
-                market_realtime: "ನೈಜ ಸಮಯದ ದರಗಳು", ph_market_search: "ಜಿಲ್ಲೆ ಅಥವಾ ಮಂಡಿ ಹುಡುಕಿ...", market_search_prompt: "ಬೆಲೆಗಳನ್ನು ನೋಡಲು ಹುಡುಕಿ.", updated: "ನವೀಕರಿಸಲಾಗಿದೆ",
-                txt_no_news: "ಸ್ಥಳೀಯ ಕೃಷಿ ಸುದ್ದಿಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.",
-                agri_planner: "ಕೃಷಿ ಯೋಜನೆ", task_spray: "ಸಿಂಪಡಣೆ ಸ್ಥಿತಿ", task_irrigation: "ನೀರಾವರಿ", task_harvest: "ಕೊಯ್ಲು ಸಮಯ", forecast_5d: "5 ದಿನದ ಮುನ್ಸೂಚನೆ",
-                cond_0: "ಸ್ವಚ್ಛ ಆಕಾಶ", cond_1: "ಮುಖ್ಯವಾಗಿ ಸ್ವಚ್ಛ", cond_2: "ಭಾಗಶಃ ಮೋಡ", cond_3: "ಮೋಡ ಕವಿದಿದೆ", cond_45: "ಮಂಜು", cond_51: "ಹನಿ ಮಳೆ", cond_61: "ಮಳೆ", cond_80: "ಜೋರು ಮಳೆ", cond_95: "ಗುಡುಗು ಸಹಿತ ಮಳೆ",
-                act_good: "ಉತ್ತಮ", act_avoid: "ತಪ್ಪಿಸಿ", act_plan: "ಯೋಜಿಸಿ", act_skip: "ಬಿಟ್ಟುಬಿಡಿ", act_go: "ಮುಂದುವರಿಯಿರಿ", act_wait: "ಕಾಯಿರಿ",
-                msg_spray_safe: "ಕಡಿಮೆ ಗಾಳಿ, ಮಳೆ ಇಲ್ಲ.", msg_spray_risk: "ಹೆಚ್ಚು ಗಾಳಿ/ಮಳೆ ಅಪಾಯ.",
-                msg_dry_forecast: "ಒಣ ಹವಾಮಾನ", msg_rain_expected: "ಮಳೆ ನಿರೀಕ್ಷೆಯಿದೆ",
-                msg_harvest_dry: "ಒಣ ಹವಾಮಾನವಿದೆ.", msg_harvest_wet: "ಮಳೆ ಬರುವ ಸಾಧ್ಯತೆಯಿದೆ.",
-                cat_all: "ಎಲ್ಲಾ", cat_cereals: "ಧಾನ್ಯಗಳು", cat_pulses: "ಬೇಳೆಕಾಳುಗಳು", cat_vegetables: "ತರಕಾರಿಗಳು", cat_fruits: "ಹಣ್ಣುಗಳು", cat_commercial: "ವಾಣಿಜ್ಯ"
-            },
-            ta: {
-                nav_dash: "முகப்பு", nav_weather: "வானிலை", nav_soil: "மண்", nav_ai: "AI கருவிகள்", nav_market: "சந்தை", nav_comm: "சமூகம்", nav_set: "அமைப்புகள்",
-                title_dash: "பண்ணை முகப்பு", card_controls: "கட்டுப்பாடுகள்", lbl_location: "இடம்", lbl_crop: "பயிர்", lbl_issue: "பிரச்சனை", btn_advice: "ஆலோசனை பெறு",
-                card_live: "நேரடி நிலை", data_weather: "வானிலை", next_24h: "அடுத்த 24 மணி", btn_full_weather: "முழு விவரம்",
-                title_log: "பதிவேடு", btn_add: "புதிய பதிவு", txt_no_entries: "பதிவுகள் இல்லை.",
-                title_ai: "AI கருவிகள்", tool_pest: "பூச்சி மருத்துவர்", btn_scan: "ஸ்கேன்", tool_chat: "பண்ணை அரட்டை", btn_chat: "பேசுக",
-                title_market: "சந்தை", btn_list_produce: "விற்க", txt_no_listings: "பட்டியல் இல்லை.",
-                title_comm: "சமூகம்", tab_forum: "மன்றம்", tab_equip: "கருவிகள்", tab_news: "செய்திகள்",
-                title_settings: "அமைப்புகள்", settings_profile: "சுயவிவரம்", btn_save: "சேமி",
-                title_soil: "மண் பரிசோதனை", tab_calc: "கணக்கிடு", tab_visual: "பார்வை", tab_history: "வரலாறு",
-                tab_supplies: "விலைகள்", tab_produce: "என் விளைச்சல்", tab_trace: "தடமறிதல்",
-                opt_rice: "அரிசி", opt_wheat: "கோதுமை", opt_cotton: "பருத்தி", opt_tomato: "தக்காளி", opt_potato: "உருளை", opt_onion: "வெங்காயம்",
-                opt_irrigation: "நீர்ப்பாசனம்", opt_fert: "உரம்", opt_harvest: "அறுவடை",
-                modal_advisory: "ஆலோசனை", modal_chat: "அரட்டை", modal_log: "பதிவு", modal_pest: "பூச்சி ஆய்வு", modal_list: "விற்க",
-                btn_list: "பட்டியலிடு", btn_post: "பதிவிடு", btn_gen_report: "அறிக்கை", btn_analyze: "ஆய்வு",
-                ph_issue: "எ.கா. மஞ்சள் புள்ளி", ph_chat: "தட்டச்சு செய்யவும்...", ph_log_notes: "குறிப்புகள்...", ph_produce_name: "பயிர் பெயர்", ph_price: "விலை", ph_share_tip: "குறிப்பு பகிரவும்...", ph_name: "பெயர்",
-                widget_price: "சந்தை விலை", widget_advisory: "எச்சரிக்கை",
-                trace_start_title: "தொகுதி தடம்", trace_start_desc: "அடையாளம் உருவாக்கு", btn_gen_qr: "புதிய QR", trace_qr_title: "QR குறியீடு", btn_sim_scan: "ஸ்கேன்", trace_ledger_title: "பதிவேடு", btn_view_qr: "QR பார்", btn_add_trans: "போக்குவரத்து", btn_add_recv: "ரசீது",
-                modal_trans: "போக்குவரத்து", modal_recv: "ரசீது", btn_update: "புதுப்பி", ph_vehicle: "வண்டி எண்", ph_buyer: "வாங்குபவர்",
-                soil_enter_lab: "ஆய்வக தரவு", lbl_nitrogen: "நைட்ரஜன் (N)", lbl_phosphorus: "பாஸ்பரஸ் (P)", lbl_potassium: "பொட்டாசியம் (K)", lbl_ph: "pH அளவு",
-                soil_visual_analysis: "மண் காட்சி ஆய்வு", txt_no_tests: "முந்தைய சோதனைகள் இல்லை.", soil_report_title: "மண் அறிக்கை",
-                market_realtime: "நேரடி சந்தை விலை", ph_market_search: "மாவட்டம் தேடு...", market_search_prompt: "விலை காண தேடவும்.", updated: "புதுப்பிக்கப்பட்டது",
-                txt_no_news: "செய்திகள் இங்கே தோன்றும்.",
-                agri_planner: "விவசாய திட்டம்", task_spray: "மருந்து தெளிப்பு", task_irrigation: "நீர்ப்பாசனம்", task_harvest: "அறுவடை நேரம்", forecast_5d: "5 நாள் முன்னறிவிப்பு",
-                cond_0: "தெளிவான வானம்", cond_1: "முக்கியமாக தெளிவானது", cond_2: "பகுதி மேகமூட்டம்", cond_3: "மேகமூட்டம்", cond_45: "மூடுபனி", cond_51: "தூறல்", cond_61: "மழை", cond_80: "கனமழை", cond_95: "இடியுடன் கூடிய மழை",
-                act_good: "நல்லது", act_avoid: "தவிர்", act_plan: "திட்டமிடு", act_skip: "தவிர்", act_go: "செல்", act_wait: "காத்திரு",
-                msg_spray_safe: "குறைந்த காற்று, மழை இல்லை.", msg_spray_risk: "அதிக காற்று/மழை ஆபத்து.",
-                msg_dry_forecast: "வறண்ட வானிலை", msg_rain_expected: "மழை எதிர்பார்க்கப்படுகிறது",
-                msg_harvest_dry: "வறண்ட காலம்.", msg_harvest_wet: "மழை காலம்."
-            },
-            te: {
-                nav_dash: "డ్యాష్‌బోర్డ్", nav_weather: "వాతావరణం", nav_soil: "నేల", nav_ai: "AI సాధనాలు", nav_market: "మార్కెట్", nav_comm: "సంఘం", nav_set: "సెట్టింగ్‌లు",
-                title_dash: "ఫార్మ్ డ్యాష్‌బోర్డ్", card_controls: "నియంత్రణలు", lbl_location: "స్థానం", lbl_crop: "పంట", lbl_issue: "సమస్య", btn_advice: "సలహా పొందండి",
-                card_live: "లైవ్ స్థితి", data_weather: "వాతావరణం", next_24h: "తదుపరి 24 గంటలు", btn_full_weather: "పూర్తి వివరాలు",
-                title_log: "లాగ్‌బుక్", btn_add: "కొత్త ఎంట్రీ", txt_no_entries: "కార్యకలాపాలు లేవు.",
-                title_ai: "AI సాధనాలు", tool_pest: "చీడ డాక్టర్", btn_scan: "స్కాన్ చేయండి", tool_chat: "ఫార్మ్‌చాట్", btn_chat: "చాట్ చేయండి",
-                title_market: "మార్కెట్", btn_list_produce: "అమ్మండి", txt_no_listings: "జాబితాలు లేవు.",
-                title_comm: "సంఘం", tab_forum: "ఫోరమ్", tab_equip: "పరికరాలు", tab_news: "వార్తలు",
-                title_settings: "సెట్టింగ్‌లు", settings_profile: "ప్రొఫైల్", btn_save: "సేవ్ చేయండి",
-                title_soil: "నేల పరీక్ష కేంద్రం", tab_calc: "కాలిక్యులేటర్", tab_visual: "దృశ్య", tab_history: "చరిత్ర",
-                tab_supplies: "ధరలు", tab_produce: "నా పంట", tab_trace: "అగ్రి-ట్రేస్",
-                opt_rice: "వరి", opt_wheat: "గోధుమ", opt_cotton: "పత్తి", opt_tomato: "టమోటా", opt_potato: "బంగాళాదుంప", opt_onion: "ఉల్లిపాయ",
-                opt_irrigation: "నీటిపారుదల", opt_fert: "ఎరువులు", opt_harvest: "కోత",
-                modal_advisory: "సలహా", modal_chat: "చాట్", modal_log: "లాగ్", modal_pest: "చీడ డాక్టర్", modal_list: "అమ్మకం",
-                btn_list: "జాబితా", btn_post: "పోస్ట్", btn_gen_report: "నివేదిక", btn_analyze: "విశ్లేషణ",
-                ph_issue: "ఉదా. పసుపు మచ్చ", ph_chat: "టైప్ చేయండి...", ph_log_notes: "గమనికలు...", ph_produce_name: "పంట పేరు", ph_price: "ధర", ph_share_tip: "చిట్కా...", ph_name: "పేరు",
-                widget_price: "మార్కెట్ ధర", widget_advisory: "హెచ్చరిక",
-                trace_start_title: "బ్యాచ్ ట్రాకింగ్", trace_start_desc: "గుర్తింపు సృష్టించు", btn_gen_qr: "కొత్త QR", trace_qr_title: "QR కోడ్", btn_sim_scan: "స్కాన్", trace_ledger_title: "లెడ్జర్", btn_view_qr: "QR చూడండి", btn_add_trans: "రవాణా", btn_add_recv: "రశీదు",
-                modal_trans: "రవాణా", modal_recv: "రశీదు", btn_update: "నవీకరించు", ph_vehicle: "వాహనం నం", ph_buyer: "కొనుగోలుదారు",
-                soil_enter_lab: "ల్యాబ్ డేటా", lbl_nitrogen: "నత్రజని (N)", lbl_phosphorus: "భాస్వరం (P)", lbl_potassium: "పొటాషియం (K)", lbl_ph: "pH స్థాయి",
-                soil_visual_analysis: "నేల దృశ్య విశ్లేషణ", txt_no_tests: "పరీక్షలు లేవు.", soil_report_title: "నేల నివేదిక",
-                market_realtime: "నిజ-సమయ ధరలు", ph_market_search: "జిల్లా/మండీ వెతకండి...", market_search_prompt: "ధరలు చూడటానికి వెతకండి.", updated: "నవీకరించబడింది",
-                txt_no_news: "వార్తలు ఇక్కడ కనిపిస్తాయి.",
-                agri_planner: "వ్యవసాయ ప్రణాళిక", task_spray: "స్ప్రేయింగ్", task_irrigation: "నీటిపారుదల", task_harvest: "కోత సమయం", forecast_5d: "5 రోజుల సూచన",
-                cond_0: "నిర్మలమైన ఆకాశం", cond_1: "ప్రధానంగా నిర్మలమైన", cond_2: "పాక్షికంగా మేఘావృతం", cond_3: "మేఘావృతం", cond_45: "పొగమంచు", cond_51: "చినుకులు", cond_61: "వర్షం", cond_80: "జల్లులు", cond_95: "ఉరుములతో కూడిన వర్షం",
-                act_good: "మంచిది", act_avoid: "నివారించండి", act_plan: "ప్రణాళిక", act_skip: "వద్దు", act_go: "వెళ్లండి", act_wait: "వేచి ఉండండి",
-                msg_spray_safe: "తక్కువ గాలి, వర్షం లేదు.", msg_spray_risk: "ఎక్కువ గాలి/వర్షం.",
-                msg_dry_forecast: "పొడి వాతావరణం", msg_rain_expected: "వర్షం పడే అవకాశం",
-                msg_harvest_dry: "పొడి వాతావరణం ఉంది.", msg_harvest_wet: "తడి వాతావరణం ఉంది."
-            },
-            ml: {
-                nav_dash: "ഡാഷ്‌ബോർഡ്", nav_weather: "കാലാവസ്ഥ", nav_soil: "മണ്ണ്", nav_ai: "AI ടൂളുകൾ", nav_market: "വിപണി", nav_comm: "കൂട്ടായ്മ", nav_set: "ക്രമീകരണങ്ങൾ",
-                title_dash: "ഫാം ഡാഷ്‌ബോർഡ്", card_controls: "നിയന്ത്രണങ്ങൾ", lbl_location: "സ്ഥലം", lbl_crop: "വിള", lbl_issue: "പ്രശ്നം", btn_advice: "ഉപദേശം",
-                card_live: "തത്സമയ അവസ്ഥ", data_weather: "കാലാവസ്ഥ", next_24h: "അടുത്ത 24 മണിക്കൂർ", btn_full_weather: "വിശദാംശങ്ങൾ",
-                title_log: "ലോഗ്ബുക്ക്", btn_add: "പുതിയത്", txt_no_entries: "രേഖകളില്ല.",
-                title_ai: "AI ടൂളുകൾ", tool_pest: "കീട ഡോക്ടർ", btn_scan: "സ്കാൻ", tool_chat: "ഫാം ചാറ്റ്", btn_chat: "ചാറ്റ്",
-                title_market: "വിപണി", btn_list_produce: "വിൽക്കാൻ", txt_no_listings: "ലിസ്റ്റിംഗുകൾ ഇല്ല.",
-                title_comm: "കൂട്ടായ്മ", tab_forum: "ഫോറം", tab_equip: "ഉപകരണങ്ങൾ", tab_news: "വാർത്ത",
-                title_settings: "ക്രമീകരണങ്ങൾ", settings_profile: "പ്രൊഫൈൽ", btn_save: "സേവ്",
-                title_soil: "മണ്ണ് പരിശോധന", tab_calc: "കണക്കുകൂട്ടൽ", tab_visual: "കാഴ്ച", tab_history: "ചരിത്രം",
-                tab_supplies: "വിലകൾ", tab_produce: "എന്റെ വിള", tab_trace: "അഗ്രി-ട്രേസ്",
-                opt_rice: "അരി", opt_wheat: "ഗോതമ്പ്", opt_cotton: "പരുത്തി", opt_tomato: "തക്കാളി", opt_potato: "ഉരുളക്കിഴങ്ങ്", opt_onion: "ഉള്ളി",
-                opt_irrigation: "നനയ്ക്കാൻ", opt_fert: "വളം", opt_harvest: "വിളവെടുപ്പ്",
-                modal_advisory: "ഉപദേശം", modal_chat: "ചാറ്റ്", modal_log: "ലോഗ്", modal_pest: "പരിശോധന", modal_list: "വിൽക്കാൻ",
-                btn_list: "ലിസ്റ്റ്", btn_post: "പോസ്റ്റ്", btn_gen_report: "റിപ്പോർട്ട്", btn_analyze: "വിശകലനം",
-                ph_issue: "ഉദാ. മഞ്ഞ", ph_chat: "എഴുതൂ...", ph_log_notes: "കുറിപ്പുകൾ...", ph_produce_name: "വിള", ph_price: "വില", ph_share_tip: "അറിവ്...", ph_name: "പേര്",
-                widget_price: "വിപണി വില", widget_advisory: "മുന്നറിയിപ്പ്",
-                trace_start_title: "ബാച്ച് ട്രാക്കിംഗ്", trace_start_desc: "തിരിച്ചറിയൽ", btn_gen_qr: "പുതിയ ബാച്ച്", trace_qr_title: "QR കോഡ്", btn_sim_scan: "സ്കാൻ", trace_ledger_title: "ലഡ്ജർ", btn_view_qr: "QR കാണുക", btn_add_trans: "ഗതാഗതം", btn_add_recv: "രസീത്",
-                modal_trans: "ഗതാഗതം", modal_recv: "രസീത്", btn_update: "മാറ്റുക", ph_vehicle: "വാഹനം", ph_buyer: "വാങ്ങുന്നയാൾ",
-                soil_enter_lab: "ലാബ് ഡാറ്റ", lbl_nitrogen: "നൈട്രജൻ (N)", lbl_phosphorus: "ഫോസ്ഫറസ് (P)", lbl_potassium: "പൊട്ടാസ്യം (K)", lbl_ph: "pH",
-                soil_visual_analysis: "മണ്ണ് ചിത്രം", txt_no_tests: "പഴയവ ഇല്ല.", soil_report_title: "മണ്ണ് റിപ്പോർട്ട്",
-                market_realtime: "തത്സമയ വിലകൾ", ph_market_search: "തിരയൂ...", market_search_prompt: "വിലകൾ കാണാൻ തിരയൂ.", updated: "പുതുക്കി",
-                txt_no_news: "വാർത്തകൾ ഇവിടെ വരും.",
-                agri_planner: "കാർഷിക പദ്ധതി", task_spray: "മരുന്ന് തളി", task_irrigation: "നനയ്ക്കാൻ", task_harvest: "വിളവെടുപ്പ്", forecast_5d: "5 ദിവസത്തെ",
-                cond_0: "തെളിഞ്ഞ ആകാശം", cond_1: "തെളിഞ്ഞത്", cond_2: "ഭാഗികമായി മേഘം", cond_3: "മേഘാവൃതം", cond_45: "മൂടൽമഞ്ഞ്", cond_51: "ചാറ്റൽമഴ", cond_61: "മഴ", cond_80: "ശക്തമായ മഴ", cond_95: "ഇടിമിന്നൽ",
-                act_good: "നല്ലത്", act_avoid: "ഒഴിവാക്കുക", act_plan: "പ്ലാൻ", act_skip: "വേണ്ട", act_go: "തുടങ്ങാം", act_wait: "കാത്തിരിക്കൂ",
-                msg_spray_safe: "കാറ്റില്ല, മഴയില്ല.", msg_spray_risk: "കാറ്റ്/മഴ സാധ്യത.",
-                msg_dry_forecast: "ഉണങ്ങിയ കാലാവസ്ഥ", msg_rain_expected: "മഴ സാധ്യത",
-                msg_harvest_dry: "ഉണങ്ങിയ സമയം.", msg_harvest_wet: "മഴ വരാം."
+            hi: { nav_dash: "डैशबोर्ड", nav_log: "लॉगबुक", nav_ai: "एआई", nav_market: "बाज़ार", nav_comm: "समुदाय", nav_set: "सेटिंग्स", nav_soil: "मिट्टी",
+                  title_dash: "फार्म डैशबोर्ड", card_controls: "खेत नियंत्रण", lbl_location: "स्थान", btn_advice: "सलाह लें",
+                  card_live: "लाइव डेटा", data_weather: "मौसम", data_soil: "नमी", data_temp: "मिट्टी तापमान",
+                  title_log: "लॉगबुक", btn_add: "नई प्रविष्टि", txt_no_entries: "कोई प्रविष्टि नहीं।",
+                  title_ai: "एआई टूल्स", tool_pest: "कीट डॉक्टर", desc_pest: "रोग निदान के लिए स्कैन करें", btn_scan: "स्कैन", tool_chat: "फार्म चैट", desc_chat: "प्रश्न पूछें", btn_chat: "चैट",
+                  title_market: "बाज़ार", btn_list_produce: "बेचें", txt_no_listings: "कोई लिस्टिंग नहीं।",
+                  title_comm: "समुदाय", title_settings: "सेटिंग्स", lbl_name: "नाम", btn_save_profile: "सहेजें",
+                  title_soil: "मिट्टी केंद्र", tab_calc: "कैलक्यूलेटर", tab_visual: "दृश्य", tab_supplies: "लाइव भाव", tab_produce: "मेरी उपज", tab_trace: "एग्री-ट्रेस", tab_history: "इतिहास",
+                  opt_rice: "चावल", opt_wheat: "गेहूं", opt_cotton: "कपास", opt_irrigation: "सिंचाई", opt_fert: "उर्वरक", opt_harvest: "कटाई",
+                  modal_advisory: "सलाह", modal_chat: "चैट", modal_log: "लॉग", modal_pest: "कीट डॉक्टर", modal_list: "बेचें",
+                  btn_save: "सहेजें", btn_list: "सूचीबद्ध करें", btn_post: "पोस्ट",
+                  ph_issue: "उदा. पीला धब्बा", ph_chat: "लिखें...", ph_log_notes: "नोट्स...", ph_produce_name: "फसल", ph_price: "कीमत", ph_share_tip: "सुझाव...",
+                  widget_price: "बाज़ार भाव", widget_advisory: "सलाह"
             }
+            // Add other langs...
         };
-
-        // Helper to get translation key safely
-        function getTrans(key) {
-            return translations[curLang][key] || translations['en'][key] || key;
-        }
 
         function updateLanguage(lang) {
             curLang = lang;
-            
-            // 1. Update Static Elements
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                el.innerText = getTrans(key);
+                if(translations[lang] && translations[lang][key]) el.innerText = translations[lang][key];
+                else if(translations['en'][key]) el.innerText = translations['en'][key];
             });
             document.querySelectorAll('[data-i18n-ph]').forEach(el => {
                 const key = el.getAttribute('data-i18n-ph');
-                el.placeholder = getTrans(key);
+                if(translations[lang] && translations[lang][key]) el.placeholder = translations[lang][key];
+                else if(translations['en'][key]) el.placeholder = translations['en'][key];
             });
-
-            // 2. Re-render Dynamic Weather (if data exists)
-            if (window.lastWeatherData) {
-                renderWeather(window.lastWeatherData);
-            }
-
-            // 3. Re-render Market Categories
-            initMarket();
         }
         document.getElementById('langSwitcher').addEventListener('change', (e) => updateLanguage(e.target.value));
 
@@ -934,18 +699,8 @@
             CROP_TYPES.forEach(t => {
                 let btn = document.createElement('button');
                 btn.className = `market-cat-btn ${marketState.cat === t ? 'active' : ''}`;
-                // Use translations for category names
-                let key = 'cat_' + t.toLowerCase();
-                btn.innerText = getTrans(key);
-                btn.setAttribute('data-i18n', key); // Mark for future updates
-                
-                btn.onclick = () => { 
-                    marketState.cat = t; 
-                    // Update active class manually without full re-init
-                    document.querySelectorAll('.market-cat-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    fetchMarketData(marketState.loc.state, marketState.loc.district, t); 
-                };
+                btn.innerText = t;
+                btn.onclick = () => { marketState.cat = t; initMarket(); fetchMarketData(marketState.loc.state, marketState.loc.district, t); };
                 catContainer.appendChild(btn);
             });
         }
@@ -983,50 +738,33 @@
             const grid = document.getElementById('marketPricesGrid');
             grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:gray;">Fetching prices...</p>`;
             let items = [];
-            
             // 1. Govt API
             try {
                 let url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${GOVT_API_KEY}&format=json&limit=10&filters[district]=${district}`;
                 let res = await fetch(url);
                 let data = await res.json();
-                if(data.records && Array.isArray(data.records) && data.records.length > 0) {
-                    items = data.records.map(r => ({ crop: r.commodity, type: r.variety, price: r.modal_price, market: r.market, trend: 'steady' }));
-                }
-            } catch(e) {
-                console.error("Govt API Error", e);
-            }
-
-            // 2. AI Fallback if API returns nothing
-            if(!Array.isArray(items) || items.length === 0) {
-                // ... (AI Logic same as before) ...
+                if(data.records && data.records.length > 0) items = data.records.map(r => ({ crop: r.commodity, type: r.variety, price: r.modal_price, market: r.market, trend: 'steady' }));
+            } catch(e) {}
+            // 2. AI Fallback
+            if(items.length === 0) {
                 let prompt = `Generate JSON for current prices of ${category} in ${district}, ${state}. Array of objects: {crop, type, price, market, trend(up/down/steady), change(%)}. Return ONLY JSON.`;
                 try {
                    let aiRes = await callAI(prompt);
                    if(aiRes.includes('```json')) aiRes = aiRes.split('```json')[1].split('```')[0];
                    else if(aiRes.includes('```')) aiRes = aiRes.split('```')[1].split('```')[0];
-                   
-                   let parsed = JSON.parse(aiRes);
-                   if (Array.isArray(parsed)) {
-                       items = parsed;
-                   } else if (parsed && typeof parsed === 'object') {
-                       items = Object.values(parsed).find(val => Array.isArray(val)) || [];
-                   }
+                   items = JSON.parse(aiRes);
                 } catch(e) {
+                   // 3. Sim
                    items = [ { crop: "Rice", type: "Sona", price: 4200, trend: "up", change: 2.5, market: `${district} Mandi` } ];
                 }
             }
-
-            if (!Array.isArray(items)) {
-                 items = [ { crop: "Wheat", type: "Local", price: 2100, trend: "steady", change: 0, market: `${district} Market` }];
-            }
-
             grid.innerHTML = '';
             items.forEach(i => {
                 let col = i.trend === 'up' ? 'trend-up' : 'trend-steady';
                 let sym = i.trend === 'up' ? '▲' : '•';
                 grid.innerHTML += `<div class="market-card"><div style="display:flex; justify-content:space-between;"><div><h4 style="margin:0; color:white; font-size:1.1rem;">${i.crop}</h4><small style="color:gray;">${i.type}</small></div><span class="market-trend ${col}">${sym} ${i.change || 0}%</span></div><div style="margin-top:1rem;"><div style="font-size:1.5rem; font-weight:700; color:var(--primary);">₹${i.price}<span style="font-size:0.8rem; color:gray;">/Q</span></div><div style="font-size:0.8rem; color:gray;">📍 ${i.market}</div></div></div>`;
             });
-            document.getElementById('marketLastUpdated').innerText = `${getTrans('updated')}: ${new Date().toLocaleTimeString()}`;
+            document.getElementById('marketLastUpdated').innerText = `Updated: ${new Date().toLocaleTimeString()}`;
         }
 
         async function fetchSingleCropPrice(state, district, crop) {
@@ -1055,25 +793,23 @@
             if(q.length < 3) { document.getElementById('dashSearchResults').style.display='none'; return; }
             if(window.dashTimeout) clearTimeout(window.dashTimeout);
             window.dashTimeout = setTimeout(async () => {
-                try {
-                    let res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${q}&count=5&language=en&format=json`);
-                    let data = await res.json();
-                    let drop = document.getElementById('dashSearchResults');
-                    drop.innerHTML = ''; drop.style.display = 'block';
-                    if(data.results) {
-                        data.results.forEach(r => {
-                            let item = document.createElement('div');
-                            item.className = 'market-dropdown-item';
-                            item.innerHTML = `<div style="font-weight:600; color:white;">${r.name}</div><div style="font-size:0.8rem; color:gray;">${r.admin1||''}, ${r.country}</div>`;
-                            item.onclick = () => {
-                                dashInput.value = `${r.name}, ${r.admin1}`;
-                                drop.style.display = 'none';
-                                updateDashboardData(r.latitude, r.longitude, r.name, r.admin1, r.name);
-                            };
-                            drop.appendChild(item);
-                        });
-                    }
-                } catch (e) {}
+                let res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${q}&count=5&language=en&format=json`);
+                let data = await res.json();
+                let drop = document.getElementById('dashSearchResults');
+                drop.innerHTML = ''; drop.style.display = 'block';
+                if(data.results) {
+                    data.results.forEach(r => {
+                        let item = document.createElement('div');
+                        item.className = 'market-dropdown-item';
+                        item.innerHTML = `<div style="font-weight:600; color:white;">${r.name}</div><div style="font-size:0.8rem; color:gray;">${r.admin1||''}, ${r.country}</div>`;
+                        item.onclick = () => {
+                            dashInput.value = `${r.name}, ${r.admin1}`;
+                            drop.style.display = 'none';
+                            updateDashboardData(r.latitude, r.longitude, r.name, r.admin1, r.name);
+                        };
+                        drop.appendChild(item);
+                    });
+                }
             }, 300);
         });
 
@@ -1115,14 +851,17 @@
             if(mapInstance) {
                  mapInstance.setView([mapLat, mapLon], 13);
                  if(farmMarker) {
-                      farmMarker.setLatLng([mapLat, mapLon])
-                                .bindPopup(popupText)
-                                .openPopup();
+                     farmMarker.setLatLng([mapLat, mapLon])
+                               .bindPopup(popupText)
+                               .openPopup();
                  } else {
-                      farmMarker = L.marker([mapLat, mapLon]).addTo(mapInstance)
-                                      .bindPopup(popupText)
-                                      .openPopup();
+                     farmMarker = L.marker([mapLat, mapLon]).addTo(mapInstance)
+                                    .bindPopup(popupText)
+                                    .openPopup();
                  }
+            } else {
+                 // If map not init (rare), update globals for next init
+                 // Note: we can't easily force init here if tab is hidden, but nav() handles it.
             }
         }
 
@@ -1131,10 +870,6 @@
             document.querySelectorAll('.app-page').forEach(el => el.classList.remove('active'));
             document.getElementById('page-' + pageId).classList.add('active');
             document.querySelectorAll('.nav-item, .b-nav-item').forEach(el => el.classList.remove('active'));
-            // Find nav items for this page and activate them
-            document.querySelectorAll(`.nav-item[onclick="nav('${pageId}')"]`).forEach(el => el.classList.add('active'));
-            document.querySelectorAll(`.b-nav-item[onclick="nav('${pageId}')"]`).forEach(el => el.classList.add('active'));
-            
             document.getElementById('mainScroll').scrollTop = 0;
             // IMPORTANT: Map inside dashboard now, need to ensure it renders if tab is dashboard
             if(pageId === 'dashboard' && mapInstance) setTimeout(() => mapInstance.invalidateSize(), 300);
@@ -1156,112 +891,22 @@
         async function callAI(text, img=null) {
             try {
                 let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                
                 let parts = [{ text }];
-                if(img) {
-                    parts.push({ inlineData: { mimeType: "image/jpeg", data: img }});
-                }
-                
+                if(img) parts.push({ inlineData: { mimeType: "image/jpeg", data: img }});
                 let r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({contents:[{parts}]}) });
                 let d = await r.json();
                 return d.candidates?.[0]?.content?.parts?.[0]?.text || "No response.";
-            } catch(e) { return "AI Error. Please check connection."; }
+            } catch(e) { return "AI Error."; }
         }
 
-        // --- WEATHER LOGIC (ENHANCED & TRANSLATED) ---
-        const getWeatherConditionCode = (code) => {
-            if(code === 0) return 'cond_0';
-            if(code === 1) return 'cond_1';
-            if(code === 2) return 'cond_2';
-            if(code === 3) return 'cond_3';
-            if(code >= 45 && code <= 48) return 'cond_45';
-            if(code >= 51 && code <= 55) return 'cond_51';
-            if(code >= 61 && code <= 65) return 'cond_61';
-            if(code >= 80 && code <= 82) return 'cond_80';
-            if(code >= 95) return 'cond_95';
-            return 'cond_3'; // Default Cloudy
-        };
-
+        // --- WEATHER & GPS ---
         async function fetchWeather() {
             try {
                 document.getElementById('weatherData').innerText = "Loading...";
-                let res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,relative_humidity_2m,weather_code,precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=auto`);
+                let res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m&hourly=soil_temperature_0cm,soil_moisture_0_to_1cm&timezone=auto`);
                 let d = await res.json();
-                
-                window.lastWeatherData = d; // Store for language switch
-                renderWeather(d);
-
-            } catch(e) { console.error(e); document.getElementById('weatherData').innerText = "Offline"; }
-        }
-
-        function renderWeather(d) {
-            const curr = d.current;
-            const daily = d.daily;
-            
-            const condKey = getWeatherConditionCode(curr.weather_code);
-            const condText = getTrans(condKey);
-
-            // 1. Dashboard Widget Update
-            document.getElementById('weatherData').innerText = `${Math.round(curr.temperature_2m)}°C, ${condText}`;
-            document.getElementById('dashForecast24').innerText = `${Math.round(daily.temperature_2m_max[0])}° / ${Math.round(daily.temperature_2m_min[0])}°`;
-            document.getElementById('dashRain24').innerText = `${getTrans('cond_61')}: ${daily.precipitation_sum[0]}mm`;
-
-            // 2. Main Weather Page - Current
-            document.getElementById('w-temp-main').innerText = `${Math.round(curr.temperature_2m)}°`;
-            document.getElementById('w-desc-main').innerText = condText;
-            document.getElementById('w-icon-main').innerText = curr.weather_code > 50 ? '🌧️' : (curr.weather_code > 2 ? '☁️' : '☀️');
-            
-            document.getElementById('w-wind').innerText = curr.wind_speed_10m;
-            document.getElementById('w-humid').innerText = curr.relative_humidity_2m;
-            document.getElementById('w-rain').innerText = curr.precipitation;
-
-            // 3. Agri-Action Planner Logic (Translated)
-            const safeSpray = curr.wind_speed_10m < 15 && curr.precipitation < 1;
-            document.getElementById('spray-badge').innerText = getTrans(safeSpray ? "act_good" : "act_avoid");
-            document.getElementById('spray-badge').className = `status-badge ${safeSpray ? 'status-good' : 'status-bad'}`;
-            document.getElementById('spray-text').innerText = getTrans(safeSpray ? "msg_spray_safe" : "msg_spray_risk");
-
-            const rainNext2Days = daily.precipitation_sum[0] + daily.precipitation_sum[1];
-            const needWater = rainNext2Days < 5;
-            document.getElementById('irrig-badge').innerText = getTrans(needWater ? "act_plan" : "act_skip");
-            document.getElementById('irrig-badge').className = `status-badge ${needWater ? 'status-good' : 'status-bad'}`;
-            document.getElementById('irrig-text').innerText = needWater ? `${getTrans('msg_dry_forecast')} (${rainNext2Days}mm)` : `${getTrans('msg_rain_expected')} (${rainNext2Days}mm)`;
-
-            const rainNext3Days = daily.precipitation_sum[0] + daily.precipitation_sum[1] + daily.precipitation_sum[2];
-            const safeHarvest = rainNext3Days < 2;
-            document.getElementById('harvest-badge').innerText = getTrans(safeHarvest ? "act_go" : "act_wait");
-            document.getElementById('harvest-badge').className = `status-badge ${safeHarvest ? 'status-good' : 'status-bad'}`;
-            document.getElementById('harvest-text').innerText = getTrans(safeHarvest ? "msg_harvest_dry" : "msg_harvest_wet");
-
-            // 4. 5-Day Forecast
-            let forecastHTML = "";
-            const daysEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            // Simple localized days
-            const daysLoc = {
-                en: daysEn,
-                hi: ['रवि', 'सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि'],
-                kn: ['ಭಾನು', 'ಸೋಮ', 'ಮಂಗಳ', 'ಬುಧ', 'ಗುರು', 'ಶುಕ್ರ', 'ಶನಿ'],
-                ta: ['ஞாயிறு', 'திங்கள்', 'செவ்வாய்', 'புதன்', 'வியாழன்', 'வெள்ளி', 'சனி'],
-                te: ['ఆది', 'సోమ', 'మంగళ', 'బుధ', 'గురు', 'శుక్ర', 'శని'],
-                ml: ['ഞായർ', 'തിങ്കൾ', 'ചൊവ്വ', 'ബുധൻ', 'വ്യാഴം', 'വെള്ളി', 'ശനി']
-            };
-            const currentDays = daysLoc[curLang] || daysEn;
-
-            for(let i=0; i<5; i++) {
-                let date = new Date(daily.time[i]);
-                let dayName = i===0 ? (curLang === 'en' ? 'Today' : getTrans('nav_dash')) : currentDays[date.getDay()]; // Fallback Today logic
-                let icon = daily.weather_code[i] > 50 ? '🌧️' : (daily.weather_code[i] > 2 ? '☁️' : '☀️');
-                forecastHTML += `
-                <div class="forecast-row">
-                    <div style="flex:1; font-weight:600; color:white;">${dayName}</div>
-                    <div style="flex:1; font-size:1.2rem;">${icon}</div>
-                    <div style="flex:1; text-align:right;">
-                        <span style="color:white; font-weight:bold;">${Math.round(daily.temperature_2m_max[i])}°</span> 
-                        <span style="color:var(--text-muted); font-size:0.9rem;">${Math.round(daily.temperature_2m_min[i])}°</span>
-                    </div>
-                </div>`;
-            }
-            document.getElementById('forecast-container').innerHTML = forecastHTML;
+                document.getElementById('weatherData').innerText = `${d.current.temperature_2m}°C, Wind ${d.current.wind_speed_10m}km/h`;
+            } catch(e) { document.getElementById('weatherData').innerText = "Offline"; }
         }
 
         document.getElementById('gpsBtn').addEventListener('click', () => {
@@ -1285,7 +930,7 @@
              let ans = await callAI(prompt);
              document.getElementById('modalContent').innerHTML = ans.replace(/\n/g, '<br>');
              openModal('advisoryModal');
-             btn.disabled=false; btn.innerText = getTrans('btn_advice');
+             btn.disabled=false; btn.innerText = translations[curLang]['btn_advice'];
         });
 
         // --- CHAT LOGIC (Implemented) ---
@@ -1362,7 +1007,7 @@
 
         function renderSoilHistory() {
             let h = "";
-            if(db.soilTests.length === 0) h = `<p style="text-align:center; color:var(--text-muted);" data-i18n="txt_no_tests">No past tests.</p>`;
+            if(db.soilTests.length === 0) h = `<p style="text-align:center; color:var(--text-muted);">No past tests.</p>`;
             else db.soilTests.forEach(t => h += `<div class="data-item"><span>${t.date} - ${t.type}</span><br><small style="color:var(--text-muted)">${t.details}</small></div>`);
             document.getElementById('soilHistoryList').innerHTML = h;
         }
@@ -1481,7 +1126,7 @@
              let h = "";
              currentBatch.log.forEach(l => h+= `<div class="data-item"><span>${l}</span></div>`);
              document.getElementById('ledger-content').innerHTML = h;
-             
+             // Fixed: Added check or ensure element exists in HTML
              const detailsDiv = document.getElementById('ledger-crop-details');
              if(detailsDiv) detailsDiv.innerHTML = `<small style="color:gray;">ID: ${currentBatch.id}</small><br><strong style="color:var(--primary); font-size:1.2rem;">${currentBatch.crop}</strong>`;
              
